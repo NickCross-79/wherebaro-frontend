@@ -1,17 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 import Header from '../components/Header';
 import InventoryList from '../components/InventoryList';
 import LoadingScreen from '../components/LoadingScreen';
 import BaroAbsentScreen from '../components/BaroAbsentScreen';
+import ItemDetailModal from '../components/ItemDetailModal';
 import useBaroInventory from '../hooks/useBaroInventory';
 
 export default function HomeScreen() {
+  const [selectedItem, setSelectedItem] = useState(null);
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useBaroInventory();
 
   const handleItemPress = (item) => {
-    // Handle item press - could navigate to detail screen
-    console.log('Item pressed:', item.name);
+    setSelectedItem(item);
   };
 
   if (loading && !refreshing) {
@@ -33,6 +35,11 @@ export default function HomeScreen() {
         refreshing={refreshing}
         onRefresh={onRefresh}
         onItemPress={handleItemPress}
+      />
+      <ItemDetailModal
+        item={selectedItem}
+        visible={selectedItem !== null}
+        onClose={() => setSelectedItem(null)}
       />
     </View>
   );

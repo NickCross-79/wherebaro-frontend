@@ -2,10 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
+import ItemDetailModal from '../components/ItemDetailModal';
 import useAllBaroItems from '../hooks/useAllBaroItems';
 
 export default function AllItemsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
   const { items, loading, refreshing, error, onRefresh } = useAllBaroItems();
 
   const filteredItems = searchQuery
@@ -63,7 +65,7 @@ export default function AllItemsScreen() {
           renderItem={({ item }) => (
             <ItemCard
               item={item}
-              onPress={() => console.log('All items - pressed:', item.name)}
+              onPress={() => setSelectedItem(item)}
             />
           )}
           contentContainerStyle={styles.scrollContent}
@@ -90,6 +92,12 @@ export default function AllItemsScreen() {
           removeClippedSubviews={true}
         />
       )}
+
+      <ItemDetailModal
+        item={selectedItem}
+        visible={selectedItem !== null}
+        onClose={() => setSelectedItem(null)}
+      />
     </View>
   );
 }
