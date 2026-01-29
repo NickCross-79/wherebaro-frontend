@@ -1,5 +1,5 @@
 
-import { StyleSheet, View, Text, Image, Modal, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, View, Text, Image, Modal, TouchableOpacity, ScrollView, TextInput, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 
@@ -193,6 +193,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
+        <Pressable style={styles.overlayPressable} onPress={onClose} />
         <View style={styles.modalContent}>
 
           {/* Tab Navigation */}
@@ -249,6 +250,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C89B3C',
     overflow: 'hidden',
+    zIndex: 2,
+  },
+  overlayPressable: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   tabNav: {
     flexDirection: 'row',
