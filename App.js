@@ -1,10 +1,16 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Image, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import HomeScreen from './screens/HomeScreen';
 import WishlistScreen from './screens/WishlistScreen';
 import AllItemsScreen from './screens/AllItemsScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import HomeActive from './assets/icons/icon_home_active.svg';
+import HomeInactive from './assets/icons/icon_home_inactive.svg';
+import ListActive from './assets/icons/icon_list_active.svg';
+import ListInactive from './assets/icons/icon_list_inactive.svg';
+import HeartInactive from './assets/icons/icon_heart_inactive.svg';
+import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
 
 const Tab = createBottomTabNavigator();
 
@@ -25,14 +31,7 @@ export default function App() {
           component={HomeScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Image
-                source={
-                  focused
-                    ? require('./assets/icons/icon_home_active.svg')
-                    : require('./assets/icons/icon_home_inactive.svg')
-                }
-                style={styles.icon}
-              />
+              focused ? <HomeActive width={24} height={24} /> : <HomeInactive width={24} height={24} />
             ),
           }}
         />
@@ -41,14 +40,7 @@ export default function App() {
           component={WishlistScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Image
-                source={
-                  focused
-                    ? require('./assets/icons/icon_heart_inactive.svg')
-                    : require('./assets/icons/icon_heart_inactive.svg')
-                }
-                style={[styles.icon, focused && styles.activeIcon]}
-              />
+              <HeartInactive width={24} height={24} />
             ),
           }}
         />
@@ -57,14 +49,7 @@ export default function App() {
           component={AllItemsScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Image
-                source={
-                  focused
-                    ? require('./assets/icons/icon_list_active.svg')
-                    : require('./assets/icons/icon_list_inactive.svg')
-                }
-                style={styles.icon}
-              />
+              focused ? <ListActive width={24} height={24} /> : <ListInactive width={24} height={24} />
             ),
           }}
         />
@@ -73,10 +58,7 @@ export default function App() {
           component={SettingsScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Image
-                source={require('./assets/icons/icon_settings_inactive.svg')}
-                style={[styles.icon, focused && styles.activeIcon]}
-              />
+              <SettingsInactive width={24} height={24} />
             ),
           }}
         />
@@ -98,13 +80,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 4,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-    tintColor: '#5A6B8C',
-  },
-  activeIcon: {
-    tintColor: '#C89B3C',
   },
 });

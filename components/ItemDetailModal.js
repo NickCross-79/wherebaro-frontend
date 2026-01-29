@@ -14,6 +14,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
       setActiveTab('details');
     }
   }, [visible]);
+
   
   if (!item) return null;
 
@@ -68,19 +69,32 @@ export default function ItemDetailModal({ item, visible, onClose }) {
       <View style={styles.typeContainer}>
         <View style={styles.typeBadge}>
           <Text style={styles.typeText}>{item.type}</Text>
+
         </View>
       </View>
 
       {/* Prices */}
       <View style={styles.pricesContainer}>
         <View style={styles.priceBox}>
-          <Text style={styles.priceLabel}>Credits</Text>
+          <View style={styles.priceLabelRow}>
+            <Image
+              source={require('../assets/icons/icon_credits.png')}
+              style={styles.creditIcon}
+            />
+            <Text style={styles.priceLabel}>Credits</Text>
+          </View>
           <Text style={styles.creditValue}>
             {item.creditPrice?.toLocaleString() || 'N/A'}
           </Text>
         </View>
         <View style={styles.priceBox}>
-          <Text style={styles.priceLabel}>Ducats</Text>
+          <View style={styles.priceLabelRow}>
+            <Image
+              source={require('../assets/icons/icon_ducats.png')}
+              style={styles.ducatIcon}
+            />
+            <Text style={styles.priceLabel}>Ducats</Text>
+          </View>
           <Text style={styles.ducatValue}>
             {item.ducatPrice || 'N/A'}
           </Text>
@@ -341,6 +355,20 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
+  },
+  priceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  creditIcon: {
+    width: 20,
+    height: 20,
+  },
+  ducatIcon: {
+    width: 20,
+    height: 20,
   },
   creditValue: {
     fontSize: 20,

@@ -27,13 +27,25 @@ export default function ItemCard({ item, onPress }) {
           
           <View style={styles.priceContainer}>
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Credits</Text>
+              <View style={styles.priceLabelRow}>
+                <Image
+                  source={require('../assets/icons/icon_credits.png')}
+                  style={styles.creditIcon}
+                />
+                <Text style={styles.priceLabel}>Credits</Text>
+              </View>
               <Text style={styles.priceValue}>
                 {item.creditPrice.toLocaleString()}
               </Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Ducats</Text>
+              <View style={styles.priceLabelRow}>
+                <Image
+                  source={require('../assets/icons/icon_ducats.png')}
+                  style={styles.ducatIcon}
+                />
+                <Text style={styles.priceLabel}>Ducats</Text>
+              </View>
               <Text style={styles.ducatValue}>
                 {item.ducatPrice}
               </Text>
@@ -122,6 +134,20 @@ const styles = StyleSheet.create({
     color: '#8B9DC3',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  priceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  creditIcon: {
+    width: 18,
+    height: 18,
+  },
+  ducatIcon: {
+    width: 18,
+    height: 18,
   },
   priceValue: {
     fontSize: 16,
