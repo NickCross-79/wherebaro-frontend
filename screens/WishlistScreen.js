@@ -6,12 +6,14 @@ export default function WishlistScreen() {
   // Mock wishlist data - replace with actual saved wishlist
   const wishlistItems = [
     {
+      _id: '1',
       name: 'Primed Flow',
       image: 'https://via.placeholder.com/150',
       creditPrice: 110000,
       ducatPrice: 350,
       type: 'Mod',
-      likes: 312
+      likes: 312,
+      offeringDates: ['2026-01-29']
     }
   ];
 

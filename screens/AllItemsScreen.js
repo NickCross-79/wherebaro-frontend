@@ -1,50 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
+import useAllBaroItems from '../hooks/useAllBaroItems';
 
 export default function AllItemsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Mock all items data - replace with actual API call
-  const allItems = [
-    {
-      name: 'Primed Continuity',
-      image: 'https://via.placeholder.com/150',
-      creditPrice: 100000,
-      ducatPrice: 350,
-      type: 'Mod',
-      likes: 245
-    },
-    {
-      name: 'Prisma Gorgon',
-      image: 'https://via.placeholder.com/150',
-      creditPrice: 250000,
-      ducatPrice: 600,
-      type: 'Weapon',
-      likes: 189
-    },
-    {
-      name: 'Primed Flow',
-      image: 'https://via.placeholder.com/150',
-      creditPrice: 110000,
-      ducatPrice: 350,
-      type: 'Mod',
-      likes: 312
-    },
-    {
-      name: 'Prisma Skana',
-      image: 'https://via.placeholder.com/150',
-      creditPrice: 175000,
-      ducatPrice: 510,
-      type: 'Weapon',
-      likes: 156
-    }
-  ];
+  const { items, loading, refreshing, error, onRefresh } = useAllBaroItems();
 
   const filteredItems = searchQuery
-    ? allItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : allItems;
+    ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : items;
 
   return (
     <View style={styles.container}>
@@ -53,7 +19,7 @@ export default function AllItemsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ALL ITEMS</Text>
-        <Text style={styles.headerSubtitle}>{allItems.length} items in archive</Text>
+        <Text style={styles.headerSubtitle}>{items.length} items in archive</Text>
         
         {/* Search Bar */}
         <TextInput
@@ -65,21 +31,62 @@ export default function AllItemsScreen() {
         />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {filteredItems.map((item, index) => (
-          <ItemCard
-            key={index}
-            item={item}
-            onPress={() => console.log('All items - pressed:', item.name)}
-          />
-        ))}
-        {filteredItems.length === 0 && (
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#C89B3C" />
+          <Text style={styles.loadingText}>Loading Baro's archive...</Text>
+        </View>
+      ) : error ? (
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#C89B3C"
+            />
+          }
+        >
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No items found</Text>
-            <Text style={styles.emptySubtext}>Try a different search term</Text>
+            <Text style={styles.emptyText}>Error loading items</Text>
+            <Text style={styles.emptySubtext}>{error}</Text>
+            <Text style={styles.emptySubtext}>Pull down to retry</Text>
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      ) : (
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#C89B3C"
+            />
+          }
+        >
+          {filteredItems.map((item, index) => (
+            <ItemCard
+              key={item.id || index}
+              item={item}
+              onPress={() => console.log('All items - pressed:', item.name)}
+            />
+          ))}
+          {filteredItems.length === 0 && items.length > 0 && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No items found</Text>
+              <Text style={styles.emptySubtext}>Try a different search term</Text>
+            </View>
+          )}
+          {items.length === 0 && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No items in archive</Text>
+              <Text style={styles.emptySubtext}>Pull down to refresh</Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -134,10 +141,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#8B9DC3',
     fontWeight: '600',
+    textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
     color: '#5A6B8C',
     marginTop: 8,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    color: '#C89B3C',
+    fontSize: 16,
+    marginTop: 20,
+    fontWeight: '500',
   },
 });

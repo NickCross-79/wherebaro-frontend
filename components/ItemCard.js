@@ -8,7 +8,7 @@ export default function ItemCard({ item, onPress }) {
           <Text style={styles.typeText}>{item.type}</Text>
         </View>
         <View style={styles.likesContainer}>
-          <Text style={styles.likesText}>♥ {item.likes}</Text>
+          <Text style={styles.likesText}>♥ {item.likes || 0}</Text>
         </View>
       </View>
       
@@ -18,6 +18,7 @@ export default function ItemCard({ item, onPress }) {
             source={{ uri: item.image }}
             style={styles.itemImage}
             resizeMode="contain"
+            defaultSource={require('../assets/logo_baro.png')}
           />
         </View>
         
