@@ -194,10 +194,6 @@ export default function ItemDetailModal({ item, visible, onClose }) {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          {/* Close Button */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={28} color="#FFFFFF" />
-          </TouchableOpacity>
 
           {/* Tab Navigation */}
           <View style={styles.tabNav}>
@@ -253,18 +249,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C89B3C',
     overflow: 'hidden',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    backgroundColor: '#1A2332',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   tabNav: {
     flexDirection: 'row',
