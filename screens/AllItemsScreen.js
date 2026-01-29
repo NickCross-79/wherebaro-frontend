@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import useAllBaroItems from '../hooks/useAllBaroItems';
@@ -37,8 +37,9 @@ export default function AllItemsScreen() {
           <Text style={styles.loadingText}>Loading Baro's archive...</Text>
         </View>
       ) : error ? (
-        <ScrollView 
-          style={styles.scrollView} 
+        <FlatList
+          data={[]}
+          renderItem={null}
           contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
@@ -47,45 +48,47 @@ export default function AllItemsScreen() {
               tintColor="#C89B3C"
             />
           }
-        >
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Error loading items</Text>
-            <Text style={styles.emptySubtext}>{error}</Text>
-            <Text style={styles.emptySubtext}>Pull down to retry</Text>
-          </View>
-        </ScrollView>
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Error loading items</Text>
+              <Text style={styles.emptySubtext}>{error}</Text>
+              <Text style={styles.emptySubtext}>Pull down to retry</Text>
+            </View>
+          )}
+        />
       ) : (
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#C89B3C"
-            />
-          }
-        >
-          {filteredItems.map((item, index) => (
+        <FlatList
+          data={filteredItems}
+          keyExtractor={(item, index) => item.id || `item-${index}`}
+          renderItem={({ item }) => (
             <ItemCard
-              key={item.id || index}
               item={item}
               onPress={() => console.log('All items - pressed:', item.name)}
             />
-          ))}
-          {filteredItems.length === 0 && items.length > 0 && (
+          )}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#C89B3C"
+            />
+          }
+          ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No items found</Text>
-              <Text style={styles.emptySubtext}>Try a different search term</Text>
+              <Text style={styles.emptyText}>
+                {items.length === 0 ? 'No items in archive' : 'No items found'}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {items.length === 0 ? 'Pull down to refresh' : 'Try a different search term'}
+              </Text>
             </View>
           )}
-          {items.length === 0 && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No items in archive</Text>
-              <Text style={styles.emptySubtext}>Pull down to refresh</Text>
-            </View>
-          )}
-        </ScrollView>
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
+        />
       )}
     </View>
   );
@@ -123,11 +126,9 @@ const styles = StyleSheet.create({
     padding: 12,
     color: '#FFFFFF',
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#2A3442',
-  },
-  scrollView: {
-    flex: 1,
+    bordView: {
+        flex: 1,
+    }
   },
   scrollContent: {
     padding: 16,
