@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -106,21 +107,34 @@ export default function ItemDetailScreen({ route, navigation }) {
 
       {activeTab === 'details' ? (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Item Image */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.image }}
-            style={styles.itemImage}
-            resizeMode="contain"
+        {/* Item Image with Background */}
+        <ImageBackground
+          source={require('../assets/background_newItem.png')}
+          style={styles.imageBackgroundContainer}
+          imageStyle={styles.imageBackgroundImage}
+          resizeMode="cover"
+          blurRadius={4}
+        >
+          <LinearGradient
+            colors={['rgba(10, 14, 26, 0.95)', 'rgba(10, 14, 26, 0.15)']}
+            start={{ x: 0.5, y: 1 }}
+            end={{ x: 0.5, y: 0 }}
+            style={styles.gradientOverlay}
+            pointerEvents="none"
           />
-        </View>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.itemImage}
+              resizeMode="contain"
+            />
+          </View>
+        </ImageBackground>
 
         {/* Item Name and Type */}
         <View style={styles.infoSection}>
           <Text style={styles.itemName}>{item.name}</Text>
-          <View style={styles.typeBadge}>
-            <Text style={styles.typeText}>{item.type}</Text>
-          </View>
+          <Text style={styles.categoryText}>{item.type}</Text>
         </View>
 
         {/* Prices */}
@@ -191,6 +205,23 @@ export default function ItemDetailScreen({ route, navigation }) {
       </ScrollView>
       ) : (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Like Button - At top of Reviews Tab */}
+        <View style={styles.likeSection}>
+          <TouchableOpacity 
+            style={[styles.likeButton, userLiked && styles.likeButtonActive]} 
+            onPress={handleLike}
+          >
+            <Ionicons 
+              name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
+              size={24} 
+              color={userLiked ? "#D4A574" : "#8B9DC3"} 
+            />
+            <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
+              {(item.likes || 0) + (userLiked ? 1 : 0)} Likes
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Post Review Section */}
         <View style={styles.postReviewSection}>
           <Text style={styles.sectionTitle}>Write a Review</Text>
@@ -241,23 +272,6 @@ export default function ItemDetailScreen({ route, navigation }) {
         </View>
       </ScrollView>
       )}
-
-      {/* Like Button - Fixed at bottom */}
-      <View style={styles.likeSection}>
-        <TouchableOpacity 
-          style={[styles.likeButton, userLiked && styles.likeButtonActive]} 
-          onPress={handleLike}
-        >
-          <Ionicons 
-            name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
-            size={24} 
-            color={userLiked ? "#D4A574" : "#8B9DC3"} 
-          />
-          <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
-            {(item.likes || 0) + (userLiked ? 1 : 0)} Likes
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -297,6 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F1419',
     borderBottomWidth: 1,
     borderBottomColor: '#1A2332',
+    paddingHorizontal: 16,
   },
   tab: {
     flex: 1,
@@ -323,25 +338,32 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 0,
+  },
+  imageBackgroundContainer: {
+    width: '100%',
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageBackgroundImage: {
+    borderRadius: 0,
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   imageContainer: {
     width: '100%',
-    height: 280,
-    backgroundColor: '#151B23',
-    borderRadius: 16,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#1F2937',
   },
   itemImage: {
     width: '80%',
     height: '80%',
   },
   infoSection: {
-    marginBottom: 24,
+    padding: 16,
   },
   itemName: {
     fontSize: 24,
@@ -349,24 +371,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 8,
   },
-  typeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D4A574',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  typeText: {
-    color: '#0A0E1A',
-    fontSize: 12,
+  categoryText: {
+    fontSize: 14,
     fontWeight: '700',
+    color: '#9BA5B8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: 0,
   },
   pricesContainer: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   priceBox: {
     flex: 1,
@@ -414,6 +431,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1A2332',
     marginBottom: 24,
+    marginHorizontal: 16,
   },
   dateLabel: {
     fontSize: 12,
@@ -434,6 +452,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1A2332',
     marginBottom: 24,
+    marginHorizontal: 16,
     overflow: 'hidden',
   },
   dropdownHeader: {
@@ -512,6 +531,7 @@ const styles = StyleSheet.create({
   },
   postReviewSection: {
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 16,
@@ -551,6 +571,7 @@ const styles = StyleSheet.create({
   },
   reviewsListSection: {
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   emptyReviews: {
     alignItems: 'center',
