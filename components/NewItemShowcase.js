@@ -1,4 +1,5 @@
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Image, ImageBackground, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function NewItemShowcase({ item, onPress }) {
   if (!item) return null;
@@ -10,19 +11,34 @@ export default function NewItemShowcase({ item, onPress }) {
       </View>
       
       <TouchableOpacity style={styles.showcaseCard} onPress={onPress}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.image }}
-            style={styles.itemImage}
-            resizeMode="contain"
+        <ImageBackground
+          source={require('../assets/background_newItem.png')}
+          style={styles.showcaseCardBackground}
+          imageStyle={styles.showcaseCardImage}
+          resizeMode="cover"
+          blurRadius={4}
+        >
+          <LinearGradient
+            colors={['rgba(10, 14, 26, 0.95)', 'rgba(10, 14, 26, 0.15)']}
+            start={{ x: 0.5, y: 1 }}
+            end={{ x: 0.5, y: 0 }}
+            style={styles.gradientOverlay}
+            pointerEvents="none"
           />
-        </View>
-        
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Text style={styles.itemType}>{item.type}</Text>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.itemImage}
+              resizeMode="contain"
+            />
+          </View>
           
-          <View style={styles.priceRow}>
+          <View style={styles.itemInfo}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemType}>{item.type}</Text>
+          </View>
+
+          <View style={styles.priceStack}>
             <View style={styles.priceItem}>
               <Image
                 source={require('../assets/icons/icon_credits.png')}
@@ -38,7 +54,7 @@ export default function NewItemShowcase({ item, onPress }) {
               <Text style={styles.ducatPrice}>{item.ducatPrice}</Text>
             </View>
           </View>
-        </View>
+        </ImageBackground>
       </TouchableOpacity>
     </View>
   );
@@ -66,37 +82,50 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   showcaseCard: {
-    flexDirection: 'row',
-    backgroundColor: '#0F1419',
     borderRadius: 16,
     borderTopLeftRadius: 0,
-    padding: 16,
     borderWidth: 2,
     borderColor: '#D4A574',
-    gap: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 10,
+    overflow: 'hidden',
+  },
+  showcaseCardBackground: {
+    position: 'relative',
+    minHeight: 220,
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  showcaseCardImage: {
+    borderRadius: 16,
+    borderTopLeftRadius: 0,
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   imageContainer: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#151B23',
+    width: 160,
+    height: 160,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1F2937',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderColor: 'transparent',
+    marginTop: -48,
   },
   itemImage: {
-    width: 80,
-    height: 80,
+    width: 130,
+    height: 130,
   },
   itemInfo: {
-    flex: 1,
-    justifyContent: 'center',
+    position: 'absolute',
+    left: 16,
+    bottom: 8,
   },
   itemName: {
     fontSize: 20,
@@ -112,9 +141,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontWeight: '600',
   },
-  priceRow: {
-    flexDirection: 'row',
-    gap: 20,
+  priceStack: {
+    position: 'absolute',
+    right: 16,
+    bottom: 12,
+    alignItems: 'flex-end',
+    gap: 6,
   },
   priceItem: {
     flexDirection: 'row',

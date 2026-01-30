@@ -47,7 +47,7 @@ export default function useBaroInventory() {
         {
           _id: '1',
           name: 'Primed Continuity',
-          image: 'PrimedContinuity.png',
+          image: 'PrimedContinuityMod.png',
           link: 'Primed Continuity',
           creditPrice: 100000,
           ducatPrice: 350,
@@ -71,7 +71,7 @@ export default function useBaroInventory() {
         {
           _id: '3',
           name: 'Primed Flow',
-          image: 'PrimedFlow.png',
+          image: 'PrimedFlowMod.png',
           link: 'Primed Flow',
           creditPrice: 110000,
           ducatPrice: 350,
