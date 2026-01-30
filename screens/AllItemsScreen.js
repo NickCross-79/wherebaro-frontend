@@ -16,7 +16,7 @@ export default function AllItemsScreen({ navigation }) {
 
   // Apply type filters
   const typeFilteredItems = filters.types.length > 0
-    ? filteredItems.filter(item => filters.types.includes(item.type))
+    ? filteredItems.filter(item => filters.types.some(filterType => item.type.startsWith(filterType)))
     : filteredItems;
 
   // Apply popularity sorting
