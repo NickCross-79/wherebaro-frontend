@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 import BaroTimer from './BaroTimer';
 
-export default function Header({ nextArrival, nextLocation }) {
+export default function Header({ nextArrival, nextLocation, children }) {
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>WHERE BARO</Text>
       <Text style={styles.headerSubtitle}>Void Trader Tracker</Text>
       {nextArrival && <BaroTimer nextArrival={nextArrival} location={nextLocation} />}
+      {children}
     </View>
   );
 }

@@ -1,8 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TextInput } from 'react-native';
+import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 
 export default function WishlistScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
   // Mock wishlist data - replace with actual saved wishlist
   const wishlistItems = [
     {
@@ -17,6 +19,10 @@ export default function WishlistScreen() {
     }
   ];
 
+  const filteredItems = searchQuery
+    ? wishlistItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : wishlistItems;
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -25,16 +31,29 @@ export default function WishlistScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>WISHLIST</Text>
         <Text style={styles.headerSubtitle}>Items you're waiting for</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search items..."
+          placeholderTextColor="#5A6B8C"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {wishlistItems.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Your wishlist is empty</Text>
-            <Text style={styles.emptySubtext}>Tap the heart on items to add them here</Text>
+            <Text style={styles.emptyText}>
+              {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {wishlistItems.length === 0
+                ? 'Tap the heart on items to add them here'
+                : 'Try a different search term'}
+            </Text>
           </View>
         ) : (
-          wishlistItems.map((item, index) => (
+          filteredItems.map((item, index) => (
             <ItemCard
               key={index}
               item={item}
@@ -71,6 +90,14 @@ const styles = StyleSheet.create({
     color: '#8B9DC3',
     marginTop: 4,
     letterSpacing: 1,
+  },
+  searchInput: {
+    marginTop: 15,
+    backgroundColor: '#1A2332',
+    borderRadius: 8,
+    padding: 12,
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   scrollView: {
     flex: 1,

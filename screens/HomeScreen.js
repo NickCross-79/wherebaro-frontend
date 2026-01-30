@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
 import { useState } from 'react';
 import Header from '../components/Header';
 import InventoryList from '../components/InventoryList';
@@ -10,7 +10,12 @@ import useBaroInventory from '../hooks/useBaroInventory';
 
 export default function HomeScreen() {
   const [selectedItem, setSelectedItem] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useBaroInventory();
+
+  const filteredItems = searchQuery
+    ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : items;
 
   const handleItemPress = (item) => {
     setSelectedItem(item);
@@ -29,9 +34,17 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <Header nextArrival={nextArrival} nextLocation={nextLocation} />
+      <Header nextArrival={nextArrival} nextLocation={nextLocation}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search items..."
+          placeholderTextColor="#5A6B8C"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </Header>
       <InventoryList
-        items={items}
+        items={filteredItems}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onItemPress={handleItemPress}
@@ -49,5 +62,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0A0E1A',
+  },
+  searchInput: {
+    marginTop: 15,
+    backgroundColor: '#1A2332',
+    borderRadius: 8,
+    padding: 12,
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
