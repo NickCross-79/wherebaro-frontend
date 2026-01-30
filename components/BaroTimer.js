@@ -58,11 +58,18 @@ export default function BaroTimer({ nextArrival, location, centered = false, lab
 const styles = StyleSheet.create({
   timerContainer: {
     marginTop: 15,
-    padding: 12,
-    backgroundColor: '#1A2332',
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#C89B3C',
+    padding: 14,
+    backgroundColor: '#0F1419',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#D4A574',
+    borderWidth: 1,
+    borderColor: '#1A2332',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   centered: {
     marginTop: 0,
@@ -70,6 +77,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderWidth: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   headerRow: {
     flexDirection: 'row',
@@ -85,14 +94,15 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     fontSize: 12,
-    color: '#8B9DC3',
+    color: '#9BA5B8',
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontWeight: '600',
   },
   locationText: {
     fontSize: 12,
-    color: '#C89B3C',
-    fontWeight: '600',
+    color: '#D4A574',
+    fontWeight: '700',
   },
   centeredText: {
     textAlign: 'center',
@@ -106,6 +116,6 @@ const styles = StyleSheet.create({
   timerValue: {
     fontSize: 24,
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 });

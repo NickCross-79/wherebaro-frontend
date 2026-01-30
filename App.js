@@ -69,16 +69,16 @@ export default function App() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#121825',
+    backgroundColor: '#0F1419',
     borderTopWidth: 2,
-    borderTopColor: '#1F2937',
+    borderTopColor: '#1A2332',
     height: 70,
     paddingBottom: 10,
     paddingTop: 10,
   },
   tabBarLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 4,
   },
 });

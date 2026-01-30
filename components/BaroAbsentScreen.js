@@ -143,10 +143,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: '#C89B3C',
+    fontWeight: '700',
+    color: '#D4A574',
     marginBottom: 10,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
   journeyContainer: {
     flexDirection: 'row',
@@ -172,7 +174,7 @@ const styles = StyleSheet.create({
   },
   iconLabel: {
     fontSize: 12,
-    color: '#8B9DC3',
+    color: '#9BA5B8',
     fontWeight: '600',
   },
   travelPath: {
@@ -187,15 +189,16 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C89B3C',
+    backgroundColor: '#D4A574',
     top: '50%',
     marginTop: -4, // Center the dot vertically
   },
   subtitle: {
     fontSize: 16,
-    color: '#8B9DC3',
+    color: '#9BA5B8',
     textAlign: 'center',
     marginBottom: 40,
+    fontWeight: '500',
   },
   logoContainer: {
     width: 150,
@@ -221,13 +224,13 @@ const styles = StyleSheet.create({
   },
   timerValue: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   locationText: {
     fontSize: 12,
-    color: '#C89B3C',
-    fontWeight: '600',
+    color: '#D4A574',
+    fontWeight: '700',
     marginTop: 4,
   },
   hint: {

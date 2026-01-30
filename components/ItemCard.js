@@ -59,12 +59,17 @@ export default function ItemCard({ item, onPress }) {
 
 const styles = StyleSheet.create({
   itemCard: {
-    backgroundColor: '#121825',
-    borderRadius: 12,
+    backgroundColor: '#0F1419',
+    borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#1F2937',
+    borderColor: '#1A2332',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -74,16 +79,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2332',
   },
   typeTag: {
-    backgroundColor: '#C89B3C',
+    backgroundColor: '#D4A574',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   typeText: {
     color: '#0A0E1A',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   likesContainer: {
     flexDirection: 'row',
@@ -101,11 +107,13 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 100,
     height: 100,
-    backgroundColor: '#1A2332',
-    borderRadius: 8,
+    backgroundColor: '#151B23',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#1F2937',
   },
   itemImage: {
     width: 80,
@@ -117,7 +125,7 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 8,
   },
@@ -134,6 +142,7 @@ const styles = StyleSheet.create({
     color: '#8B9DC3',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    fontWeight: '600',
   },
   priceLabelRow: {
     flexDirection: 'row',
@@ -151,12 +160,12 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: '#E8E8E8',
+    fontWeight: '700',
   },
   ducatValue: {
     fontSize: 16,
-    color: '#C89B3C',
-    fontWeight: '600',
+    color: '#D4A574',
+    fontWeight: '700',
   },
 });

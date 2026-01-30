@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   searchWrapper: {
     flex: 1,
@@ -91,23 +91,28 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A2332',
-    borderRadius: 8,
+    backgroundColor: '#0F1419',
+    borderRadius: 10,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#1A2332',
   },
   searchInput: {
     flex: 1,
     padding: 12,
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '500',
   },
   closeButton: {
     padding: 12,
   },
   iconButton: {
-    backgroundColor: '#1A2332',
+    backgroundColor: '#0F1419',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1A2332',
   },
   filterButton: {
     position: 'relative',
@@ -119,6 +124,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C89B3C',
+    backgroundColor: '#D4A574',
   },
 });

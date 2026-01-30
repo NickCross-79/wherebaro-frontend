@@ -124,21 +124,22 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#121825',
+    backgroundColor: '#0F1419',
     borderBottomWidth: 2,
-    borderBottomColor: '#C89B3C',
+    borderBottomColor: '#D4A574',
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#C89B3C',
-    letterSpacing: 2,
+    fontWeight: '700',
+    color: '#D4A574',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8B9DC3',
+    color: '#9BA5B8',
     marginTop: 4,
-    letterSpacing: 1,
+    fontWeight: '500',
   },
   scrollContent: {
     padding: 16,
@@ -150,8 +151,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 20,
-    color: '#8B9DC3',
-    fontWeight: '600',
+    color: '#9BA5B8',
+    fontWeight: '700',
     textAlign: 'center',
   },
   emptySubtext: {
@@ -167,9 +168,9 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    color: '#C89B3C',
+    color: '#D4A574',
     fontSize: 16,
     marginTop: 20,
-    fontWeight: '500',
+    fontWeight: '700',
   },
 });
