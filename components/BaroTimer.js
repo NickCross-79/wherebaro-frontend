@@ -102,7 +102,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
-    justifyContent: 'center',
   },
   timerValue: {
     fontSize: 24,
