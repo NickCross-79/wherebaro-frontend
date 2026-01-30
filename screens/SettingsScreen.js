@@ -31,7 +31,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifications}
               onValueChange={setNotifications}
-              trackColor={{ false: '#2A3442', true: '#C89B3C' }}
+              trackColor={{ false: '#2A3442', true: '#D4A574' }}
               thumbColor={notifications ? '#FFFFFF' : '#8B9DC3'}
             />
           </View>
@@ -51,7 +51,7 @@ export default function SettingsScreen() {
             <Switch
               value={autoRefresh}
               onValueChange={setAutoRefresh}
-              trackColor={{ false: '#2A3442', true: '#C89B3C' }}
+              trackColor={{ false: '#2A3442', true: '#D4A574' }}
               thumbColor={autoRefresh ? '#FFFFFF' : '#8B9DC3'}
             />
           </View>

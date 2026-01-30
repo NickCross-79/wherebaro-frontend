@@ -48,7 +48,7 @@ export default function AllItemsScreen({ navigation }) {
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#C89B3C" />
+          <ActivityIndicator size="large" color="#D4A574" />
           <Text style={styles.loadingText}>Loading Baro's archive...</Text>
         </View>
       ) : error ? (
@@ -60,7 +60,7 @@ export default function AllItemsScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#C89B3C"
+              tintColor="#D4A574"
             />
           }
           ListEmptyComponent={() => (
@@ -86,7 +86,7 @@ export default function AllItemsScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#C89B3C"
+              tintColor="#D4A574"
             />
           }
           ListEmptyComponent={() => (

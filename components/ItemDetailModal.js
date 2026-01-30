@@ -121,7 +121,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
             <Ionicons
               name={showOfferings ? 'chevron-up' : 'chevron-down'}
               size={20}
-              color="#C89B3C"
+              color="#D4A574"
             />
           </View>
         </TouchableOpacity>
@@ -155,7 +155,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
           <Ionicons 
             name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
             size={24} 
-            color={userLiked ? "#C89B3C" : "#8B9DC3"} 
+            color={userLiked ? "#D4A574" : "#8B9DC3"} 
           />
           <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
             {(item.likes || 0) + (userLiked ? 1 : 0)} Likes
@@ -201,7 +201,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
             <View key={index} style={styles.reviewCard}>
               <View style={styles.reviewHeader}>
                 <View style={styles.reviewerInfo}>
-                  <Ionicons name="person-circle" size={32} color="#C89B3C" />
+                  <Ionicons name="person-circle" size={32} color="#D4A574" />
                   <Text style={styles.reviewerName}>Tenno #{index + 1}</Text>
                 </View>
                 <Text style={styles.reviewDate}>Just now</Text>
@@ -234,7 +234,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
               <Ionicons 
                 name="information-circle" 
                 size={20} 
-                color={activeTab === 'details' ? '#C89B3C' : '#8B9DC3'} 
+                color={activeTab === 'details' ? '#D4A574' : '#8B9DC3'} 
               />
               <Text style={[styles.tabText, activeTab === 'details' && styles.tabTextActive]}>
                 Details
@@ -247,7 +247,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
               <Ionicons 
                 name="chatbubbles" 
                 size={20} 
-                color={activeTab === 'reviews' ? '#C89B3C' : '#8B9DC3'} 
+                color={activeTab === 'reviews' ? '#D4A574' : '#8B9DC3'} 
               />
               <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
                 Reviews

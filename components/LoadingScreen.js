@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function LoadingScreen() {
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#C89B3C" />
+      <ActivityIndicator size="large" color="#D4A574" />
       <Text style={styles.loadingText}>Loading Baro's Inventory...</Text>
       <StatusBar style="light" />
     </View>
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    color: '#C89B3C',
+    color: '#D4A574',
     fontSize: 16,
     marginTop: 20,
     fontWeight: '500',

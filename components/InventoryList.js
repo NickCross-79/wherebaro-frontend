@@ -11,7 +11,7 @@ export default function InventoryList({ items, refreshing, onRefresh, onItemPres
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#C89B3C"
+          tintColor="#D4A574"
         />
       }
     >

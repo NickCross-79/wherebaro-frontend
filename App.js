@@ -81,7 +81,7 @@ function TabNavigatorWithSafeArea() {
                     style={{ flex: 1 }}
                   />
                 ),
-        tabBarActiveTintColor: '#C89B3C',
+        tabBarActiveTintColor: '#D4A574',
         tabBarInactiveTintColor: '#5A6B8C',
         tabBarLabelStyle: styles.tabBarLabel,
       }}
