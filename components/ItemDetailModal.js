@@ -7,11 +7,13 @@ export default function ItemDetailModal({ item, visible, onClose }) {
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
   const [userLiked, setUserLiked] = useState(false);
+  const [showOfferings, setShowOfferings] = useState(false);
 
   // Reset to details tab whenever modal opens
   useEffect(() => {
     if (visible) {
       setActiveTab('details');
+      setShowOfferings(false);
     }
   }, [visible]);
 
@@ -107,10 +109,37 @@ export default function ItemDetailModal({ item, visible, onClose }) {
         <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
       </View>
 
-      {/* Total Offerings */}
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsLabel}>Total Offerings</Text>
-        <Text style={styles.statsValue}>{offeringDates.length}</Text>
+      {/* Offering Dates Dropdown */}
+      <View style={styles.dropdownContainer}>
+        <TouchableOpacity
+          style={styles.dropdownHeader}
+          onPress={() => setShowOfferings(!showOfferings)}
+        >
+          <Text style={styles.dropdownTitle}>Offering Dates</Text>
+          <View style={styles.dropdownMeta}>
+            <Text style={styles.dropdownCount}>{offeringDates.length}</Text>
+            <Ionicons
+              name={showOfferings ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#C89B3C"
+            />
+          </View>
+        </TouchableOpacity>
+
+        {showOfferings && (
+          <View style={styles.dropdownList}>
+            {offeringDates.length === 0 ? (
+              <Text style={styles.dropdownEmpty}>No offering dates available</Text>
+            ) : (
+              offeringDates.map((date, index) => (
+                <View key={`${date}-${index}`} style={styles.dropdownItem}
+                  >
+                  <Text style={styles.dropdownItemText}>{formatDate(date)}</Text>
+                </View>
+              ))
+            )}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -390,22 +419,53 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  statsContainer: {
+  dropdownContainer: {
     backgroundColor: '#1A2332',
     borderRadius: 12,
-    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2A3442',
+    overflow: 'hidden',
+  },
+  dropdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 16,
   },
-  statsLabel: {
+  dropdownTitle: {
     fontSize: 14,
     color: '#8B9DC3',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  statsValue: {
-    fontSize: 18,
+  dropdownMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dropdownCount: {
+    fontSize: 16,
     color: '#C89B3C',
     fontWeight: 'bold',
+  },
+  dropdownList: {
+    borderTopWidth: 1,
+    borderTopColor: '#2A3442',
+    paddingVertical: 8,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  dropdownEmpty: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#5A6B8C',
+    fontSize: 14,
   },
   likeSection: {
     marginBottom: 24,
