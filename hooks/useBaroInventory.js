@@ -79,6 +79,90 @@ export default function useBaroInventory() {
           offeringDates: ['2026-01-26', '2026-01-29'],
           likes: 312,
           reviews: []
+        },
+        {
+          _id: '4',
+          name: 'Primed Pressure Point',
+          image: 'PrimedPressurePointMod.png',
+          link: 'Primed Pressure Point',
+          creditPrice: 110000,
+          ducatPrice: 350,
+          type: 'Mod',
+          offeringDates: ['2026-01-28'],
+          likes: 278,
+          reviews: []
+        },
+        {
+          _id: '5',
+          name: 'Prisma Skana',
+          image: 'PrismaSkana.png',
+          link: 'Prisma Skana',
+          creditPrice: 175000,
+          ducatPrice: 510,
+          type: 'Weapon',
+          offeringDates: ['2026-01-27'],
+          likes: 156,
+          reviews: []
+        },
+        {
+          _id: '6',
+          name: 'Primed Reach',
+          image: 'PrimedReachMod.png',
+          link: 'Primed Reach',
+          creditPrice: 100000,
+          ducatPrice: 350,
+          type: 'Mod',
+          offeringDates: ['2026-01-29'],
+          likes: 201,
+          reviews: []
+        },
+        {
+          _id: '7',
+          name: 'Prisma Grakata',
+          image: 'PrismaGrakata.png',
+          link: 'Prisma Grakata',
+          creditPrice: 250000,
+          ducatPrice: 600,
+          type: 'Weapon',
+          offeringDates: ['2026-01-26'],
+          likes: 324,
+          reviews: []
+        },
+        {
+          _id: '8',
+          name: 'Primed Target Cracker',
+          image: 'PrimedTargetCrackerMod.png',
+          link: 'Primed Target Cracker',
+          creditPrice: 100000,
+          ducatPrice: 350,
+          type: 'Mod',
+          offeringDates: ['2026-01-28'],
+          likes: 167,
+          reviews: []
+        },
+        {
+          _id: '9',
+          name: 'Prisma Tetra',
+          image: 'PrismaTetra.png',
+          link: 'Prisma Tetra',
+          creditPrice: 200000,
+          ducatPrice: 550,
+          type: 'Weapon',
+          offeringDates: ['2026-01-27'],
+          likes: 143,
+          reviews: []
+        },
+        {
+          _id: '10',
+          name: 'Primed Pistol Gambit',
+          image: 'PrimedPistolGambitMod.png',
+          link: 'Primed Pistol Gambit',
+          creditPrice: 100000,
+          ducatPrice: 350,
+          type: 'Mod',
+          offeringDates: ['2026-01-29'],
+          likes: 289,
+          reviews: []
         }
       ] : [];
       

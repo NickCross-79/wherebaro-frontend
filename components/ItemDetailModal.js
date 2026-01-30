@@ -153,7 +153,7 @@ export default function ItemDetailModal({ item, visible, onClose }) {
           onPress={handleLike}
         >
           <Ionicons 
-            name={userLiked ? "heart" : "heart-outline"} 
+            name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
             size={24} 
             color={userLiked ? "#C89B3C" : "#8B9DC3"} 
           />

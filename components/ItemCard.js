@@ -1,17 +1,9 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ItemCard({ item, onPress }) {
   return (
     <TouchableOpacity style={styles.itemCard} onPress={onPress}>
-      <View style={styles.cardHeader}>
-        <View style={styles.typeTag}>
-          <Text style={styles.typeText}>{item.type}</Text>
-        </View>
-        <View style={styles.likesContainer}>
-          <Text style={styles.likesText}>♥ {item.likes || 0}</Text>
-        </View>
-      </View>
-      
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
           <Image
@@ -23,7 +15,16 @@ export default function ItemCard({ item, onPress }) {
         </View>
         
         <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <View style={styles.nameAndLikes}>
+            <View style={styles.nameContainer}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.categoryText}>{item.type}</Text>
+            </View>
+            <View style={styles.likesContainer}>
+              <Ionicons name="thumbs-up" size={16} color="#FF6B6B" />
+              <Text style={styles.likesText}>{item.likes || 0}</Text>
+            </View>
+          </View>
           
           <View style={styles.priceContainer}>
             <View style={styles.priceRow}>
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 12,
     backgroundColor: '#1A2332',
@@ -94,6 +95,7 @@ const styles = StyleSheet.create({
   likesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   likesText: {
     color: '#FF6B6B',
@@ -123,11 +125,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
+  nameAndLikes: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  nameContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
   itemName: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 2,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9BA5B8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 0,
   },
   priceContainer: {
     gap: 8,
