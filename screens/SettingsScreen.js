@@ -1,10 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
 import { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
+  const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [displayName, setDisplayName] = useState('Tenno');
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
@@ -16,7 +20,10 @@ export default function SettingsScreen() {
         <Text style={styles.headerSubtitle}>Customize your experience</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
+      >
         {/* Notifications Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
@@ -35,11 +42,43 @@ export default function SettingsScreen() {
               thumbColor={notifications ? '#FFFFFF' : '#8B9DC3'}
             />
           </View>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Wishlist Alerts</Text>
+              <Text style={styles.settingDescription}>
+                Notify me when Baro brings wishlist items
+              </Text>
+            </View>
+            <Switch
+              value={wishlistAlerts}
+              onValueChange={setWishlistAlerts}
+              trackColor={{ false: '#2A3442', true: '#D4A574' }}
+              thumbColor={wishlistAlerts ? '#FFFFFF' : '#8B9DC3'}
+            />
+          </View>
         </View>
 
         {/* General Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
+
+          <View style={styles.settingItemColumn}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Display Name</Text>
+              <Text style={styles.settingDescription}>
+                This name will appear on your reviews
+              </Text>
+            </View>
+            <TextInput
+              style={styles.textInput}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Enter display name"
+              placeholderTextColor="#5A6B8C"
+              maxLength={24}
+            />
+          </View>
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
@@ -66,7 +105,10 @@ export default function SettingsScreen() {
             <Text style={styles.settingValue}>1.0.0</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('Feedback')}
+          >
             <Text style={styles.settingLabel}>Feedback</Text>
             <Text style={styles.settingValue}>›</Text>
           </TouchableOpacity>
@@ -118,6 +160,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 40,
   },
   section: {
     marginBottom: 30,
@@ -141,6 +184,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1A2332',
   },
+  settingItemColumn: {
+    backgroundColor: '#0F1419',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#1A2332',
+  },
   settingInfo: {
     flex: 1,
     marginRight: 12,
@@ -159,6 +210,18 @@ const styles = StyleSheet.create({
   settingValue: {
     fontSize: 16,
     color: '#9BA5B8',
+    fontWeight: '600',
+  },
+  textInput: {
+    marginTop: 12,
+    backgroundColor: '#151B23',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#1A2332',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '600',
   },
   credits: {

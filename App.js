@@ -11,6 +11,7 @@ import ItemDetailScreen from './screens/ItemDetailScreen';
 import WishlistScreen from './screens/WishlistScreen';
 import AllItemsScreen from './screens/AllItemsScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import FeedbackScreen from './screens/FeedbackScreen';
 import HomeActive from './assets/icons/icon_home_active.svg';
 import HomeInactive from './assets/icons/icon_home_inactive.svg';
 import ListActive from './assets/icons/icon_list_active.svg';
@@ -22,6 +23,7 @@ const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const WishlistStack = createNativeStackNavigator();
 const AllItemsStack = createNativeStackNavigator();
+const SettingsStack = createNativeStackNavigator();
 
 function HomeStackNavigator() {
   return (
@@ -59,6 +61,19 @@ function AllItemsStackNavigator() {
       <AllItemsStack.Screen name="AllItemsList" component={AllItemsScreen} />
       <AllItemsStack.Screen name="ItemDetail" component={ItemDetailScreen} />
     </AllItemsStack.Navigator>
+  );
+}
+
+function SettingsStackNavigator() {
+  return (
+    <SettingsStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} />
+      <SettingsStack.Screen name="Feedback" component={FeedbackScreen} />
+    </SettingsStack.Navigator>
   );
 }
 
@@ -118,7 +133,7 @@ function TabNavigatorWithSafeArea() {
         />
         <Tab.Screen
           name="Settings"
-          component={SettingsScreen}
+          component={SettingsStackNavigator}
           options={{
             tabBarIcon: ({ focused }) => (
               <SettingsInactive width={24} height={24} />
