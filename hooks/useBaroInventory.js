@@ -40,7 +40,7 @@ export default function useBaroInventory() {
       setLoading(true);
       
       // Toggle this to test both modes
-      const baroIsHere = false; // Set to true to test "is here" mode
+      const baroIsHere = true; // Set to true to test "is here" mode
       
       // Mock data for when Baro is currently here
       const mockData = baroIsHere ? [

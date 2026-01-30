@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import FilterMenu from './FilterMenu';
 
-export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, filters, onApplyFilters }) {
+export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, titleColor = '#FFFFFF', titleStyle, filters, onApplyFilters }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
@@ -19,7 +19,9 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
 
   return (
     <View style={styles.container}>
-      {title && !isExpanded && <Text style={styles.title}>{title}</Text>}
+      {title && !isExpanded && (
+        <Text style={[styles.title, { color: titleColor }, titleStyle]}>{title}</Text>
+      )}
       <View style={styles.searchWrapper}>
         <View style={styles.iconsRow}>
           {!isExpanded && (

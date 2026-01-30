@@ -36,11 +36,13 @@ export default function AllItemsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ALL ITEMS</Text>
-        <Text style={styles.headerSubtitle}>{items.length} items in archive</Text>
         
         <CollapsibleSearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          title={`${items.length} items in archive`}
+          titleColor="#8B9DC3"
+          titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
           onApplyFilters={setFilters}
         />
@@ -121,8 +123,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0E1A',
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 50,
+    paddingBottom: 14,
     paddingHorizontal: 20,
     backgroundColor: '#0F1419',
     borderBottomWidth: 2,

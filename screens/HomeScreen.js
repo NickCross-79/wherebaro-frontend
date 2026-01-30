@@ -64,6 +64,8 @@ export default function HomeScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           title="This Week's Items"
+          titleColor="#8B9DC3"
+          titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
           onApplyFilters={setFilters}
         />
