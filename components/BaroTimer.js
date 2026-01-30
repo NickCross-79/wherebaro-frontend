@@ -47,7 +47,7 @@ export default function BaroTimer({ nextArrival, location, centered = false, lab
           </Text>
         )}
       </View>
-      <View style={[styles.timerValueRow, centered && styles.centeredRow]}>
+      <View style={styles.timerValueRow}>
         <TimeIcon width={20} height={20} />
         <Text style={[styles.timerValue, centered && styles.centeredText]}>{timeRemaining}</Text>
       </View>
@@ -66,11 +66,10 @@ const styles = StyleSheet.create({
   },
   centered: {
     marginTop: 0,
-    padding: 20,
+    padding: 0,
     alignItems: 'center',
-    borderLeftWidth: 0,
-    borderWidth: 2,
-    borderColor: '#C89B3C',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   headerRow: {
     flexDirection: 'row',
@@ -81,7 +80,8 @@ const styles = StyleSheet.create({
   },
   centeredRow: {
     flexDirection: 'column',
-    gap: 12,
+    gap: 8,
+    marginBottom: 12,
   },
   timerLabel: {
     fontSize: 12,
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
+    justifyContent: 'center',
   },
   timerValue: {
     fontSize: 24,
