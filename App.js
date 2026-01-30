@@ -1,7 +1,11 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect } from 'react';
+import * as NavigationBar from 'expo-navigation-bar';
 import HomeScreen from './screens/HomeScreen';
 import ItemDetailScreen from './screens/ItemDetailScreen';
 import WishlistScreen from './screens/WishlistScreen';
@@ -58,18 +62,30 @@ function AllItemsStackNavigator() {
   );
 }
 
-export default function App() {
+function TabNavigatorWithSafeArea() {
+  const insets = useSafeAreaInsets();
+  
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: '#C89B3C',
-          tabBarInactiveTintColor: '#5A6B8C',
-          tabBarLabelStyle: styles.tabBarLabel,
-        }}
-      >
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          ...styles.tabBar,
+          paddingBottom: insets.bottom + 10,
+          height: insets.bottom + 70,
+        },
+                tabBarBackground: () => (
+                  <LinearGradient
+                    colors={['rgba(15, 20, 25, 0.15)', 'rgba(15, 20, 25, 0.85)', '#0F1419']}
+                    locations={[0, 0.45, 1]}
+                    style={{ flex: 1 }}
+                  />
+                ),
+        tabBarActiveTintColor: '#C89B3C',
+        tabBarInactiveTintColor: '#5A6B8C',
+        tabBarLabelStyle: styles.tabBarLabel,
+      }}
+    >
         <Tab.Screen
           name="Home"
           component={HomeStackNavigator}
@@ -110,17 +126,36 @@ export default function App() {
           }}
         />
       </Tab.Navigator>
-    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync('#0F1419');
+    NavigationBar.setButtonStyleAsync('light');
+    NavigationBar.setVisibilityAsync('visible');
+  }, []);
+
+  return (
+    <SafeAreaProvider>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="#0F1419" 
+        translucent={false}
+      />
+      <NavigationContainer>
+        <TabNavigatorWithSafeArea />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#0F1419',
-    borderTopWidth: 2,
-    borderTopColor: '#1A2332',
-    height: 70,
-    paddingBottom: 10,
+    position: 'absolute',
+    borderTopWidth: 0,
+    elevation: 0,
+    backgroundColor: 'transparent',
     paddingTop: 10,
   },
   tabBarLabel: {

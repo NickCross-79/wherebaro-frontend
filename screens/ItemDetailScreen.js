@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput,
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -10,6 +11,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
+  const insets = useSafeAreaInsets();
+  const bottomSpacer = insets.bottom + 90;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
@@ -106,7 +109,11 @@ export default function ItemDetailScreen({ route, navigation }) {
       </View>
 
       {activeTab === 'details' ? (
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={{ paddingBottom: bottomSpacer }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Item Image with Background */}
         <ImageBackground
           source={require('../assets/background_newItem.png')}
@@ -204,7 +211,11 @@ export default function ItemDetailScreen({ route, navigation }) {
         </View>
       </ScrollView>
       ) : (
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={{ paddingBottom: bottomSpacer }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Like Button - At top of Reviews Tab */}
         <View style={styles.likeSection}>
           <TouchableOpacity 
