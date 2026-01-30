@@ -4,7 +4,7 @@ import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 
-export default function WishlistScreen() {
+export default function WishlistScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   // Mock wishlist data - replace with actual saved wishlist
@@ -73,7 +73,7 @@ export default function WishlistScreen() {
             <ItemCard
               key={index}
               item={item}
-              onPress={() => console.log('Wishlist item pressed:', item.name)}
+              onPress={() => navigation.navigate('ItemDetail', { item })}
             />
           ))
         )}
@@ -101,12 +101,7 @@ const styles = StyleSheet.create({
     color: '#D4A574',
     letterSpacing: 3,
     textTransform: 'uppercase',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#9BA5B8',
-    marginTop: 4,
-    fontWeight: '500',
+    marginBottom: 8,
   },
   scrollView: {
     flex: 1,
@@ -115,19 +110,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   emptyContainer: {
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 60,
+    alignItems: 'center',
+    paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 20,
-    color: '#9BA5B8',
+    fontSize: 18,
     fontWeight: '700',
+    color: '#8B9DC3',
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
     color: '#5A6B8C',
-    marginTop: 8,
     textAlign: 'center',
   },
 });

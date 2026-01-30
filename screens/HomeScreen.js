@@ -9,7 +9,7 @@ import ItemDetailModal from '../components/ItemDetailModal';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 import useBaroInventory from '../hooks/useBaroInventory';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
@@ -36,7 +36,7 @@ export default function HomeScreen() {
   const newestItem = isHere && items.length > 0 ? items[0] : null;
 
   const handleItemPress = (item) => {
-    setSelectedItem(item);
+    navigation.navigate('ItemDetail', { item });
   };
 
   if (loading && !refreshing) {
@@ -57,8 +57,6 @@ export default function HomeScreen() {
         nextLocation={nextLocation} 
         isHere={isHere} 
         showTitle={false}
-        newItem={newestItem}
-        onNewItemPress={() => newestItem && setSelectedItem(newestItem)}
       >
         <CollapsibleSearchBar
           value={searchQuery}
@@ -76,11 +74,11 @@ export default function HomeScreen() {
         onRefresh={onRefresh}
         onItemPress={handleItemPress}
       />
-      <ItemDetailModal
+      {/* <ItemDetailModal
         item={selectedItem}
         visible={selectedItem !== null}
         onClose={() => setSelectedItem(null)}
-      />
+      /> */}
     </View>
   );
 }

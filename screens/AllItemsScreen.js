@@ -2,13 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
-import ItemDetailModal from '../components/ItemDetailModal';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 import useAllBaroItems from '../hooks/useAllBaroItems';
 
-export default function AllItemsScreen() {
+export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedItem, setSelectedItem] = useState(null);
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   const { items, loading, refreshing, error, onRefresh } = useAllBaroItems();
 
@@ -80,7 +78,7 @@ export default function AllItemsScreen() {
           renderItem={({ item }) => (
             <ItemCard
               item={item}
-              onPress={() => setSelectedItem(item)}
+              onPress={() => navigation.navigate('ItemDetail', { item })}
             />
           )}
           contentContainerStyle={styles.scrollContent}
@@ -107,12 +105,6 @@ export default function AllItemsScreen() {
           removeClippedSubviews={true}
         />
       )}
-
-      <ItemDetailModal
-        item={selectedItem}
-        visible={selectedItem !== null}
-        onClose={() => setSelectedItem(null)}
-      />
     </View>
   );
 }
@@ -136,43 +128,36 @@ const styles = StyleSheet.create({
     color: '#D4A574',
     letterSpacing: 3,
     textTransform: 'uppercase',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#9BA5B8',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 20,
-    color: '#9BA5B8',
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#5A6B8C',
-    marginTop: 8,
-    textAlign: 'center',
+    marginBottom: 8,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
   },
   loadingText: {
-    color: '#D4A574',
+    marginTop: 16,
     fontSize: 16,
-    marginTop: 20,
+    color: '#8B9DC3',
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+  },
+  emptyText: {
+    fontSize: 18,
     fontWeight: '700',
+    color: '#8B9DC3',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#5A6B8C',
+    textAlign: 'center',
   },
 });

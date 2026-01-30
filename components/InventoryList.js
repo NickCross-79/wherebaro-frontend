@@ -23,6 +23,7 @@ export default function InventoryList({ items, refreshing, onRefresh, onItemPres
             key={index}
             item={item}
             onPress={() => onItemPress && onItemPress(item)}
+            isNew={index === 0}
           />
         ))
       )}

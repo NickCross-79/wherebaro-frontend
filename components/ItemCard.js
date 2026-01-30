@@ -1,9 +1,15 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ItemCard({ item, onPress }) {
+export default function ItemCard({ item, onPress, isNew }) {
   return (
-    <TouchableOpacity style={styles.itemCard} onPress={onPress}>
+    <View>
+      {isNew && (
+        <View style={styles.newBadge}>
+          <Text style={styles.newBadgeText}>NEW ITEM</Text>
+        </View>
+      )}
+      <TouchableOpacity style={[styles.itemCard, isNew && styles.itemCardNew]} onPress={onPress}>
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
           <Image
@@ -55,10 +61,29 @@ export default function ItemCard({ item, onPress }) {
         </View>
       </View>
     </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  newBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#D4A574',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    marginBottom: -1,
+    marginLeft: 0,
+    zIndex: 1,
+  },
+  newBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0A0E1A',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
   itemCard: {
     backgroundColor: '#0F1419',
     borderRadius: 16,
@@ -71,6 +96,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 10,
+  },
+  itemCardNew: {
+    borderTopLeftRadius: 0,
+    borderColor: '#D4A574',
+    borderWidth: 2,
   },
   cardHeader: {
     flexDirection: 'row',
