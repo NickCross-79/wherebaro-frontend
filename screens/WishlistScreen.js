@@ -1,10 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
+import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 
 export default function WishlistScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   // Mock wishlist data - replace with actual saved wishlist
   const wishlistItems = [
     {
@@ -23,6 +25,19 @@ export default function WishlistScreen() {
     ? wishlistItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : wishlistItems;
 
+  // Apply type filters
+  const typeFilteredItems = filters.types.length > 0
+    ? filteredItems.filter(item => filters.types.includes(item.type))
+    : filteredItems;
+
+  // Apply popularity sorting
+  let finalItems = [...typeFilteredItems];
+  if (filters.popularity === 'popular') {
+    finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else if (filters.popularity === 'unpopular') {
+    finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -31,17 +46,16 @@ export default function WishlistScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>WISHLIST</Text>
         <Text style={styles.headerSubtitle}>Items you're waiting for</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search items..."
-          placeholderTextColor="#5A6B8C"
+        <CollapsibleSearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          filters={filters}
+          onApplyFilters={setFilters}
         />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {filteredItems.length === 0 ? (
+        {finalItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
               {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
@@ -53,7 +67,7 @@ export default function WishlistScreen() {
             </Text>
           </View>
         ) : (
-          filteredItems.map((item, index) => (
+          finalItems.map((item, index) => (
             <ItemCard
               key={index}
               item={item}
@@ -90,14 +104,6 @@ const styles = StyleSheet.create({
     color: '#8B9DC3',
     marginTop: 4,
     letterSpacing: 1,
-  },
-  searchInput: {
-    marginTop: 15,
-    backgroundColor: '#1A2332',
-    borderRadius: 8,
-    padding: 12,
-    color: '#FFFFFF',
-    fontSize: 16,
   },
   scrollView: {
     flex: 1,

@@ -1,12 +1,25 @@
 import { StyleSheet, Text, View } from 'react-native';
 import BaroTimer from './BaroTimer';
+import NewItemShowcase from './NewItemShowcase';
 
-export default function Header({ nextArrival, nextLocation, children }) {
+export default function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, newItem, onNewItemPress, children }) {
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>WHERE BARO</Text>
-      <Text style={styles.headerSubtitle}>Void Trader Tracker</Text>
-      {nextArrival && <BaroTimer nextArrival={nextArrival} location={nextLocation} />}
+      {showTitle && (
+        <>
+          <Text style={styles.headerTitle}>WHERE BARO</Text>
+          <Text style={styles.headerSubtitle}>Void Trader Tracker</Text>
+        </>
+      )}
+      {nextArrival && (
+        <BaroTimer
+          nextArrival={nextArrival}
+          location={nextLocation}
+          label={isHere ? 'Leaving In' : 'Next Arrival'}
+          expiredText={isHere ? 'Leaving Soon' : 'Arriving Soon'}
+        />
+      )}
+      {newItem && <NewItemShowcase item={newItem} onPress={onNewItemPress} />}
       {children}
     </View>
   );

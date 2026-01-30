@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import { useState, useEffect } from 'react';
+import TimeIcon from '../assets/icons/icon_time.svg';
 
-export default function BaroTimer({ nextArrival, location, centered = false }) {
+export default function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
   const [timeRemaining, setTimeRemaining] = useState('');
 
   const formatTimeRemaining = (date) => {
@@ -9,7 +10,7 @@ export default function BaroTimer({ nextArrival, location, centered = false }) {
     const now = new Date();
     const diff = date - now;
     
-    if (diff <= 0) return 'Arriving Soon';
+    if (diff <= 0) return expiredText;
     
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -39,14 +40,17 @@ export default function BaroTimer({ nextArrival, location, centered = false }) {
   return (
     <View style={[styles.timerContainer, centered && styles.centered]}>
       <View style={[styles.headerRow, centered && styles.centeredRow]}>
-        <Text style={[styles.timerLabel, centered && styles.centeredText]}>Next Arrival</Text>
+        <Text style={[styles.timerLabel, centered && styles.centeredText]}>{label}</Text>
         {location && (
           <Text style={[styles.locationText, centered && styles.centeredText]}>
             {location.name}, ({location.planet})
           </Text>
         )}
       </View>
-      <Text style={[styles.timerValue, centered && styles.centeredText]}>{timeRemaining}</Text>
+      <View style={[styles.timerValueRow, centered && styles.centeredRow]}>
+        <TimeIcon width={20} height={20} />
+        <Text style={[styles.timerValue, centered && styles.centeredText]}>{timeRemaining}</Text>
+      </View>
     </View>
   );
 }
@@ -93,10 +97,15 @@ const styles = StyleSheet.create({
   centeredText: {
     textAlign: 'center',
   },
+  timerValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
   timerValue: {
     fontSize: 24,
     color: '#FFFFFF',
     fontWeight: 'bold',
-    marginTop: 8,
   },
 });

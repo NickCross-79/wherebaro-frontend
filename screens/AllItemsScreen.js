@@ -1,18 +1,33 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import ItemDetailModal from '../components/ItemDetailModal';
+import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 import useAllBaroItems from '../hooks/useAllBaroItems';
 
 export default function AllItemsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   const { items, loading, refreshing, error, onRefresh } = useAllBaroItems();
 
   const filteredItems = searchQuery
     ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : items;
+
+  // Apply type filters
+  const typeFilteredItems = filters.types.length > 0
+    ? filteredItems.filter(item => filters.types.includes(item.type))
+    : filteredItems;
+
+  // Apply popularity sorting
+  let finalItems = [...typeFilteredItems];
+  if (filters.popularity === 'popular') {
+    finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else if (filters.popularity === 'unpopular') {
+    finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
+  }
 
   return (
     <View style={styles.container}>
@@ -23,13 +38,11 @@ export default function AllItemsScreen() {
         <Text style={styles.headerTitle}>ALL ITEMS</Text>
         <Text style={styles.headerSubtitle}>{items.length} items in archive</Text>
         
-        {/* Search Bar */}
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search items..."
-          placeholderTextColor="#5A6B8C"
+        <CollapsibleSearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          filters={filters}
+          onApplyFilters={setFilters}
         />
       </View>
 
@@ -60,7 +73,7 @@ export default function AllItemsScreen() {
         />
       ) : (
         <FlatList
-          data={filteredItems}
+          data={finalItems}
           keyExtractor={(item, index) => item.id || `item-${index}`}
           renderItem={({ item }) => (
             <ItemCard
@@ -126,17 +139,6 @@ const styles = StyleSheet.create({
     color: '#8B9DC3',
     marginTop: 4,
     letterSpacing: 1,
-  },
-  searchInput: {
-    marginTop: 15,
-    backgroundColor: '#1A2332',
-    borderRadius: 8,
-    padding: 12,
-    color: '#FFFFFF',
-    fontSize: 16,
-    bordView: {
-        flex: 1,
-    }
   },
   scrollContent: {
     padding: 16,
