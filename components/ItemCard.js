@@ -27,7 +27,7 @@ export default function ItemCard({ item, onPress, isNew }) {
               <Text style={styles.categoryText}>{item.type}</Text>
             </View>
             <View style={styles.likesContainer}>
-              <Ionicons name="thumbs-up" size={16} color="#FF6B6B" />
+              <Ionicons name="thumbs-up" size={16} color="#D4A574" />
               <Text style={styles.likesText}>{item.likes || 0}</Text>
             </View>
           </View>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   likesText: {
-    color: '#FF6B6B',
+    color: '#D4A574',
     fontSize: 14,
     fontWeight: '600',
   },
