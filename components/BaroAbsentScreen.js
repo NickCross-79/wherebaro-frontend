@@ -89,7 +89,6 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
               style={styles.baroIcon}
               resizeMode="contain"
             />
-            <Text style={styles.iconLabel}>Void</Text>
           </View>
 
           {/* Travel Animation Container */}
@@ -112,7 +111,6 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
           {/* Earth Icon on Right */}
           <View style={styles.iconWrapper}>
             <EarthIcon width={80} height={80} />
-            <Text style={styles.iconLabel}>Relay</Text>
           </View>
         </View>
         
