@@ -7,7 +7,7 @@ export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [displayName, setDisplayName] = useState('Tenno');
+  const [displayName, setDisplayName] = useState('Anonymous');
   const insets = useSafeAreaInsets();
 
   return (

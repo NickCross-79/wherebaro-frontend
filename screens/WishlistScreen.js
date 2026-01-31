@@ -4,20 +4,23 @@ import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 
+const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
+
 export default function WishlistScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   // Mock wishlist data - replace with actual saved wishlist
   const wishlistItems = [
     {
-      _id: '1',
+      _id: '3',
       name: 'Primed Flow',
-      image: 'https://via.placeholder.com/150',
+      image: 'PrimedFlowMod.png',
       creditPrice: 110000,
       ducatPrice: 350,
       type: 'Mod',
+      offeringDates: ['2026-01-26', '2026-01-29'],
       likes: 312,
-      offeringDates: ['2026-01-29']
+      reviews: []
     }
   ];
 
@@ -72,7 +75,10 @@ export default function WishlistScreen({ navigation }) {
           finalItems.map((item, index) => (
             <ItemCard
               key={index}
-              item={item}
+              item={{
+                ...item,
+                image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150'
+              }}
               onPress={() => navigation.navigate('ItemDetail', { item })}
             />
           ))

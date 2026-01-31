@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, StatusBar } from 'react-native';
+import { StyleSheet, StatusBar, View, Text } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
@@ -18,6 +18,7 @@ import ListActive from './assets/icons/icon_list_active.svg';
 import ListInactive from './assets/icons/icon_list_inactive.svg';
 import HeartInactive from './assets/icons/icon_heart_inactive.svg';
 import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -107,7 +108,11 @@ function TabNavigatorWithSafeArea() {
           options={{
             unmountOnBlur: true,
             tabBarIcon: ({ focused }) => (
-              focused ? <HomeActive width={24} height={24} /> : <HomeInactive width={24} height={24} />
+              <Ionicons 
+                name="home" 
+                size={24} 
+                color={focused ? '#D4A574' : '#5A6B8C'} 
+              />
             ),
           }}
         />
@@ -116,8 +121,23 @@ function TabNavigatorWithSafeArea() {
           component={WishlistStackNavigator}
           options={{
             unmountOnBlur: true,
+            tabBarBadge: 1,
+            tabBarBadgeStyle: {
+              backgroundColor: '#D4A574',
+              color: '#0A0E1A',
+              fontSize: 10,
+              fontWeight: '700',
+              minWidth: 18,
+              height: 18,
+              borderRadius: 9,
+              marginTop: 2,
+            },
             tabBarIcon: ({ focused }) => (
-              <HeartInactive width={24} height={24} />
+              <Ionicons 
+                name="heart" 
+                size={24} 
+                color={focused ? '#D4A574' : '#5A6B8C'} 
+              />
             ),
           }}
         />
@@ -127,7 +147,11 @@ function TabNavigatorWithSafeArea() {
           options={{
             unmountOnBlur: true,
             tabBarIcon: ({ focused }) => (
-              focused ? <ListActive width={24} height={24} /> : <ListInactive width={24} height={24} />
+              <Ionicons 
+                name="list" 
+                size={24} 
+                color={focused ? '#D4A574' : '#5A6B8C'} 
+              />
             ),
           }}
         />
@@ -136,7 +160,11 @@ function TabNavigatorWithSafeArea() {
           component={SettingsStackNavigator}
           options={{
             tabBarIcon: ({ focused }) => (
-              <SettingsInactive width={24} height={24} />
+              <Ionicons 
+                name="settings" 
+                size={24} 
+                color={focused ? '#D4A574' : '#5A6B8C'} 
+              />
             ),
           }}
         />
