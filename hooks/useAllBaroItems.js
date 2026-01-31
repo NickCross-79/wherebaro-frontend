@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'https://wherebaro-function-app-a0gfdxabe3caemg7.canadacentral-01.azurewebsites.net/getAllBaroItems';
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
+  process.env.AZURE_FUNCTION_APP_BASE_URL ||
+  '';
+
+const buildApiUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/getAllBaroItems`;
+};
+
+const API_URL = buildApiUrl();
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
 
 const normalizeItem = (item) => {
@@ -26,6 +39,9 @@ export default function useAllBaroItems() {
 
   const fetchItems = async () => {
     try {
+      if (!API_URL) {
+        throw new Error('Missing functions app base URL');
+      }
       setError(null);
       console.log('Fetching items from:', API_URL);
       const response = await fetch(API_URL);
