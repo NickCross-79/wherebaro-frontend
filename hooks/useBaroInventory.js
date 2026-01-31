@@ -45,7 +45,7 @@ export default function useBaroInventory() {
       // Mock data for when Baro is currently here
       const mockData = baroIsHere ? [
         {
-          _id: '1',
+          _id: '697ac785ddd92b4eafb3b221',
           name: 'Primed Continuity',
           image: 'PrimedContinuityMod.png',
           link: 'Primed Continuity',
@@ -57,7 +57,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '2',
+          _id: '697ac785ddd92b4eafb3b222',
           name: 'Prisma Gorgon',
           image: 'PrismaGorgon.png',
           link: 'Prisma Gorgon',
@@ -69,7 +69,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '3',
+          _id: '697ac785ddd92b4eafb3b223',
           name: 'Primed Flow',
           image: 'PrimedFlowMod.png',
           link: 'Primed Flow',
@@ -81,7 +81,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '4',
+          _id: '697ac785ddd92b4eafb3b224',
           name: 'Primed Pressure Point',
           image: 'PrimedPressurePointMod.png',
           link: 'Primed Pressure Point',
@@ -93,7 +93,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '5',
+          _id: '697ac785ddd92b4eafb3b225',
           name: 'Prisma Skana',
           image: 'PrismaSkana.png',
           link: 'Prisma Skana',
@@ -105,7 +105,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '6',
+          _id: '697ac785ddd92b4eafb3b226',
           name: 'Primed Reach',
           image: 'PrimedReachMod.png',
           link: 'Primed Reach',
@@ -117,7 +117,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '7',
+          _id: '697ac785ddd92b4eafb3b227',
           name: 'Prisma Grakata',
           image: 'PrismaGrakata.png',
           link: 'Prisma Grakata',
@@ -129,7 +129,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '8',
+          _id: '697ac785ddd92b4eafb3b228',
           name: 'Primed Target Cracker',
           image: 'PrimedTargetCrackerMod.png',
           link: 'Primed Target Cracker',
@@ -141,7 +141,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '9',
+          _id: '697ac785ddd92b4eafb3b229',
           name: 'Prisma Tetra',
           image: 'PrismaTetra.png',
           link: 'Prisma Tetra',
@@ -153,7 +153,7 @@ export default function useBaroInventory() {
           reviews: []
         },
         {
-          _id: '10',
+          _id: '697ac785ddd92b4eafb3b22a',
           name: 'Primed Pistol Gambit',
           image: 'PrimedPistolGambitMod.png',
           link: 'Primed Pistol Gambit',

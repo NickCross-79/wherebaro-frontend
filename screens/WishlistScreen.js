@@ -3,50 +3,12 @@ import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
-
-const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
+import { useWishlist } from '../contexts/WishlistContext';
 
 export default function WishlistScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
-  // Mock wishlist data - replace with actual saved wishlist
-  const wishlistItems = [
-    {
-      _id: '3',
-      name: 'Primed Flow',
-      image: 'PrimedFlowMod.png',
-      creditPrice: 110000,
-      ducatPrice: 350,
-      type: 'Mod',
-      offeringDates: ['2026-01-26', '2026-01-29'],
-      likes: 312,
-      reviews: []
-    },
-    {
-          _id: '1',
-          name: 'Primed Continuity',
-          image: 'PrimedContinuityMod.png',
-          link: 'Primed Continuity',
-          creditPrice: 100000,
-          ducatPrice: 350,
-          type: 'Mod',
-          offeringDates: ['2026-01-27', '2026-01-29'],
-          likes: 245,
-          reviews: []
-        },
-        {
-          _id: '2',
-          name: 'Prisma Gorgon',
-          image: 'PrismaGorgon.png',
-          link: 'Prisma Gorgon',
-          creditPrice: 250000,
-          ducatPrice: 600,
-          type: 'Weapon',
-          offeringDates: ['2026-01-28'],
-          likes: 189,
-          reviews: []
-        }
-  ];
+  const { wishlistItems } = useWishlist();
 
   const filteredItems = searchQuery
     ? wishlistItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -83,7 +45,10 @@ export default function WishlistScreen({ navigation }) {
         />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         {finalItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -99,16 +64,8 @@ export default function WishlistScreen({ navigation }) {
           finalItems.map((item, index) => (
             <ItemCard
               key={index}
-              item={{
-                ...item,
-                image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150'
-              }}
-              onPress={() => navigation.navigate('ItemDetail', { 
-                item: {
-                  ...item,
-                  image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150'
-                }
-              })}
+              item={item}
+              onPress={() => navigation.navigate('ItemDetail', { item })}
             />
           ))
         )}

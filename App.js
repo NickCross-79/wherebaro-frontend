@@ -12,6 +12,8 @@ import WishlistScreen from './screens/WishlistScreen';
 import AllItemsScreen from './screens/AllItemsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import FeedbackScreen from './screens/FeedbackScreen';
+import { WishlistProvider, useWishlist } from './contexts/WishlistContext';
+import useBaroInventory from './hooks/useBaroInventory';
 import HomeActive from './assets/icons/icon_home_active.svg';
 import HomeInactive from './assets/icons/icon_home_inactive.svg';
 import ListActive from './assets/icons/icon_list_active.svg';
@@ -80,6 +82,13 @@ function SettingsStackNavigator() {
 
 function TabNavigatorWithSafeArea() {
   const insets = useSafeAreaInsets();
+  const { getWishlistCount, wishlistIds, wishlistLoaded } = useWishlist();
+  const { items, isHere } = useBaroInventory();
+  
+  // Calculate badge count - only show wishlist items in current inventory
+  const badgeCount = wishlistLoaded && wishlistIds.length > 0 && isHere
+    ? getWishlistCount(items)
+    : 0;
   
   return (
     <Tab.Navigator
@@ -121,7 +130,7 @@ function TabNavigatorWithSafeArea() {
           component={WishlistStackNavigator}
           options={{
             unmountOnBlur: true,
-            tabBarBadge: 1,
+            tabBarBadge: badgeCount > 0 ? badgeCount : null,
             tabBarBadgeStyle: {
               backgroundColor: '#D4A574',
               color: '#0A0E1A',
@@ -181,14 +190,16 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="#0F1419" 
-        translucent={false}
-      />
-      <NavigationContainer>
-        <TabNavigatorWithSafeArea />
-      </NavigationContainer>
+      <WishlistProvider>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor="#0F1419" 
+          translucent={false}
+        />
+        <NavigationContainer>
+          <TabNavigatorWithSafeArea />
+        </NavigationContainer>
+      </WishlistProvider>
     </SafeAreaProvider>
   );
 }

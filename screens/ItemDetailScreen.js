@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useWishlist } from '../contexts/WishlistContext';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -11,7 +12,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
-  const [onWishlist, setOnWishlist] = useState(false);
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
 
@@ -55,8 +57,7 @@ export default function ItemDetailScreen({ route, navigation }) {
   };
 
   const handleWishlist = () => {
-    setOnWishlist(!onWishlist);
-    console.log('Wishlist toggled:', !onWishlist);
+    toggleWishlist(item);
   };
 
   const handlePostReview = () => {
