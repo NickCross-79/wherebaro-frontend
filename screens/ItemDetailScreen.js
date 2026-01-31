@@ -11,6 +11,7 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
+  const [onWishlist, setOnWishlist] = useState(false);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
 
@@ -53,6 +54,11 @@ export default function ItemDetailScreen({ route, navigation }) {
     setUserLiked(!userLiked);
   };
 
+  const handleWishlist = () => {
+    setOnWishlist(!onWishlist);
+    console.log('Wishlist toggled:', !onWishlist);
+  };
+
   const handlePostReview = () => {
     if (newReview.trim()) {
       console.log('Posting review:', newReview);
@@ -75,7 +81,16 @@ export default function ItemDetailScreen({ route, navigation }) {
           <Ionicons name="chevron-back" size={28} color="#D4A574" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{item.name}</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity 
+          style={styles.wishlistButton}
+          onPress={handleWishlist}
+        >
+          <Ionicons 
+            name={onWishlist ? "heart" : "heart-outline"} 
+            size={28} 
+            color={onWishlist ? "#D4A574" : "#5A6B8C"} 
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Tab Navigation */}
@@ -314,8 +329,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 8,
   },
-  placeholder: {
+  wishlistButton: {
     width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
   },
   tabNav: {
     flexDirection: 'row',

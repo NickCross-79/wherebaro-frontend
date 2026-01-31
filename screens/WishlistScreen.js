@@ -21,7 +21,31 @@ export default function WishlistScreen({ navigation }) {
       offeringDates: ['2026-01-26', '2026-01-29'],
       likes: 312,
       reviews: []
-    }
+    },
+    {
+          _id: '1',
+          name: 'Primed Continuity',
+          image: 'PrimedContinuityMod.png',
+          link: 'Primed Continuity',
+          creditPrice: 100000,
+          ducatPrice: 350,
+          type: 'Mod',
+          offeringDates: ['2026-01-27', '2026-01-29'],
+          likes: 245,
+          reviews: []
+        },
+        {
+          _id: '2',
+          name: 'Prisma Gorgon',
+          image: 'PrismaGorgon.png',
+          link: 'Prisma Gorgon',
+          creditPrice: 250000,
+          ducatPrice: 600,
+          type: 'Weapon',
+          offeringDates: ['2026-01-28'],
+          likes: 189,
+          reviews: []
+        }
   ];
 
   const filteredItems = searchQuery
@@ -79,7 +103,12 @@ export default function WishlistScreen({ navigation }) {
                 ...item,
                 image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150'
               }}
-              onPress={() => navigation.navigate('ItemDetail', { item })}
+              onPress={() => navigation.navigate('ItemDetail', { 
+                item: {
+                  ...item,
+                  image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150'
+                }
+              })}
             />
           ))
         )}
