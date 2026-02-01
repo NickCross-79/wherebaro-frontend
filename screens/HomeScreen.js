@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 import Header from '../components/Header';
 import InventoryList from '../components/InventoryList';
 import LoadingScreen from '../components/LoadingScreen';
@@ -8,7 +9,6 @@ import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 
 export default function HomeScreen({ navigation }) {
-  const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
