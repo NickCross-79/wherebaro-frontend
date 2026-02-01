@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const AllItemsContext = createContext();
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
@@ -10,7 +12,7 @@ const buildApiUrl = () => {
   const normalizedBase = API_BASE_URL.startsWith('http')
     ? API_BASE_URL
     : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getAllBaroItems`;
+  return `${normalizedBase.replace(/\/$/, '')}/getAllItems`;
 };
 
 const API_URL = buildApiUrl();
@@ -31,7 +33,15 @@ const normalizeItem = (item) => {
   };
 };
 
-export default function useAllBaroItems() {
+export const useAllItems = () => {
+  const context = useContext(AllItemsContext);
+  if (!context) {
+    throw new Error('useAllItems must be used within an AllItemsProvider');
+  }
+  return context;
+};
+
+export const AllItemsProvider = ({ children }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,7 +53,6 @@ export default function useAllBaroItems() {
         throw new Error('Missing functions app base URL');
       }
       setError(null);
-      console.log('Fetching items from:', API_URL);
       const response = await fetch(API_URL);
       
       if (!response.ok) {
@@ -51,7 +60,6 @@ export default function useAllBaroItems() {
       }
       
       const data = await response.json();
-      console.log('Fetched items');
       const normalized = data.map(normalizeItem);
       setItems(normalized);
     } catch (err) {
@@ -72,11 +80,17 @@ export default function useAllBaroItems() {
     fetchItems();
   };
 
-  return {
-    items,
-    loading,
-    refreshing,
-    error,
-    onRefresh,
-  };
-}
+  return (
+    <AllItemsContext.Provider
+      value={{
+        items,
+        loading,
+        refreshing,
+        error,
+        onRefresh,
+      }}
+    >
+      {children}
+    </AllItemsContext.Provider>
+  );
+};

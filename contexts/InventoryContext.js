@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const InventoryContext = createContext();
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
@@ -10,7 +12,7 @@ const buildApiUrl = () => {
   const normalizedBase = API_BASE_URL.startsWith('http')
     ? API_BASE_URL
     : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getBaroCurrent`;
+  return `${normalizedBase.replace(/\/$/, '')}/getCurrent`;
 };
 
 const API_URL = buildApiUrl();
@@ -39,7 +41,15 @@ const normalizeItem = (item) => {
   };
 };
 
-export default function useBaroInventory() {
+export const useInventory = () => {
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('useInventory must be used within an InventoryProvider');
+  }
+  return context;
+};
+
+export const InventoryProvider = ({ children }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -113,13 +123,19 @@ export default function useBaroInventory() {
     fetchBaroInventory();
   };
 
-  return {
-    items,
-    loading,
-    refreshing,
-    nextArrival,
-    nextLocation,
-    isHere,
-    onRefresh,
-  };
-}
+  return (
+    <InventoryContext.Provider
+      value={{
+        items,
+        loading,
+        refreshing,
+        nextArrival,
+        nextLocation,
+        isHere,
+        onRefresh,
+      }}
+    >
+      {children}
+    </InventoryContext.Provider>
+  );
+};
