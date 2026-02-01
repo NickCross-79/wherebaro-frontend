@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
+import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput, ImageBackground, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,8 +27,26 @@ const buildGetReviewsUrl = () => {
   return `${normalizedBase.replace(/\/$/, '')}/getReviews`;
 };
 
+const buildUpdateReviewUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/updateReview`;
+};
+
+const buildDeleteReviewUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/deleteReview`;
+};
+
 const POST_REVIEW_URL = buildPostReviewUrl();
 const GET_REVIEWS_URL = buildGetReviewsUrl();
+const UPDATE_REVIEW_URL = buildUpdateReviewUrl();
+const DELETE_REVIEW_URL = buildDeleteReviewUrl();
 const CURRENT_UID = '123456789';
 
 export default function ItemDetailScreen({ route, navigation }) {
@@ -40,6 +58,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [reviews, setReviews] = useState([]);
   const [isPostingReview, setIsPostingReview] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [editingReviewKey, setEditingReviewKey] = useState(null);
+  const [editingReviewText, setEditingReviewText] = useState('');
   const { toggleWishlist, isInWishlist } = useWishlist();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
@@ -197,6 +217,130 @@ export default function ItemDetailScreen({ route, navigation }) {
   };
 
   const hasUserReview = reviews.some((review) => review?.uid === CURRENT_UID);
+
+  const getReviewKey = (review, index) => {
+    if (review?._id?.$oid) return review._id.$oid;
+    if (review?._id) return String(review._id);
+    return String(index);
+  };
+
+  const getReviewId = (review) => {
+    if (review?._id?.$oid) return review._id.$oid;
+    if (review?._id) return String(review._id);
+    return null;
+  };
+
+  const startEditingReview = (review, index) => {
+    const key = getReviewKey(review, index);
+    setEditingReviewKey(key);
+    setEditingReviewText(review?.content || '');
+  };
+
+  const cancelEditingReview = () => {
+    setEditingReviewKey(null);
+    setEditingReviewText('');
+  };
+
+  const confirmDeleteReview = (review, index) => {
+    Alert.alert(
+      'Delete Review',
+      'Are you sure you want to delete your review? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const reviewId = getReviewId(review);
+            
+            if (!DELETE_REVIEW_URL || !reviewId) {
+              console.error('Delete URL or review ID missing');
+              return;
+            }
+
+            try {
+              const response = await fetch(DELETE_REVIEW_URL, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  review_id: reviewId,
+                  uid: CURRENT_UID,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
+
+              // Remove from local state
+              setReviews((prev) => prev.filter((_, i) => i !== index));
+            } catch (error) {
+              console.error('Failed to delete review', error);
+              Alert.alert('Error', 'Failed to delete review. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const saveEditingReview = async (index) => {
+    const updatedText = editingReviewText.trim();
+    if (!updatedText) return;
+
+    const reviewToUpdate = reviews[index];
+    const reviewId = getReviewId(reviewToUpdate);
+
+    if (UPDATE_REVIEW_URL && reviewId) {
+      try {
+        const payload = {
+          review_id: reviewId,
+          uid: CURRENT_UID,
+          content: updatedText,
+          date: new Date().toISOString().slice(0, 10),
+          time: new Date().toTimeString().slice(0, 8),
+        };
+
+        const response = await fetch(UPDATE_REVIEW_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        const updatedReview = result?.review;
+
+        setReviews((prev) =>
+          prev.map((review, i) =>
+            i === index ? { ...review, ...updatedReview } : review
+          )
+        );
+      } catch (error) {
+        console.error('Failed to update review', error);
+        return;
+      }
+    } else {
+      setReviews((prev) =>
+        prev.map((review, i) =>
+          i === index ? { ...review, content: updatedText } : review
+        )
+      );
+    }
+
+    setEditingReviewKey(null);
+    setEditingReviewText('');
+  };
 
   return (
     <View style={styles.container}>
@@ -438,12 +582,48 @@ export default function ItemDetailScreen({ route, navigation }) {
                   <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
                 </View>
                 <Text style={styles.reviewText}>{review.content}</Text>
+                {review?.uid === CURRENT_UID && editingReviewKey === getReviewKey(review, index) && (
+                  <View style={styles.reviewEditContainer}>
+                    <TextInput
+                      style={styles.reviewEditInput}
+                      value={editingReviewText}
+                      onChangeText={setEditingReviewText}
+                      multiline
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                    />
+                    <View style={styles.reviewEditActions}>
+                      <TouchableOpacity
+                        style={[styles.reviewEditButton, styles.reviewEditSave]}
+                        onPress={() => saveEditingReview(index)}
+                      >
+                        <Text style={styles.reviewEditButtonText}>Save</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.reviewEditButton, styles.reviewEditCancel]}
+                        onPress={cancelEditingReview}
+                      >
+                        <Text style={styles.reviewEditButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
                 {review?.uid === CURRENT_UID && (
                   <View style={styles.reviewActionsBottom}>
-                    <TouchableOpacity style={styles.reviewActionButton}>
-                      <Ionicons name="pencil" size={22} color="#D4A574" />
+                    <TouchableOpacity
+                      style={styles.reviewActionButton}
+                      onPress={() => startEditingReview(review, index)}
+                    >
+                      <Ionicons
+                        name="pencil"
+                        size={22}
+                        color="#D4A574"
+                      />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.reviewActionButton}>
+                    <TouchableOpacity
+                      style={styles.reviewActionButton}
+                      onPress={() => confirmDeleteReview(review, index)}
+                    >
                       <Ionicons name="trash" size={22} color="#D23B35" />
                     </TouchableOpacity>
                   </View>
@@ -809,6 +989,43 @@ const styles = StyleSheet.create({
     gap: 20,
     alignSelf: 'flex-end',
     marginTop: 12,
+  },
+  reviewEditContainer: {
+    marginTop: 12,
+  },
+  reviewEditInput: {
+    backgroundColor: '#0F1419',
+    borderWidth: 1,
+    borderColor: '#1A2332',
+    borderRadius: 10,
+    padding: 10,
+    color: '#FFFFFF',
+    fontSize: 14,
+    minHeight: 80,
+  },
+  reviewEditActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 10,
+  },
+  reviewEditButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  reviewEditSave: {
+    backgroundColor: '#D4A574',
+  },
+  reviewEditCancel: {
+    backgroundColor: '#3A4556',
+  },
+  reviewEditButtonText: {
+    color: '#0A0E1A',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   reviewerInfo: {
     flexDirection: 'row',
