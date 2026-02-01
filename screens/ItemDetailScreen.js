@@ -6,12 +6,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
 
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
+  process.env.AZURE_FUNCTION_APP_BASE_URL ||
+  '';
+
+const buildPostReviewUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/postReview`;
+};
+
+const POST_REVIEW_URL = buildPostReviewUrl();
+
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
   const [userLiked, setUserLiked] = useState(false);
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
+  const [reviews, setReviews] = useState(item?.reviews || []);
+  const [isPostingReview, setIsPostingReview] = useState(false);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
@@ -60,13 +77,47 @@ export default function ItemDetailScreen({ route, navigation }) {
     toggleWishlist(item);
   };
 
-  const handlePostReview = () => {
-    if (newReview.trim()) {
+  const handlePostReview = async () => {
+    const reviewText = newReview.trim();
+    if (!reviewText) return;
+
+    if (!POST_REVIEW_URL) {
+      console.error('Post review URL is not configured');
+      return;
+    }
+
+    const payload = {
+      item_oid: String(item.id || item._id),
+      user: 'Anonymous',
+      content: reviewText,
+      date: new Date().toISOString().slice(0, 10),
+      uid: '123456789',
+    };
+
+    try {
+      setIsPostingReview(true);
+      const response = await fetch(POST_REVIEW_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      const postedContent = result?.review?.content || reviewText;
+      setReviews((prev) => [postedContent, ...prev]);
       setNewReview('');
+    } catch (error) {
+      console.error('Failed to post review', error);
+    } finally {
+      setIsPostingReview(false);
     }
   };
-
-  const reviews = item.reviews || [];
 
   return (
     <View style={styles.container}>
@@ -262,9 +313,12 @@ export default function ItemDetailScreen({ route, navigation }) {
             textAlignVertical="top"
           />
           <TouchableOpacity 
-            style={[styles.postButton, !newReview.trim() && styles.postButtonDisabled]}
+            style={[
+              styles.postButton,
+              (!newReview.trim() || isPostingReview) && styles.postButtonDisabled,
+            ]}
             onPress={handlePostReview}
-            disabled={!newReview.trim()}
+            disabled={!newReview.trim() || isPostingReview}
           >
             <Text style={styles.postButtonText}>Post Review</Text>
           </TouchableOpacity>
