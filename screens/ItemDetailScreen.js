@@ -19,7 +19,16 @@ const buildPostReviewUrl = () => {
   return `${normalizedBase.replace(/\/$/, '')}/postReview`;
 };
 
+const buildGetReviewsUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/getReviews`;
+};
+
 const POST_REVIEW_URL = buildPostReviewUrl();
+const GET_REVIEWS_URL = buildGetReviewsUrl();
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -27,8 +36,9 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
-  const [reviews, setReviews] = useState(item?.reviews || []);
+  const [reviews, setReviews] = useState([]);
   const [isPostingReview, setIsPostingReview] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
@@ -43,6 +53,32 @@ export default function ItemDetailScreen({ route, navigation }) {
 
     return unsubscribe;
   }, [navigation]);
+
+  // Fetch reviews when reviews tab is opened
+  useEffect(() => {
+    if (activeTab === 'reviews' && GET_REVIEWS_URL) {
+      const fetchReviews = async () => {
+        try {
+          setIsLoadingReviews(true);
+          const response = await fetch(`${GET_REVIEWS_URL}?item_id=${item.id || item._id}`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          setReviews(result.reviews || []);
+        } catch (error) {
+          console.error('Failed to fetch reviews', error);
+          setReviews([]);
+        } finally {
+          setIsLoadingReviews(false);
+        }
+      };
+
+      fetchReviews();
+    }
+  }, [activeTab, item.id, item._id]);
 
   if (!item) {
     return (
@@ -329,7 +365,12 @@ export default function ItemDetailScreen({ route, navigation }) {
           <Text style={styles.sectionTitle}>
             Reviews ({reviews.length})
           </Text>
-          {reviews.length === 0 ? (
+          {isLoadingReviews ? (
+            <View style={styles.loadingReviews}>
+              <Ionicons name="spinner" size={48} color="#D4A574" />
+              <Text style={styles.loadingReviewsText}>Loading reviews...</Text>
+            </View>
+          ) : reviews.length === 0 ? (
             <View style={styles.emptyReviews}>
               <Ionicons name="chatbubbles-outline" size={48} color="#5A6B8C" />
               <Text style={styles.emptyReviewsText}>No reviews yet</Text>
@@ -341,11 +382,11 @@ export default function ItemDetailScreen({ route, navigation }) {
                 <View style={styles.reviewHeader}>
                   <View style={styles.reviewerInfo}>
                     <Ionicons name="person-circle" size={32} color="#D4A574" />
-                    <Text style={styles.reviewerName}>Tenno #{index + 1}</Text>
+                    <Text style={styles.reviewerName}>{review.user}</Text>
                   </View>
-                  <Text style={styles.reviewDate}>Just now</Text>
+                  <Text style={styles.reviewDate}>{review.date}</Text>
                 </View>
-                <Text style={styles.reviewText}>{review}</Text>
+                <Text style={styles.reviewText}>{review.content}</Text>
               </View>
             ))
           )}
@@ -671,6 +712,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#5A6B8C',
     marginTop: 4,
+  },
+  loadingReviews: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingReviewsText: {
+    fontSize: 16,
+    color: '#8B9DC3',
+    fontWeight: '600',
+    marginTop: 12,
   },
   reviewCard: {
     backgroundColor: '#0F1419',
