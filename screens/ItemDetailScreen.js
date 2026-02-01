@@ -206,8 +206,15 @@ export default function ItemDetailScreen({ route, navigation }) {
       }
 
       const result = await response.json();
-      const postedContent = result?.review?.content || reviewText;
-      setReviews((prev) => [postedContent, ...prev]);
+      const postedReview = result?.review || {
+        _id: Date.now().toString(),
+        user: payload.user,
+        content: reviewText,
+        date: payload.date,
+        time: payload.time,
+        uid: payload.uid,
+      };
+      setReviews((prev) => [postedReview, ...prev]);
       setNewReview('');
     } catch (error) {
       console.error('Failed to post review', error);
