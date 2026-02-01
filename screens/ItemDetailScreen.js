@@ -29,6 +29,7 @@ const buildGetReviewsUrl = () => {
 
 const POST_REVIEW_URL = buildPostReviewUrl();
 const GET_REVIEWS_URL = buildGetReviewsUrl();
+const CURRENT_UID = '123456789';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -67,7 +68,13 @@ export default function ItemDetailScreen({ route, navigation }) {
           }
 
           const result = await response.json();
-          setReviews(result.reviews || []);
+          const fetchedReviews = result.reviews || [];
+          fetchedReviews.sort((a, b) => {
+            if (a?.uid === CURRENT_UID && b?.uid !== CURRENT_UID) return -1;
+            if (b?.uid === CURRENT_UID && a?.uid !== CURRENT_UID) return 1;
+            return 0;
+          });
+          setReviews(fetchedReviews);
         } catch (error) {
           console.error('Failed to fetch reviews', error);
           setReviews([]);
@@ -412,7 +419,13 @@ export default function ItemDetailScreen({ route, navigation }) {
             </View>
           ) : (
             reviews.map((review, index) => (
-              <View key={index} style={styles.reviewCard}>
+              <View
+                key={index}
+                style={[
+                  styles.reviewCard,
+                  review?.uid === CURRENT_UID && styles.ownReviewCard,
+                ]}
+              >
                 <View style={styles.reviewHeader}>
                   <View style={styles.reviewerInfo}>
                     <Ionicons name="person-circle" size={32} color="#D4A574" />
@@ -764,6 +777,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1A2332',
     marginBottom: 12,
+  },
+  ownReviewCard: {
+    borderColor: '#D4A574',
   },
   reviewHeader: {
     flexDirection: 'row',
