@@ -196,6 +196,8 @@ export default function ItemDetailScreen({ route, navigation }) {
     }
   };
 
+  const hasUserReview = reviews.some((review) => review?.uid === CURRENT_UID);
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -377,29 +379,31 @@ export default function ItemDetailScreen({ route, navigation }) {
         </View>
 
         {/* Post Review Section */}
-        <View style={styles.postReviewSection}>
-          <Text style={styles.sectionTitle}>Write a Review</Text>
-          <TextInput
-            style={styles.reviewInput}
-            placeholder="Share your thoughts about this item..."
-            placeholderTextColor="#5A6B8C"
-            multiline
-            numberOfLines={4}
-            value={newReview}
-            onChangeText={setNewReview}
-            textAlignVertical="top"
-          />
-          <TouchableOpacity 
-            style={[
-              styles.postButton,
-              (!newReview.trim() || isPostingReview) && styles.postButtonDisabled,
-            ]}
-            onPress={handlePostReview}
-            disabled={!newReview.trim() || isPostingReview}
-          >
-            <Text style={styles.postButtonText}>Post Review</Text>
-          </TouchableOpacity>
-        </View>
+        {!hasUserReview && (
+          <View style={styles.postReviewSection}>
+            <Text style={styles.sectionTitle}>Write a Review</Text>
+            <TextInput
+              style={styles.reviewInput}
+              placeholder="Share your thoughts about this item..."
+              placeholderTextColor="#5A6B8C"
+              multiline
+              numberOfLines={4}
+              value={newReview}
+              onChangeText={setNewReview}
+              textAlignVertical="top"
+            />
+            <TouchableOpacity 
+              style={[
+                styles.postButton,
+                (!newReview.trim() || isPostingReview) && styles.postButtonDisabled,
+              ]}
+              onPress={handlePostReview}
+              disabled={!newReview.trim() || isPostingReview}
+            >
+              <Text style={styles.postButtonText}>Post Review</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Reviews List */}
         <View style={styles.reviewsListSection}>
@@ -434,6 +438,16 @@ export default function ItemDetailScreen({ route, navigation }) {
                   <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
                 </View>
                 <Text style={styles.reviewText}>{review.content}</Text>
+                {review?.uid === CURRENT_UID && (
+                  <View style={styles.reviewActionsBottom}>
+                    <TouchableOpacity style={styles.reviewActionButton}>
+                      <Ionicons name="pencil" size={22} color="#D4A574" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.reviewActionButton}>
+                      <Ionicons name="trash" size={22} color="#D23B35" />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             ))
           )}
@@ -786,6 +800,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  reviewActionButton: {
+    padding: 6,
+  },
+  reviewActionsBottom: {
+    flexDirection: 'row',
+    gap: 20,
+    alignSelf: 'flex-end',
+    marginTop: 12,
   },
   reviewerInfo: {
     flexDirection: 'row',
