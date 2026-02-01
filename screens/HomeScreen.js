@@ -1,12 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { useState } from 'react';
 import Header from '../components/Header';
 import InventoryList from '../components/InventoryList';
 import LoadingScreen from '../components/LoadingScreen';
 import BaroAbsentScreen from '../components/BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
-import useInventory from '../hooks/useInventory';
+import { useInventory } from '../contexts/InventoryContext';
 
 export default function HomeScreen({ navigation }) {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -73,11 +72,6 @@ export default function HomeScreen({ navigation }) {
         onRefresh={onRefresh}
         onItemPress={handleItemPress}
       />
-      {/* <ItemDetailModal
-        item={selectedItem}
-        visible={selectedItem !== null}
-        onClose={() => setSelectedItem(null)}
-      /> */}
     </View>
   );
 }

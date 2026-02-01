@@ -8,7 +8,6 @@ export default function FeedbackScreen({ navigation }) {
 
   const handleSubmit = () => {
     if (!message.trim()) return;
-    console.log('Feedback submitted:', message);
     setMessage('');
     navigation.goBack();
   };

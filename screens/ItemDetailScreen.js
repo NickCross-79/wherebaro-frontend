@@ -62,7 +62,6 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   const handlePostReview = () => {
     if (newReview.trim()) {
-      console.log('Posting review:', newReview);
       setNewReview('');
     }
   };

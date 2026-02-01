@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } f
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
-import useAllItems from '../hooks/useAllItems';
+import { useAllItems } from '../contexts/AllItemsContext';
 
 export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');

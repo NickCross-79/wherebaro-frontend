@@ -13,7 +13,8 @@ import AllItemsScreen from './screens/AllItemsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import FeedbackScreen from './screens/FeedbackScreen';
 import { WishlistProvider, useWishlist } from './contexts/WishlistContext';
-import useBaroInventory from './hooks/useBaroInventory';
+import { InventoryProvider, useInventory } from './contexts/InventoryContext';
+import { AllItemsProvider } from './contexts/AllItemsContext';
 import HomeActive from './assets/icons/icon_home_active.svg';
 import HomeInactive from './assets/icons/icon_home_inactive.svg';
 import ListActive from './assets/icons/icon_list_active.svg';
@@ -83,7 +84,7 @@ function SettingsStackNavigator() {
 function TabNavigatorWithSafeArea() {
   const insets = useSafeAreaInsets();
   const { getWishlistCount, wishlistIds, wishlistLoaded } = useWishlist();
-  const { items, isHere } = useBaroInventory();
+  const { items, isHere } = useInventory();
   
   // Calculate badge count - only show wishlist items in current inventory
   const badgeCount = wishlistLoaded && wishlistIds.length > 0 && isHere
@@ -191,14 +192,18 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <WishlistProvider>
-        <StatusBar 
-          barStyle="light-content" 
-          backgroundColor="#0F1419" 
-          translucent={false}
-        />
-        <NavigationContainer>
-          <TabNavigatorWithSafeArea />
-        </NavigationContainer>
+        <InventoryProvider>
+          <AllItemsProvider>
+            <StatusBar 
+              barStyle="light-content" 
+              backgroundColor="#0F1419" 
+              translucent={false}
+            />
+            <NavigationContainer>
+              <TabNavigatorWithSafeArea />
+            </NavigationContainer>
+          </AllItemsProvider>
+        </InventoryProvider>
       </WishlistProvider>
     </SafeAreaProvider>
   );
