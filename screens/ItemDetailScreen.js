@@ -160,6 +160,7 @@ export default function ItemDetailScreen({ route, navigation }) {
       user: 'Anonymous',
       content: reviewText,
       date: new Date().toISOString().slice(0, 10),
+      time: new Date().toTimeString().slice(0, 8),
       uid: '123456789',
     };
 
