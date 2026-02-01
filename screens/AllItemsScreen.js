@@ -3,12 +3,12 @@ import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } f
 import { useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
-import useAllBaroItems from '../hooks/useAllBaroItems';
+import useAllItems from '../hooks/useAllItems';
 
 export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
-  const { items, loading, refreshing, error, onRefresh } = useAllBaroItems();
+  const { items, loading, refreshing, error, onRefresh } = useAllItems();
 
   const filteredItems = searchQuery
     ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))

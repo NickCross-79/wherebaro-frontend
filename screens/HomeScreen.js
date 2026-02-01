@@ -5,15 +5,14 @@ import Header from '../components/Header';
 import InventoryList from '../components/InventoryList';
 import LoadingScreen from '../components/LoadingScreen';
 import BaroAbsentScreen from '../components/BaroAbsentScreen';
-import ItemDetailModal from '../components/ItemDetailModal';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
-import useBaroInventory from '../hooks/useBaroInventory';
+import useInventory from '../hooks/useInventory';
 
 export default function HomeScreen({ navigation }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ types: [], popularity: 'all' });
-  const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useBaroInventory();
+  const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
 
   const filteredItems = searchQuery
     ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
