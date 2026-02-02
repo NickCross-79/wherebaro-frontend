@@ -12,7 +12,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   
   const categories = ['Mod', 'Weapon', 'Cosmetic', 'Resource', 'Blueprint', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
-    { label: 'All Items', value: 'all' },
+    { label: 'Default', value: 'all' },
     { label: 'Most Popular', value: 'popular' },
     { label: 'Least Popular', value: 'unpopular' },
   ];
@@ -53,7 +53,16 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
         <Pressable style={styles.overlayPressable} onPress={onClose} />
         <View style={styles.menuContent}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Filter Items</Text>
+            <View style={styles.headerLeft}>
+              <Text style={styles.headerTitle}>Filter Items</Text>
+              {hasActiveFilters && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>
+                    {(localFilters.categories || []).length + (localFilters.popularity !== 'all' ? 1 : 0)}
+                  </Text>
+                </View>
+              )}
+            </View>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
@@ -63,25 +72,30 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categories</Text>
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  style={styles.filterOption}
-                  onPress={() => toggleCategory(category)}
-                >
-                  <View style={[styles.checkbox, (localFilters.categories || []).includes(category) && styles.checkboxActive]}>
-                    {(localFilters.categories || []).includes(category) && (
-                      <Ionicons name="checkmark" size={16} color="#0A0E1A" />
-                    )}
-                  </View>
-                  <Text style={styles.optionLabel}>{category}</Text>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.chipGrid}>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.chip,
+                      (localFilters.categories || []).includes(category) && styles.chipActive
+                    ]}
+                    onPress={() => toggleCategory(category)}
+                  >
+                    <Text style={[
+                      styles.chipText,
+                      (localFilters.categories || []).includes(category) && styles.chipTextActive
+                    ]}>
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
-            {/* Popularity */}
+            {/* Sort By */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Popularity</Text>
+              <Text style={styles.sectionTitle}>Sort By</Text>
               {popularityOptions.map((option) => (
                 <TouchableOpacity
                   key={option.value}
@@ -146,12 +160,31 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#1A2332',
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#D4A574',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
+  },
+  filterBadge: {
+    backgroundColor: '#D4A574',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  filterBadgeText: {
+    color: '#0A0E1A',
+    fontSize: 12,
+    fontWeight: '700',
   },
   scrollContent: {
     padding: 20,
@@ -166,6 +199,31 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 12,
     fontWeight: '700',
+  },
+  chipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#5A6B8C',
+    backgroundColor: 'transparent',
+  },
+  chipActive: {
+    borderColor: '#D4A574',
+    backgroundColor: '#D4A574',
+  },
+  chipText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  chipTextActive: {
+    color: '#0A0E1A',
   },
   filterOption: {
     flexDirection: 'row',

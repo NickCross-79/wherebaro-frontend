@@ -16,6 +16,7 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
   };
 
   const hasActiveFilters = filters && ((filters.categories || []).length > 0 || filters.popularity !== 'all');
+  const activeFilterCount = filters ? (filters.categories || []).length + (filters.popularity !== 'all' ? 1 : 0) : 0;
 
   return (
     <View style={styles.container}>
@@ -30,7 +31,11 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
               onPress={() => setShowFilterMenu(true)}
             >
               <Ionicons name="filter" size={24} color="#8B9DC3" />
-              {hasActiveFilters && <View style={styles.filterBadge} />}
+              {hasActiveFilters && activeFilterCount > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
           {isExpanded ? (
@@ -121,11 +126,19 @@ const styles = StyleSheet.create({
   },
   filterBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: -6,
+    right: -6,
     backgroundColor: '#D4A574',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  filterBadgeText: {
+    color: '#0A0E1A',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
