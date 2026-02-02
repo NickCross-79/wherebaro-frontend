@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ReviewCard({
+function ReviewCard({
   review,
   index,
   currentUid,
@@ -86,3 +86,5 @@ export default function ReviewCard({
     </View>
   );
 }
+
+export default memo(ReviewCard);

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { dbHelpers } from '../utils/storage';
 
 const WishlistContext = createContext();
@@ -36,7 +36,7 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
-  const toggleWishlist = async (item) => {
+  const toggleWishlist = useCallback(async (item) => {
     const itemId = item?.id || item?._id;
     if (!itemId) {
       return;
@@ -48,31 +48,31 @@ export const WishlistProvider = ({ children }) => {
       if (isAlready) {
         // Remove from wishlist
         await dbHelpers.removeFromWishlist(itemId);
-        setWishlistIds(wishlistIds.filter((id) => id !== itemId));
-        setWishlistItems(wishlistItems.filter((wishlistItem) => (wishlistItem?.id || wishlistItem?._id) !== itemId));
+        setWishlistIds((prev) => prev.filter((id) => id !== itemId));
+        setWishlistItems((prev) => prev.filter((wishlistItem) => (wishlistItem?.id || wishlistItem?._id) !== itemId));
       } else {
         // Add to wishlist
         await dbHelpers.addToWishlist(item);
-        setWishlistIds([...wishlistIds, itemId]);
-        setWishlistItems([...wishlistItems, item]);
+        setWishlistIds((prev) => [...prev, itemId]);
+        setWishlistItems((prev) => [...prev, item]);
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
     }
-  };
+  }, [wishlistIds]);
 
-  const isInWishlist = (itemId) => {
+  const isInWishlist = useCallback((itemId) => {
     return wishlistIds.includes(itemId);
-  };
+  }, [wishlistIds]);
 
-  const getWishlistCount = (currentInventory) => {
+  const getWishlistCount = useCallback((currentInventory) => {
     if (!currentInventory || currentInventory.length === 0) return 0;
 
     // Count how many wishlist items are in current inventory
     return currentInventory.filter(item => wishlistIds.includes(item.id || item._id)).length;
-  };
+  }, [wishlistIds]);
 
-  const updateWishlistLikes = async (itemId, likeCount) => {
+  const updateWishlistLikes = useCallback(async (itemId, likeCount) => {
     setWishlistItems((prevItems) =>
       prevItems.map((current) => {
         const currentId = current?.id || current?._id;
@@ -88,20 +88,23 @@ export const WishlistProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to update wishlist likes:', error);
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      wishlistIds,
+      wishlistItems,
+      wishlistLoaded,
+      toggleWishlist,
+      isInWishlist,
+      getWishlistCount,
+      updateWishlistLikes,
+    }),
+    [wishlistIds, wishlistItems, wishlistLoaded, toggleWishlist, isInWishlist, getWishlistCount, updateWishlistLikes]
+  );
 
   return (
-    <WishlistContext.Provider
-      value={{
-        wishlistIds,
-        wishlistItems,
-        wishlistLoaded,
-        toggleWishlist,
-        isInWishlist,
-        getWishlistCount,
-        updateWishlistLikes,
-      }}
-    >
+    <WishlistContext.Provider value={contextValue}>
       {children}
     </WishlistContext.Provider>
   );

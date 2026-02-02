@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAllItems } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
@@ -81,12 +81,12 @@ export const AllItemsProvider = ({ children }) => {
     fetchItems();
   }, []);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchItems(true); // Force refresh
-  };
+  }, []);
 
-  const updateItemLikes = async (itemId, likeCount) => {
+  const updateItemLikes = useCallback(async (itemId, likeCount) => {
     setItems((prevItems) =>
       prevItems.map((current) => {
         const currentId = current?.id || current?._id;
@@ -100,22 +100,21 @@ export const AllItemsProvider = ({ children }) => {
     try {
       await dbHelpers.updateItemLikes(itemId, likeCount);
     } catch (error) {
-      console.error('Failed to update cached likes:', error);
+      console.error('Failed to update all items likes:', error);
     }
-  };
+  }, []);
 
-  return (
-    <AllItemsContext.Provider
-      value={{
-        items,
-        loading,
-        refreshing,
-        error,
-        onRefresh,
-        updateItemLikes,
-      }}
-    >
-      {children}
-    </AllItemsContext.Provider>
+  const value = useMemo(
+    () => ({
+      items,
+      loading,
+      refreshing,
+      error,
+      onRefresh,
+      updateItemLikes,
+    }),
+    [items, loading, refreshing, error, onRefresh, updateItemLikes]
   );
+
+  return <AllItemsContext.Provider value={value}>{children}</AllItemsContext.Provider>;
 };

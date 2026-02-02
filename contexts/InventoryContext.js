@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
@@ -165,12 +165,12 @@ export const InventoryProvider = ({ children }) => {
     fetchBaroInventory();
   }, []);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchBaroInventory(true); // Force refresh
-  };
+  }, []);
 
-  const updateItemLikes = async (itemId, likeCount) => {
+  const updateItemLikes = useCallback(async (itemId, likeCount) => {
     setItems((prevItems) =>
       prevItems.map((current) => {
         const currentId = current?.id || current?._id;
@@ -186,21 +186,24 @@ export const InventoryProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to update cached likes:', error);
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      items,
+      loading,
+      refreshing,
+      nextArrival,
+      nextLocation,
+      isHere,
+      onRefresh,
+      updateItemLikes,
+    }),
+    [items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes]
+  );
 
   return (
-    <InventoryContext.Provider
-      value={{
-        items,
-        loading,
-        refreshing,
-        nextArrival,
-        nextLocation,
-        isHere,
-        onRefresh,
-        updateItemLikes,
-      }}
-    >
+    <InventoryContext.Provider value={contextValue}>
       {children}
     </InventoryContext.Provider>
   );

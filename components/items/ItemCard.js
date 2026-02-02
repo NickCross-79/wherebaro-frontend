@@ -2,10 +2,10 @@ import { Text, View, Image, Pressable, Animated, Dimensions } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import BaroIcon from '../../assets/icons/icon_baro.svg';
 import { useWishlist } from '../../contexts/WishlistContext';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
 
-export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
+function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [showHeart, setShowHeart] = useState(false);
   const heartOpacity = useRef(new Animated.Value(1)).current;
@@ -127,3 +127,14 @@ export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = fal
   );
 }
 
+export default memo(ItemCard, (prevProps, nextProps) => {
+  return (
+    prevProps.item?.id === nextProps.item?.id &&
+    prevProps.item?._id === nextProps.item?._id &&
+    prevProps.item?.likes?.length === nextProps.item?.likes?.length &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.isNew === nextProps.isNew &&
+    prevProps.hideWishlistBadge === nextProps.hideWishlistBadge &&
+    prevProps.hideWishlistBorder === nextProps.hideWishlistBorder
+  );
+});
