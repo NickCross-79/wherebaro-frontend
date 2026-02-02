@@ -21,11 +21,17 @@ export const fetchReviews = async (itemId) => {
 
 /**
  * Post a new review
- * @param {Object} reviewData - Review data {item_id, uid, content, date, time}
+ * @param {Object} reviewData - Review data {item_id, uid, content, date, time, user}
  * @returns {Promise<Object>} Created review
  */
 export const postReview = async (reviewData) => {
-  return apiPost(ENDPOINTS.POST_REVIEW, reviewData);
+  // Convert item_id to item_oid for backend
+  const payload = { ...reviewData };
+  if (payload.item_id && !payload.item_oid) {
+    payload.item_oid = payload.item_id;
+    delete payload.item_id;
+  }
+  return apiPost(ENDPOINTS.POST_REVIEW, payload);
 };
 
 /**

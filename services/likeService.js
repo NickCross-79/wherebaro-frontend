@@ -25,7 +25,7 @@ export const fetchLikes = async (itemId) => {
  * @returns {Promise<Object>} Like result
  */
 export const likeItem = async (itemId, uid) => {
-  return apiPost(ENDPOINTS.LIKE_ITEM, { item_id: itemId, uid });
+  return apiPost(ENDPOINTS.LIKE_ITEM, { item_oid: itemId, uid });
 };
 
 /**
@@ -35,7 +35,7 @@ export const likeItem = async (itemId, uid) => {
  * @returns {Promise<Object>} Unlike result
  */
 export const unlikeItem = async (itemId, uid) => {
-  return apiPost(ENDPOINTS.UNLIKE_ITEM, { item_id: itemId, uid });
+  return apiPost(ENDPOINTS.UNLIKE_ITEM, { item_oid: itemId, uid });
 };
 
 export default {
