@@ -1,14 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
-
-
-
-import { fetchLikes } from '../services/api';
 
 export default function WishlistScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -16,41 +12,9 @@ export default function WishlistScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { wishlistItems } = useWishlist();
-  const [itemsWithLikes, setItemsWithLikes] = useState([]);
 
-  // Fetch fresh likes for all wishlist items
-  useEffect(() => {
-    const fetchLikesForWishlist = async () => {
-      if (wishlistItems.length === 0) {
-        setItemsWithLikes([]);
-        return;
-      }
-
-
-      try {
-        const itemsWithUpdatedLikes = await Promise.all(
-          wishlistItems.map(async (item) => {
-            try {
-              const data = await fetchLikes(item.id || item._id);
-              return { ...item, likes: data.likes || [] };
-            } catch (error) {
-              console.error(`Error fetching likes for item ${item.id || item._id}:`, error);
-              return item;
-            }
-          })
-        );
-        setItemsWithLikes(itemsWithUpdatedLikes);
-      } catch (error) {
-        console.error('Error fetching likes for wishlist:', error);
-        setItemsWithLikes(wishlistItems);
-      }
-    };
-
-    fetchLikesForWishlist();
-  }, [wishlistItems]);
-
-  // Use items with updated likes instead of wishlistItems
-  const displayItems = itemsWithLikes.length > 0 ? itemsWithLikes : wishlistItems;
+  // Use cached wishlist items directly (likes are already stored locally)
+  const displayItems = wishlistItems;
 
   const filteredItems = searchQuery
     ? displayItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))

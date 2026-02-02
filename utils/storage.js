@@ -59,9 +59,9 @@ const createTables = async () => {
   if (!db) return;
 
   try {
-    // Wishlist table
+    // Single items table with wishlist flag
     await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS wishlist (
+      CREATE TABLE IF NOT EXISTS items (
         id TEXT PRIMARY KEY,
         _id TEXT UNIQUE,
         name TEXT NOT NULL,
@@ -71,28 +71,18 @@ const createTables = async () => {
         ducatPrice INTEGER,
         likes TEXT,
         reviews TEXT,
-        createdAt INTEGER
-      );
-    `);
-    console.log('Wishlist table created');
-
-    // Items cache table
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS items_cache (
-        id TEXT PRIMARY KEY,
-        _id TEXT UNIQUE,
-        name TEXT NOT NULL,
-        type TEXT,
-        image TEXT,
-        creditPrice INTEGER,
-        ducatPrice INTEGER,
-        likes TEXT,
-        reviews TEXT,
+        inWishlist INTEGER DEFAULT 0,
         createdAt INTEGER,
         cachedAt INTEGER
       );
     `);
-    console.log('Items cache table created');
+    console.log('Items table created');
+
+    // Create index on wishlist flag for fast queries
+    await db.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_wishlist ON items(inWishlist);
+    `);
+    console.log('Wishlist index created');
   } catch (error) {
     console.error('Error creating tables:', error);
   }
@@ -193,8 +183,8 @@ export const dbHelpers = {
       await ensureDb();
       const itemId = item.id || item._id;
       await db.runAsync(
-        `INSERT OR REPLACE INTO wishlist (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, createdAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, inWishlist, createdAt, cachedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           itemId,
           item._id || itemId,
@@ -205,6 +195,8 @@ export const dbHelpers = {
           item.ducatPrice || 0,
           JSON.stringify(item.likes || []),
           JSON.stringify(item.reviews || []),
+          1, // inWishlist = true
+          Date.now(),
           Date.now(),
         ]
       );
@@ -218,7 +210,7 @@ export const dbHelpers = {
     try {
       await ensureDb();
       await db.runAsync(
-        `DELETE FROM wishlist WHERE id = ? OR _id = ?`,
+        `UPDATE items SET inWishlist = 0 WHERE id = ? OR _id = ?`,
         [itemId, itemId]
       );
     } catch (error) {
@@ -231,7 +223,7 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const result = await db.getAllAsync(
-        `SELECT * FROM wishlist ORDER BY createdAt DESC`
+        `SELECT * FROM items WHERE inWishlist = 1 ORDER BY createdAt DESC`
       );
       return result.map((row) => ({
         ...row,
@@ -247,7 +239,9 @@ export const dbHelpers = {
   getWishlistIds: async () => {
     try {
       await ensureDb();
-      const result = await db.getAllAsync(`SELECT id, _id FROM wishlist`);
+      const result = await db.getAllAsync(
+        `SELECT id, _id FROM items WHERE inWishlist = 1`
+      );
       return result.map((row) => row.id || row._id);
     } catch (error) {
       console.error('Error getting wishlist IDs:', error);
@@ -259,7 +253,7 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const result = await db.getFirstAsync(
-        `SELECT id FROM wishlist WHERE id = ? OR _id = ? LIMIT 1`,
+        `SELECT id FROM items WHERE (id = ? OR _id = ?) AND inWishlist = 1 LIMIT 1`,
         [itemId, itemId]
       );
       return result !== null;
@@ -269,16 +263,23 @@ export const dbHelpers = {
     }
   },
 
-  // Items cache operations
+  // Items cache operations (now uses single items table)
   cacheItems: async (items) => {
     try {
       await ensureDb();
       const now = Date.now();
       for (const item of items) {
         const itemId = item.id || item._id;
+        // Check if item is already in wishlist
+        const existingItem = await db.getFirstAsync(
+          `SELECT inWishlist FROM items WHERE id = ? OR _id = ?`,
+          [itemId, itemId]
+        );
+        const inWishlist = existingItem?.inWishlist || 0;
+
         await db.runAsync(
-          `INSERT OR REPLACE INTO items_cache (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, inWishlist, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -289,6 +290,7 @@ export const dbHelpers = {
             item.ducatPrice || 0,
             JSON.stringify(item.likes || []),
             JSON.stringify(item.reviews || []),
+            inWishlist, // Preserve wishlist flag
             now,
           ]
         );
@@ -303,7 +305,7 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const result = await db.getAllAsync(
-        `SELECT * FROM items_cache ORDER BY cachedAt DESC`
+        `SELECT * FROM items ORDER BY cachedAt DESC`
       );
       return result.map((row) => ({
         ...row,
@@ -319,7 +321,8 @@ export const dbHelpers = {
   clearItemsCache: async () => {
     try {
       await ensureDb();
-      await db.runAsync(`DELETE FROM items_cache`);
+      // Clear cache but preserve wishlist items
+      await db.runAsync(`DELETE FROM items WHERE inWishlist = 0`);
     } catch (error) {
       console.error('Error clearing cache:', error);
     }
@@ -334,7 +337,7 @@ export const dbHelpers = {
       const values = Object.values(updates);
       
       await db.runAsync(
-        `UPDATE items_cache SET ${setClause} WHERE id = ? OR _id = ?`,
+        `UPDATE items SET ${setClause} WHERE id = ? OR _id = ?`,
         [...values, itemId, itemId]
       );
     } catch (error) {
@@ -348,11 +351,7 @@ export const dbHelpers = {
       await ensureDb();
       const likesValue = JSON.stringify(likeCount);
       await db.runAsync(
-        `UPDATE items_cache SET likes = ? WHERE id = ? OR _id = ?`,
-        [likesValue, itemId, itemId]
-      );
-      await db.runAsync(
-        `UPDATE wishlist SET likes = ? WHERE id = ? OR _id = ?`,
+        `UPDATE items SET likes = ? WHERE id = ? OR _id = ?`,
         [likesValue, itemId, itemId]
       );
     } catch (error) {
