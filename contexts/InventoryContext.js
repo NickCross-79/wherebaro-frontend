@@ -35,7 +35,7 @@ const normalizeItem = (item) => {
     ducatPrice: item.ducatPrice,
     type: item.type,
     offeringDates: item.offeringDates,
-    likes: item.likes || 0,
+    likes: Array.isArray(item.likes) ? item.likes.length : item.likes || 0,
     reviews: item.reviews || [],
     dateAdded: lastOffering,
   };

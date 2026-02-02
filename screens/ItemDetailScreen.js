@@ -27,6 +27,14 @@ const buildGetReviewsUrl = () => {
   return `${normalizedBase.replace(/\/$/, '')}/getReviews`;
 };
 
+const buildGetLikesUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/getLikes`;
+};
+
 const buildUpdateReviewUrl = () => {
   if (!API_BASE_URL) return '';
   const normalizedBase = API_BASE_URL.startsWith('http')
@@ -61,6 +69,7 @@ const buildUnlikeUrl = () => {
 
 const POST_REVIEW_URL = buildPostReviewUrl();
 const GET_REVIEWS_URL = buildGetReviewsUrl();
+const GET_LIKES_URL = buildGetLikesUrl();
 const UPDATE_REVIEW_URL = buildUpdateReviewUrl();
 const DELETE_REVIEW_URL = buildDeleteReviewUrl();
 const LIKE_URL = buildLikeUrl();
@@ -95,38 +104,69 @@ export default function ItemDetailScreen({ route, navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Fetch reviews when reviews tab is opened
+  // Fetch reviews and likes when reviews tab is opened
   useEffect(() => {
     if (activeTab === 'reviews' && GET_REVIEWS_URL) {
-      const fetchReviews = async () => {
+      const fetchReviewsAndLikes = async () => {
         try {
           setIsLoadingReviews(true);
-          const response = await fetch(`${GET_REVIEWS_URL}?item_id=${item.id || item._id}`);
+          const itemId = item.id || item._id;
           
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+          // Fetch both reviews and likes in parallel
+          const requests = [
+            fetch(`${GET_REVIEWS_URL}?item_id=${itemId}`),
+            GET_LIKES_URL ? fetch(`${GET_LIKES_URL}?item_id=${itemId}`) : null,
+          ].filter(Boolean);
+
+          const responses = await Promise.all(requests);
+          const [reviewsResponse, likesResponse] = responses;
+
+          // Validate responses
+          if (!reviewsResponse?.ok) {
+            throw new Error(`Reviews fetch failed: HTTP ${reviewsResponse?.status}`);
           }
 
-          const result = await response.json();
-          const fetchedReviews = result.reviews || [];
-          setLikeCount(result.itemLikesCount || item?.likes?.length || 0);
-          const userHasLiked = result.userHasLiked || false;
+          if (likesResponse && !likesResponse.ok) {
+            throw new Error(`Likes fetch failed: HTTP ${likesResponse.status}`);
+          }
+
+          // Parse both responses in parallel
+          const [reviewsResult, likesResult] = await Promise.all([
+            reviewsResponse.json(),
+            likesResponse ? likesResponse.json() : Promise.resolve({ likes: [] })
+          ]);
+
+          // Process fetched data
+          const fetchedReviews = reviewsResult.reviews || [];
+          const fetchedLikes = likesResult.likes || [];
+
+          // Update like state
+          setLikeCount(fetchedLikes.length || item?.likes?.length || 0);
+          const userHasLiked = fetchedLikes.some((like) => like?.uid === CURRENT_UID);
           setUserLiked(userHasLiked);
+
+          // Sort reviews with user's review first
           fetchedReviews.sort((a, b) => {
             if (a?.uid === CURRENT_UID && b?.uid !== CURRENT_UID) return -1;
             if (b?.uid === CURRENT_UID && a?.uid !== CURRENT_UID) return 1;
             return 0;
           });
+          
+          // Only update reviews state after both are fully processed
           setReviews(fetchedReviews);
         } catch (error) {
-          console.error('Failed to fetch reviews', error);
+          console.error('Failed to fetch reviews/likes', error);
           setReviews([]);
+          // Reset like state on error
+          setLikeCount(item?.likes?.length || 0);
+          setUserLiked(false);
         } finally {
+          // Only mark as loaded after both requests are complete
           setIsLoadingReviews(false);
         }
       };
 
-      fetchReviews();
+      fetchReviewsAndLikes();
     }
   }, [activeTab, item.id, item._id]);
 

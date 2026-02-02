@@ -28,7 +28,7 @@ export default function ItemCard({ item, onPress, isNew }) {
             </View>
             <View style={styles.likesContainer}>
               <Ionicons name="thumbs-up" size={16} color="#D4A574" />
-              <Text style={styles.likesText}>{item.likes || 0}</Text>
+              <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
             </View>
           </View>
           
