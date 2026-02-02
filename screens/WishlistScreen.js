@@ -70,6 +70,8 @@ export default function WishlistScreen({ navigation }) {
               key={index}
               item={item}
               onPress={() => navigation.navigate('ItemDetail', { item })}
+              hideWishlistBadge={true}
+              hideWishlistBorder={true}
             />
           ))
         )}

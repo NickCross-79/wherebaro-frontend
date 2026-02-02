@@ -1,15 +1,72 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useState, useRef, useEffect } from 'react';
 
-export default function ItemCard({ item, onPress, isNew }) {
+export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const [showHeart, setShowHeart] = useState(false);
+  const heartOpacity = useRef(new Animated.Value(1)).current;
+  const heartScale = useRef(new Animated.Value(0.5)).current;
+  const inWishlist = isInWishlist(item?.id || item?._id);
+
+  const handleLongPress = () => {
+    // Only show heart animation if adding to wishlist (not already in wishlist)
+    if (!inWishlist) {
+      setShowHeart(true);
+      heartOpacity.setValue(1);
+      heartScale.setValue(0.5);
+
+      Animated.parallel([
+        Animated.timing(heartOpacity, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(heartScale, {
+          toValue: 1.5,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setShowHeart(false);
+      });
+    }
+    
+    toggleWishlist(item);
+  };
+
   return (
     <View>
+      {showHeart && (
+        <Animated.View 
+          style={[
+            styles.heartPopup,
+            {
+              opacity: heartOpacity,
+              transform: [{ scale: heartScale }],
+            }
+          ]}
+          pointerEvents="none"
+        >
+          <Ionicons name="heart" size={80} color="#D4A574" />
+        </Animated.View>
+      )}
       {isNew && (
         <View style={styles.newBadge}>
           <Text style={styles.newBadgeText}>NEW ITEM</Text>
         </View>
       )}
-      <TouchableOpacity style={[styles.itemCard, isNew && styles.itemCardNew]} onPress={onPress}>
+      {inWishlist && !hideWishlistBadge && (
+        <View style={styles.wishlistBadge}>
+          <Text style={styles.wishlistBadgeText}>WISHLIST</Text>
+        </View>
+      )}
+      <Pressable 
+        style={({ pressed }) => [styles.itemCard, isNew && styles.itemCardNew, inWishlist && !hideWishlistBorder && styles.itemCardWishlist, { opacity: pressed ? 0.7 : 1 }]} 
+        onPress={onPress}
+        onLongPress={handleLongPress}
+      >
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
           <Image
@@ -60,12 +117,22 @@ export default function ItemCard({ item, onPress, isNew }) {
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  heartPopup: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    top: '50%',
+    left: '50%',
+    marginLeft: -40,
+    marginTop: -40,
+    zIndex: 999,
+  },
   newBadge: {
     alignSelf: 'flex-start',
     backgroundColor: '#D4A574',
@@ -78,6 +145,24 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   newBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0A0E1A',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  wishlistBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#D4A574',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    marginBottom: -1,
+    marginLeft: 0,
+    zIndex: 1,
+  },
+  wishlistBadgeText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#0A0E1A',
@@ -98,6 +183,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   itemCardNew: {
+    borderTopLeftRadius: 0,
+    borderColor: '#D4A574',
+    borderWidth: 2,
+  },
+  itemCardWishlist: {
     borderTopLeftRadius: 0,
     borderColor: '#D4A574',
     borderWidth: 2,
