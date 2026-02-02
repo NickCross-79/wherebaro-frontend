@@ -10,20 +10,20 @@ import { useInventory } from '../contexts/InventoryContext';
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ types: [], popularity: 'all' });
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
 
   const filteredItems = searchQuery
     ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : items;
 
-  // Apply type filters
-  const typeFilteredItems = filters.types.length > 0
-    ? filteredItems.filter(item => filters.types.some(filterType => item.type.startsWith(filterType)))
+  // Apply category filters
+  const categoryFilteredItems = filters.categories.length > 0
+    ? filteredItems.filter(item => filters.categories.some(category => item.type.toLowerCase().includes(category.toLowerCase())))
     : filteredItems;
 
   // Apply popularity sorting
-  let finalItems = [...typeFilteredItems];
+  let finalItems = [...categoryFilteredItems];
   if (filters.popularity === 'popular') {
     finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
   } else if (filters.popularity === 'unpopular') {

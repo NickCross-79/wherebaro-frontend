@@ -15,7 +15,7 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
     }
   };
 
-  const hasActiveFilters = filters && (filters.types.length > 0 || filters.popularity !== 'all');
+  const hasActiveFilters = filters && ((filters.categories || []).length > 0 || filters.popularity !== 'all');
 
   return (
     <View style={styles.container}>

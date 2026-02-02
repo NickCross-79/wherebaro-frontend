@@ -10,20 +10,12 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     setLocalFilters(filters);
   }, [filters, visible]);
   
-  const itemTypes = ['Mod', 'Weapon', 'Cosmetic', 'Resource', 'Blueprint'];
-  const categories = ['Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
+  const categories = ['Mod', 'Weapon', 'Cosmetic', 'Resource', 'Blueprint', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
     { label: 'All Items', value: 'all' },
     { label: 'Most Popular', value: 'popular' },
     { label: 'Least Popular', value: 'unpopular' },
   ];
-
-  const toggleType = (type) => {
-    const newTypes = localFilters.types.includes(type)
-      ? localFilters.types.filter(t => t !== type)
-      : [...localFilters.types, type];
-    setLocalFilters({ ...localFilters, types: newTypes });
-  };
 
   const toggleCategory = (category) => {
     const newCategories = (localFilters.categories || []).includes(category)
@@ -37,7 +29,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   };
 
   const clearFilters = () => {
-    setLocalFilters({ types: [], categories: [], popularity: 'all' });
+    setLocalFilters({ categories: [], popularity: 'all' });
   };
 
   const applyFilters = () => {
@@ -45,7 +37,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     onClose();
   };
 
-  const hasActiveFilters = localFilters.types.length > 0 || (localFilters.categories || []).length > 0 || localFilters.popularity !== 'all';
+  const hasActiveFilters = (localFilters.categories || []).length > 0 || localFilters.popularity !== 'all';
 
   return (
     <Modal
@@ -65,25 +57,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
           </View>
 
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Item Types */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Item Type</Text>
-              {itemTypes.map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={styles.filterOption}
-                  onPress={() => toggleType(type)}
-                >
-                  <View style={[styles.checkbox, localFilters.types.includes(type) && styles.checkboxActive]}>
-                    {localFilters.types.includes(type) && (
-                      <Ionicons name="checkmark" size={16} color="#0A0E1A" />
-                    )}
-                  </View>
-                  <Text style={styles.optionLabel}>{type}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categories</Text>
