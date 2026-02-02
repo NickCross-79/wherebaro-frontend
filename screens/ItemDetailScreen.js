@@ -101,6 +101,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const bottomSpacer = insets.bottom + 90;
 
   const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-10, 10])
     .onEnd((event) => {
       const { translationX } = event;
       
