@@ -1,26 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchAllItems } from '../services/api';
 import { dbHelpers, mmkvHelpers } from '../utils/storage';
+import { normalizeItem } from '../utils/normalizeItem';
 
 const AllItemsContext = createContext();
 
-const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
-
-const normalizeItem = (item) => {
-  return {
-    id: item._id,
-    name: item.name,
-    image: item.image ? `${WARFRAME_IMAGE_BASE}${item.image}` : 'https://via.placeholder.com/150',
-    link: item.link,
-    creditPrice: item.creditPrice,
-    ducatPrice: item.ducatPrice,
-    type: item.type,
-    offeringDates: item.offeringDates || [],
-    likes: Array.isArray(item.likes) ? item.likes.length : item.likes || 0,
-    reviews: item.reviews || [],
-  };
-};
 
 export const useAllItems = () => {
   const context = useContext(AllItemsContext);

@@ -1,34 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, mmkvHelpers } from '../utils/storage';
+import { normalizeItem } from '../utils/normalizeItem';
 
 const InventoryContext = createContext();
 
-const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
-
-// Normalize backend data to frontend format
-const normalizeItem = (item) => {
-  // Get the most recent offering date
-  const offeringDates = item.offeringDates || [];
-  const lastOffering = offeringDates.length > 0 
-    ? new Date(offeringDates[offeringDates.length - 1])
-    : null;
-
-  return {
-    id: item._id,
-    name: item.name,
-    image: item.image ? `${WARFRAME_IMAGE_BASE}/${item.image}` : 'https://via.placeholder.com/150',
-    link: item.link,
-    creditPrice: item.creditPrice,
-    ducatPrice: item.ducatPrice,
-    type: item.type,
-    offeringDates: item.offeringDates,
-    likes: Array.isArray(item.likes) ? item.likes.length : item.likes || 0,
-    reviews: item.reviews || [],
-    dateAdded: lastOffering,
-  };
-};
 
 export const useInventory = () => {
   const context = useContext(InventoryContext);
@@ -118,7 +95,7 @@ export const InventoryProvider = ({ children }) => {
       });
 
       const normalizedItems = Array.isArray(data?.items)
-        ? data.items.map(normalizeItem)
+        ? data.items.map((current) => normalizeItem(current, { includeDateAdded: true }))
         : [];
 
       const sortedItems = normalizedItems.sort((a, b) => {
