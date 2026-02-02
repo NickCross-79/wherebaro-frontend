@@ -42,7 +42,7 @@ export default function AllItemsScreen({ navigation }) {
         <CollapsibleSearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          title={`${items.length} items in archive`}
+          title={`${finalItems.length} items in archive`}
           titleColor="#8B9DC3"
           titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
