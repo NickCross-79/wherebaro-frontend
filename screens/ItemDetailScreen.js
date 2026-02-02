@@ -1,173 +1,72 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput, ImageBackground, Alert } from 'react-native';
-import { useEffect, useState, useRef } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View, Text } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { fetchReviews, postReview, updateReview, deleteReview, fetchLikes, likeItem, unlikeItem } from '../services/api';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { fetchReviews, fetchLikes } from '../services/api';
+import ItemDetailsTab from '../components/items/ItemDetailsTab';
+import ItemReviewsTab from '../components/items/ItemReviewsTab';
+import ItemDetailHeader from '../components/items/ItemDetailHeader';
+import ItemDetailTabs from '../components/items/ItemDetailTabs';
+import { useLike } from '../hooks/useLike';
+import { useReviewManagement } from '../hooks/useReviewManagement';
+import { formatDate, getRelativeTime } from '../utils/dateUtils';
+import { createSwipeGesture } from '../utils/gestureHelpers';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
   const [CURRENT_UID, setCURRENT_UID] = useState(null);
-  const [userLiked, setUserLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(item?.likes?.length || 0);
-  const [isLiking, setIsLiking] = useState(false);
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
-  const [newReview, setNewReview] = useState('');
-  const [reviews, setReviews] = useState([]);
-  const [isPostingReview, setIsPostingReview] = useState(false);
-  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-  const [editingReviewKey, setEditingReviewKey] = useState(null);
-  const [editingReviewText, setEditingReviewText] = useState('');
   const { toggleWishlist, isInWishlist, updateWishlistLikes } = useWishlist();
   const { updateItemLikes: updateInventoryLikes } = useInventory();
   const { updateItemLikes: updateAllItemsLikes } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
-  const LIKE_THROTTLE_MS = 3000;
-  const likeThrottleRef = useRef({
-    lastSentAt: 0,
-    pendingTarget: null,
-    timerId: null,
-    inFlight: false,
-    lastSentTarget: null,
-  });
-  const likeStateRef = useRef({ likeCount, userLiked });
-
-  useEffect(() => {
-    likeStateRef.current = { likeCount, userLiked };
-  }, [likeCount, userLiked]);
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-20, 20])
-    .failOffsetY([-10, 10])
-    .onEnd((event) => {
-      const { translationX } = event;
-      
-      // Right swipe
-      if (translationX > 80) {
-        if (activeTab === 'reviews') {
-          // On reviews tab: go back to details
-          setActiveTab('details');
-        } else {
-          // On details tab: go back to previous screen
-          navigation.goBack();
-        }
-      }
-      // Left swipe: go to reviews (if not already there)
-      else if (translationX < -80 && activeTab !== 'reviews') {
-        setActiveTab('reviews');
-      }
-    });
 
   const syncLikeCount = (newCount) => {
     const itemId = item.id || item._id;
-    setLikeCount(newCount);
     updateInventoryLikes(itemId, newCount);
     updateAllItemsLikes(itemId, newCount);
     updateWishlistLikes(itemId, newCount);
   };
 
-  const schedulePendingLikeRequest = (itemId) => {
-    const throttle = likeThrottleRef.current;
-    if (throttle.timerId) return;
+  const {
+    userLiked,
+    likeCount,
+    isLiking,
+    handleLike: handleLikeClick,
+  } = useLike(
+    false,
+    item?.likes?.length || 0,
+    syncLikeCount
+  );
 
-    const elapsed = Date.now() - throttle.lastSentAt;
-    const delay = Math.max(LIKE_THROTTLE_MS - elapsed, 0);
+  const {
+    reviews,
+    newReview,
+    setNewReview,
+    isPostingReview,
+    isLoadingReviews,
+    editingReviewKey,
+    editingReviewText,
+    setEditingReviewText,
+    getReviewKey,
+    getReviewId,
+    handlePostReview,
+    startEditingReview,
+    cancelEditingReview,
+    saveEditingReview,
+    confirmDeleteReview,
+    hasUserReview,
+  } = useReviewManagement(item.id || item._id);
 
-    throttle.timerId = setTimeout(() => {
-      throttle.timerId = null;
-      void flushPendingLikeRequest(itemId);
-    }, delay);
-  };
-
-  const sendLikeRequest = async (targetLiked, itemId) => {
-    const throttle = likeThrottleRef.current;
-    throttle.inFlight = true;
-    setIsLiking(true);
-
-    try {
-      if (targetLiked) {
-        console.log('📌 Making like API call', { itemId, uid: CURRENT_UID });
-        await likeItem(itemId, CURRENT_UID);
-        console.log('✅ Like API call succeeded', { itemId, uid: CURRENT_UID });
-      } else {
-        console.log('📌 Making unlike API call', { itemId, uid: CURRENT_UID });
-        await unlikeItem(itemId, CURRENT_UID);
-        console.log('✅ Unlike API call succeeded', { itemId, uid: CURRENT_UID });
-      }
-    } catch (error) {
-      console.error(
-        targetLiked ? '❌ Failed to add like' : '❌ Failed to remove like',
-        { itemId, uid: CURRENT_UID, error }
-      );
-      Alert.alert(
-        'Error',
-        targetLiked
-          ? 'Failed to add like. Please try again.'
-          : 'Failed to remove like. Please try again.'
-      );
-
-      const { likeCount: currentCount, userLiked: currentLiked } = likeStateRef.current;
-      if (currentLiked === targetLiked) {
-        const revertedLiked = !targetLiked;
-        const revertedCount = targetLiked
-          ? Math.max(currentCount - 1, 0)
-          : currentCount + 1;
-        setUserLiked(revertedLiked);
-        syncLikeCount(revertedCount);
-      }
-    } finally {
-      throttle.inFlight = false;
-      throttle.lastSentAt = Date.now();
-      throttle.lastSentTarget = targetLiked;
-      setIsLiking(false);
-
-      if (throttle.pendingTarget !== null && throttle.pendingTarget !== throttle.lastSentTarget) {
-        schedulePendingLikeRequest(itemId);
-      }
-    }
-  };
-
-  const flushPendingLikeRequest = async (itemId) => {
-    const throttle = likeThrottleRef.current;
-    if (throttle.inFlight) return;
-
-    const target = throttle.pendingTarget;
-    if (target === null || target === throttle.lastSentTarget) {
-      throttle.pendingTarget = null;
-      return;
-    }
-
-    throttle.pendingTarget = null;
-    await sendLikeRequest(target, itemId);
-  };
-
-  const enqueueLikeRequest = (targetLiked, itemId) => {
-    const throttle = likeThrottleRef.current;
-    throttle.pendingTarget = targetLiked;
-
-    if (throttle.inFlight) {
-      schedulePendingLikeRequest(itemId);
-      return;
-    }
-
-    const elapsed = Date.now() - throttle.lastSentAt;
-    if (elapsed >= LIKE_THROTTLE_MS) {
-      throttle.pendingTarget = null;
-      void sendLikeRequest(targetLiked, itemId);
-      return;
-    }
-
-    schedulePendingLikeRequest(itemId);
-  };
+  const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation);
 
   // Get user UID on mount
   useEffect(() => {
@@ -188,54 +87,6 @@ export default function ItemDetailScreen({ route, navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Fetch reviews and likes when reviews tab is opened
-  useEffect(() => {
-    if (activeTab === 'reviews') {
-      const fetchReviewsAndLikes = async () => {
-        try {
-          setIsLoadingReviews(true);
-          const itemId = item.id || item._id;
-          
-          // Fetch both reviews and likes in parallel
-          const [reviewsResult, likesResult] = await Promise.all([
-            fetchReviews(itemId),
-            fetchLikes(itemId),
-          ]);
-
-          // Process fetched data
-          const fetchedReviews = reviewsResult.reviews || [];
-          const fetchedLikes = likesResult.likes || [];
-
-          // Update like state
-          syncLikeCount(fetchedLikes.length || item?.likes?.length || 0);
-          const userHasLiked = fetchedLikes.some((like) => like?.uid === CURRENT_UID);
-          setUserLiked(userHasLiked);
-
-          // Sort reviews with user's review first
-          fetchedReviews.sort((a, b) => {
-            if (a?.uid === CURRENT_UID && b?.uid !== CURRENT_UID) return -1;
-            if (b?.uid === CURRENT_UID && a?.uid !== CURRENT_UID) return 1;
-            return 0;
-          });
-          
-          // Only update reviews state after both are fully processed
-          setReviews(fetchedReviews);
-        } catch (error) {
-          console.error('Failed to fetch reviews/likes', error);
-          setReviews([]);
-          // Reset like state on error
-          syncLikeCount(item?.likes?.length || 0);
-          setUserLiked(false);
-        } finally {
-          // Only mark as loaded after both requests are complete
-          setIsLoadingReviews(false);
-        }
-      };
-
-      fetchReviewsAndLikes();
-    }
-  }, [activeTab, item.id, item._id]);
-
   if (!item) {
     return (
       <View style={styles.container}>
@@ -251,495 +102,70 @@ export default function ItemDetailScreen({ route, navigation }) {
     ? offeringDates[0]
     : null;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const getRelativeTime = (dateString) => {
-    if (!dateString) return 'Unknown';
-    
-    // Parse date string in local timezone
-    const [year, month, day] = dateString.split('-');
-    const reviewDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
-    const today = new Date();
-    
-    // Reset time to midnight for accurate day calculations
-    reviewDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    
-    const diffTime = today.getTime() - reviewDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 0) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return `${months} month${months > 1 ? 's' : ''} ago`;
-    } else {
-      const years = Math.floor(diffDays / 365);
-      return `${years} year${years > 1 ? 's' : ''} ago`;
-    }
-  };
-
-  const handleLike = () => {
-    const itemId = String(item.id || item._id);
-    const targetLiked = !userLiked;
-    const nextCount = targetLiked ? likeCount + 1 : Math.max(likeCount - 1, 0);
-
-    setUserLiked(targetLiked);
-    syncLikeCount(nextCount);
-    enqueueLikeRequest(targetLiked, itemId);
-  };
-
   const handleWishlist = () => {
     toggleWishlist(item);
   };
 
-  const handlePostReview = async () => {
-    const reviewText = newReview.trim();
-    if (!reviewText) return;
-
-    const username = await getCurrentUsername();
-
-    const payload = {
-      item_id: String(item.id || item._id),
-      user: username,
-      content: reviewText,
-      date: new Date().toISOString().slice(0, 10),
-      time: new Date().toTimeString().slice(0, 8),
-      uid: CURRENT_UID,
-    };
-
-    try {
-      setIsPostingReview(true);
-      const result = await postReview(payload);
-      const postedReview = result?.review || {
-        _id: Date.now().toString(),
-        user: payload.user,
-        content: reviewText,
-        date: payload.date,
-        time: payload.time,
-        uid: payload.uid,
-      };
-      setReviews((prev) => [postedReview, ...prev]);
-      setNewReview('');
-    } catch (error) {
-      console.error('Failed to post review', error);
-    } finally {
-      setIsPostingReview(false);
-    }
+  const handlePostReviewWrapper = async () => {
+    await handlePostReview(CURRENT_UID, item._id?.$oid || item._id || item.id);
   };
-
-  const hasUserReview = reviews.some((review) => review?.uid === CURRENT_UID);
-
-  const getReviewKey = (review, index) => {
-    if (review?._id?.$oid) return review._id.$oid;
-    if (review?._id) return String(review._id);
-    return String(index);
-  };
-
-  const getReviewId = (review) => {
-    if (review?._id?.$oid) return review._id.$oid;
-    if (review?._id) return String(review._id);
-    return null;
-  };
-
-  const startEditingReview = (review, index) => {
-    const key = getReviewKey(review, index);
-    setEditingReviewKey(key);
-    setEditingReviewText(review?.content || '');
-  };
-
-  const cancelEditingReview = () => {
-    setEditingReviewKey(null);
-    setEditingReviewText('');
-  };
-
-  const confirmDeleteReview = (review, index) => {
-    Alert.alert(
-      'Delete Review',
-      'Are you sure you want to delete your review? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const reviewId = getReviewId(review);
-            
-            if (!reviewId) {
-              console.error('Review ID missing');
-              return;
-            }
-
-            try {
-              await deleteReview(reviewId, CURRENT_UID);
-              // Remove from local state
-              setReviews((prev) => prev.filter((_, i) => i !== index));
-            } catch (error) {
-              console.error('Failed to delete review', error);
-              Alert.alert('Error', 'Failed to delete review. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const saveEditingReview = async (index) => {
-    const updatedText = editingReviewText.trim();
-    if (!updatedText) return;
-
-    const reviewToUpdate = reviews[index];
-    const reviewId = getReviewId(reviewToUpdate);
-
-    if (reviewId) {
-      try {
-        const payload = {
-          review_id: reviewId,
-          uid: CURRENT_UID,
-          content: updatedText,
-          date: new Date().toISOString().slice(0, 10),
-          time: new Date().toTimeString().slice(0, 8),
-        };
-
-        const result = await updateReview(payload);
-        const updatedReview = result?.review;
-
-        setReviews((prev) =>
-          prev.map((review, i) =>
-            i === index ? { ...review, ...updatedReview } : review
-          )
-        );
-      } catch (error) {
-        console.error('Failed to update review', error);
-        return;
-      }
-    } else {
-      setReviews((prev) =>
-        prev.map((review, i) =>
-          i === index ? { ...review, content: updatedText } : review
-        )
-      );
-    }
-
-    setEditingReviewKey(null);
-    setEditingReviewText('');
-  };
-
   return (
     <GestureDetector gesture={swipeGesture}>
       <View style={styles.container}>
       <StatusBar style="light" />
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={28} color="#D4A574" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{item.name}</Text>
-        <TouchableOpacity 
-          style={styles.wishlistButton}
-          onPress={handleWishlist}
-        >
-          <Ionicons 
-            name={onWishlist ? "heart" : "heart-outline"} 
-            size={28} 
-            color={onWishlist ? "#D4A574" : "#5A6B8C"} 
-          />
-        </TouchableOpacity>
-      </View>
+      <ItemDetailHeader
+        title={item.name}
+        onBack={() => navigation.goBack()}
+        onToggleWishlist={handleWishlist}
+        isWishlisted={onWishlist}
+        styles={styles}
+      />
 
       {/* Tab Navigation */}
-      <View style={styles.tabNav}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'details' && styles.tabActive]}
-          onPress={() => setActiveTab('details')}
-        >
-          <Ionicons 
-            name="information-circle" 
-            size={20} 
-            color={activeTab === 'details' ? '#D4A574' : '#8B9DC3'} 
-          />
-          <Text style={[styles.tabText, activeTab === 'details' && styles.tabTextActive]}>
-            Details
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'reviews' && styles.tabActive]}
-          onPress={() => setActiveTab('reviews')}
-        >
-          <Ionicons 
-            name="chatbubbles" 
-            size={20} 
-            color={activeTab === 'reviews' ? '#D4A574' : '#8B9DC3'} 
-          />
-          <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
-            Reviews
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ItemDetailTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        styles={styles}
+      />
 
       {activeTab === 'details' ? (
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={{ paddingBottom: bottomSpacer }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Item Image with Background */}
-        <ImageBackground
-          source={require('../assets/background_newItem.png')}
-          style={styles.imageBackgroundContainer}
-          imageStyle={styles.imageBackgroundImage}
-          resizeMode="cover"
-          blurRadius={4}
-        >
-          <LinearGradient
-            colors={['rgba(10, 14, 26, 0.95)', 'rgba(10, 14, 26, 0.15)']}
-            start={{ x: 0.5, y: 1 }}
-            end={{ x: 0.5, y: 0 }}
-            style={styles.gradientOverlay}
-            pointerEvents="none"
-          />
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: item.image }}
-              style={styles.itemImage}
-              resizeMode="contain"
-            />
-          </View>
-        </ImageBackground>
-
-        {/* Item Name and Type */}
-        <View style={styles.infoSection}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Text style={styles.categoryText}>{item.type}</Text>
-        </View>
-
-        {/* Prices */}
-        <View style={styles.pricesContainer}>
-          <View style={styles.priceBox}>
-            <View style={styles.priceLabelRow}>
-              <Image
-                source={require('../assets/icons/icon_credits.png')}
-                style={styles.creditIcon}
-              />
-              <Text style={styles.priceLabel}>Credits</Text>
-            </View>
-            <Text style={styles.creditValue}>
-              {item.creditPrice?.toLocaleString() || 'N/A'}
-            </Text>
-          </View>
-          <View style={styles.priceBox}>
-            <View style={styles.priceLabelRow}>
-              <Image
-                source={require('../assets/icons/icon_ducats.png')}
-                style={styles.ducatIcon}
-              />
-              <Text style={styles.priceLabel}>Ducats</Text>
-            </View>
-            <Text style={styles.ducatValue}>
-              {item.ducatPrice || 'N/A'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Last Brought Date */}
-        <View style={styles.dateContainer}>
-          <Text style={styles.dateLabel}>Last Brought</Text>
-          <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
-        </View>
-
-        {/* Offering Dates Dropdown */}
-        <View style={styles.dropdownContainer}>
-          <TouchableOpacity
-            style={styles.dropdownHeader}
-            onPress={() => setShowOfferings(!showOfferings)}
-          >
-            <Text style={styles.dropdownTitle}>Offering Dates</Text>
-            <View style={styles.dropdownMeta}>
-              <Text style={styles.dropdownCount}>{offeringDates.length}</Text>
-              <Ionicons
-                name={showOfferings ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color="#D4A574"
-              />
-            </View>
-          </TouchableOpacity>
-
-          {showOfferings && (
-            <View style={styles.dropdownList}>
-              {offeringDates.length === 0 ? (
-                <Text style={styles.dropdownEmpty}>No offering dates available</Text>
-              ) : (
-                offeringDates.map((date, index) => (
-                  <View key={`${date}-${index}`} style={styles.dropdownItem}>
-                    <Text style={styles.dropdownItemText}>{formatDate(date)}</Text>
-                  </View>
-                ))
-              )}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+        <ItemDetailsTab
+          item={item}
+          bottomSpacer={bottomSpacer}
+          showOfferings={showOfferings}
+          setShowOfferings={setShowOfferings}
+          formatDate={formatDate}
+          lastBrought={lastBrought}
+          styles={styles}
+        />
       ) : (
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={{ paddingBottom: bottomSpacer }}
-        showsVerticalScrollIndicator={false}
-      >
-        {isLoadingReviews ? (
-          <View style={styles.loadingReviews}>
-            <Ionicons name="hourglass-outline" size={48} color="#D4A574" />
-            <Text style={styles.loadingReviewsText}>Loading reviews and likes...</Text>
-          </View>
-        ) : (
-          <>
-            {/* Like Button - At top of Reviews Tab */}
-            <View style={styles.likeSection}>
-              <TouchableOpacity 
-                style={[styles.likeButton, userLiked && styles.likeButtonActive, isLiking && styles.likeButtonLoading]} 
-                onPress={handleLike}
-                disabled={isLiking}
-              >
-                <Ionicons 
-                  name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
-                  size={24} 
-                  color={userLiked ? "#D4A574" : "#8B9DC3"} 
-                />
-                <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
-                  {likeCount} Likes
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Post Review Section */}
-            {!hasUserReview && (
-              <View style={styles.postReviewSection}>
-                <Text style={styles.sectionTitle}>Write a Review</Text>
-            <TextInput
-              style={styles.reviewInput}
-              placeholder="Share your thoughts about this item..."
-              placeholderTextColor="#5A6B8C"
-              multiline
-              numberOfLines={4}
-              value={newReview}
-              onChangeText={setNewReview}
-              textAlignVertical="top"
-            />
-            <TouchableOpacity 
-              style={[
-                styles.postButton,
-                (!newReview.trim() || isPostingReview) && styles.postButtonDisabled,
-              ]}
-              onPress={handlePostReview}
-              disabled={!newReview.trim() || isPostingReview}
-            >
-              <Text style={styles.postButtonText}>Post Review</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Reviews List */}
-        <View style={styles.reviewsListSection}>
-          <Text style={styles.sectionTitle}>
-            Reviews ({reviews.length})
-          </Text>
-          {reviews.length === 0 ? (
-            <View style={styles.emptyReviews}>
-              <Ionicons name="chatbubbles-outline" size={48} color="#5A6B8C" />
-              <Text style={styles.emptyReviewsText}>No reviews yet</Text>
-              <Text style={styles.emptyReviewsSubtext}>Be the first to review this item!</Text>
-            </View>
-          ) : (
-            reviews.map((review, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.reviewCard,
-                  review?.uid === CURRENT_UID && styles.ownReviewCard,
-                ]}
-              >
-                <View style={styles.reviewHeader}>
-                  <View style={styles.reviewerInfo}>
-                    <Ionicons name="person-circle" size={32} color="#D4A574" />
-                    <Text style={styles.reviewerName}>{review.user}</Text>
-                  </View>
-                  <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
-                </View>
-                <Text style={styles.reviewText}>{review.content}</Text>
-                {review?.uid === CURRENT_UID && editingReviewKey === getReviewKey(review, index) && (
-                  <View style={styles.reviewEditContainer}>
-                    <TextInput
-                      style={styles.reviewEditInput}
-                      value={editingReviewText}
-                      onChangeText={setEditingReviewText}
-                      multiline
-                      numberOfLines={4}
-                      textAlignVertical="top"
-                    />
-                    <View style={styles.reviewEditActions}>
-                      <TouchableOpacity
-                        style={[styles.reviewEditButton, styles.reviewEditSave]}
-                        onPress={() => saveEditingReview(index)}
-                      >
-                        <Text style={styles.reviewEditButtonText}>Save</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.reviewEditButton, styles.reviewEditCancel]}
-                        onPress={cancelEditingReview}
-                      >
-                        <Text style={styles.reviewEditButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-                {review?.uid === CURRENT_UID && (
-                  <View style={styles.reviewActionsBottom}>
-                    <TouchableOpacity
-                      style={styles.reviewActionButton}
-                      onPress={() => startEditingReview(review, index)}
-                    >
-                      <Ionicons
-                        name="pencil"
-                        size={22}
-                        color="#D4A574"
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.reviewActionButton}
-                      onPress={() => confirmDeleteReview(review, index)}
-                    >
-                      <Ionicons name="trash" size={22} color="#D23B35" />
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            ))
-          )}
-        </View>
-          </>
-        )}
-      </ScrollView>
+        <ItemReviewsTab
+          bottomSpacer={bottomSpacer}
+          isLoadingReviews={isLoadingReviews}
+          likeCount={likeCount}
+          userLiked={userLiked}
+          isLiking={isLiking}
+          handleLike={() => handleLikeClick(String(item.id || item._id))}
+          hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
+          newReview={newReview}
+          setNewReview={setNewReview}
+          isPostingReview={isPostingReview}
+          handlePostReview={handlePostReviewWrapper}
+          reviews={reviews}
+          CURRENT_UID={CURRENT_UID}
+          getRelativeTime={getRelativeTime}
+          editingReviewKey={editingReviewKey}
+          getReviewKey={getReviewKey}
+          editingReviewText={editingReviewText}
+          setEditingReviewText={setEditingReviewText}
+          saveEditingReview={saveEditingReview}
+          cancelEditingReview={cancelEditingReview}
+          startEditingReview={startEditingReview}
+          confirmDeleteReview={confirmDeleteReview}
+          styles={styles}
+        />
       )}
       </View>
     </GestureDetector>
