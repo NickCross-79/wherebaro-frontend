@@ -68,7 +68,7 @@ export default function WishlistScreen({ navigation }) {
             </Text>
             <Text style={styles.emptySubtext}>
               {wishlistItems.length === 0
-                ? 'Tap the heart on items or hold down on the item card to add them here'
+                ? 'Tap the heart (or long-press an item) to add it here'
                 : 'Try a different search term'}
             </Text>
           </View>
