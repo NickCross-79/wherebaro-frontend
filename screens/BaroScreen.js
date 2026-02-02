@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import Header from '../components/ui/Header';
 import InventoryList from '../components/baro/InventoryList';
 import LoadingScreen from './LoadingScreen';
@@ -9,6 +10,8 @@ import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 
 export default function BaroScreen({ navigation }) {
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
@@ -71,6 +74,7 @@ export default function BaroScreen({ navigation }) {
         />
       </Header>
       <InventoryList
+        ref={scrollRef}
         items={finalItems}
         refreshing={refreshing}
         onRefresh={onRefresh}

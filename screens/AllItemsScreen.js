@@ -1,11 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
 
 export default function AllItemsScreen({ navigation }) {
+  const listRef = useRef(null);
+  useScrollToTop(listRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, error, onRefresh } = useAllItems();
@@ -77,6 +80,7 @@ export default function AllItemsScreen({ navigation }) {
         />
       ) : (
         <FlatList
+          ref={listRef}
           data={finalItems}
           keyExtractor={(item, index) => item.id || `item-${index}`}
           renderItem={({ item }) => (

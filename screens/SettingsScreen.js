@@ -1,10 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCurrentUsername, setCurrentUsername } from '../utils/userStorage';
 
 export default function SettingsScreen({ navigation }) {
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
   const [notifications, setNotifications] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -37,6 +40,7 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
       >

@@ -1,10 +1,12 @@
+import { forwardRef } from 'react';
 import { ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import ItemCard from '../items/ItemCard';
 import EmptyState from '../ui/EmptyState';
 
-export default function InventoryList({ items, refreshing, onRefresh, onItemPress }) {
+const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress }, ref) => {
   return (
     <ScrollView
+      ref={ref}
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       refreshControl={
@@ -29,7 +31,9 @@ export default function InventoryList({ items, refreshing, onRefresh, onItemPres
       )}
     </ScrollView>
   );
-}
+});
+
+export default InventoryList;
 
 const styles = StyleSheet.create({
   scrollView: {

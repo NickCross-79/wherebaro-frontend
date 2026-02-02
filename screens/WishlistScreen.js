@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
@@ -21,6 +22,8 @@ const buildGetLikesUrl = () => {
 const GET_LIKES_URL = buildGetLikesUrl();
 
 export default function WishlistScreen({ navigation }) {
+  const scrollRef = useRef(null);
+  useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { wishlistItems } = useWishlist();
@@ -109,6 +112,7 @@ export default function WishlistScreen({ navigation }) {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
