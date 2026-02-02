@@ -2,7 +2,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ItemDetailTabs({ activeTab, setActiveTab, styles }) {
+export default function ItemDetailTabs({ activeTab, setActiveTab, styles, item }) {
+  // Show market tab only for Mod, Weapon, and Void Relic items
+  const showMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
+    category => item.type.toLowerCase().startsWith(category.toLowerCase())
+  );
   return (
     <View style={styles.tabNav}>
       <TouchableOpacity
@@ -31,6 +35,21 @@ export default function ItemDetailTabs({ activeTab, setActiveTab, styles }) {
           Reviews
         </Text>
       </TouchableOpacity>
+      {showMarketTab && (
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'market' && styles.tabActive]}
+          onPress={() => setActiveTab('market')}
+        >
+          <Ionicons
+            name="trending-up"
+            size={20}
+            color={activeTab === 'market' ? '#D4A574' : '#8B9DC3'}
+          />
+          <Text style={[styles.tabText, activeTab === 'market' && styles.tabTextActive]}>
+            Market
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

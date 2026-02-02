@@ -38,7 +38,11 @@ function BaroStackNavigator() {
       }}
     >
       <BaroStack.Screen name="BaroList" component={BaroScreen} />
-      <BaroStack.Screen name="ItemDetail" component={ItemDetailScreen} />
+      <BaroStack.Screen 
+        name="ItemDetail" 
+        component={ItemDetailScreen}
+        options={{ gestureEnabled: false }}
+      />
     </BaroStack.Navigator>
   );
 }
@@ -51,7 +55,11 @@ function WishlistStackNavigator() {
       }}
     >
       <WishlistStack.Screen name="WishlistList" component={WishlistScreen} />
-      <WishlistStack.Screen name="ItemDetail" component={ItemDetailScreen} />
+      <WishlistStack.Screen 
+        name="ItemDetail" 
+        component={ItemDetailScreen}
+        options={{ gestureEnabled: false }}
+      />
     </WishlistStack.Navigator>
   );
 }
@@ -64,7 +72,11 @@ function AllItemsStackNavigator() {
       }}
     >
       <AllItemsStack.Screen name="AllItemsList" component={AllItemsScreen} />
-      <AllItemsStack.Screen name="ItemDetail" component={ItemDetailScreen} />
+      <AllItemsStack.Screen 
+        name="ItemDetail" 
+        component={ItemDetailScreen}
+        options={{ gestureEnabled: false }}
+      />
     </AllItemsStack.Navigator>
   );
 }
@@ -174,11 +186,11 @@ function TabNavigatorWithSafeArea() {
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-        swipeEnabled: true,
+        swipeEnabled: false,
         animationEnabled: false,
-      }}
+      })}
       tabBar={renderTabBar}
     >
         <Tab.Screen

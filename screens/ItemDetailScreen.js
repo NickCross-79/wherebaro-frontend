@@ -10,6 +10,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import { fetchReviews, fetchLikes } from '../services/api';
 import ItemDetailsTab from '../components/items/ItemDetailsTab';
 import ItemReviewsTab from '../components/items/ItemReviewsTab';
+import ItemMarketTab from '../components/items/ItemMarketTab';
 import ItemDetailHeader from '../components/items/ItemDetailHeader';
 import ItemDetailTabs from '../components/items/ItemDetailTabs';
 import { useLike } from '../hooks/useLike';
@@ -23,6 +24,13 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [CURRENT_UID, setCURRENT_UID] = useState(null);
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+
+  // Disable default swipe gesture to prevent navigating away
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+  }, [navigation]);
   const { toggleWishlist, isInWishlist, updateWishlistLikes } = useWishlist();
   const { items: inventoryItems, updateItemLikes: updateInventoryLikes } = useInventory();
   const { items: allItems, updateItemLikes: updateAllItemsLikes } = useAllItems();
@@ -69,7 +77,12 @@ export default function ItemDetailScreen({ route, navigation }) {
     hasUserReview,
   } = useReviewManagement(item.id || item._id);
 
-  const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation);
+  // Check if market tab should be shown
+  const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
+    category => item.type.toLowerCase().startsWith(category.toLowerCase())
+  );
+
+  const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation, hasMarketTab);
 
   // Get user UID on mount
   useEffect(() => {
@@ -163,6 +176,7 @@ export default function ItemDetailScreen({ route, navigation }) {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         styles={styles}
+        item={item}
       />
 
       {activeTab === 'details' ? (
@@ -173,6 +187,12 @@ export default function ItemDetailScreen({ route, navigation }) {
           setShowOfferings={setShowOfferings}
           formatDate={formatDate}
           lastBrought={lastBrought}
+          styles={styles}
+        />
+      ) : activeTab === 'market' ? (
+        <ItemMarketTab
+          item={displayItem}
+          bottomSpacer={bottomSpacer}
           styles={styles}
         />
       ) : (
