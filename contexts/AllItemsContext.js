@@ -1,22 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchAllItems } from '../services/api';
 import { dbHelpers, mmkvHelpers } from '../utils/storage';
 
 const AllItemsContext = createContext();
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
-  process.env.AZURE_FUNCTION_APP_BASE_URL ||
-  '';
-
-const buildApiUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getAllItems`;
-};
-
-const API_URL = buildApiUrl();
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
@@ -51,9 +38,6 @@ export const AllItemsProvider = ({ children }) => {
 
   const fetchItems = async (forceRefresh = false) => {
     try {
-      if (!API_URL) {
-        throw new Error('Missing functions app base URL');
-      }
       setError(null);
 
       // Check cache first if not forcing refresh
@@ -74,13 +58,7 @@ export const AllItemsProvider = ({ children }) => {
         }
       }
 
-      const response = await fetch(API_URL);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await fetchAllItems();
       const normalized = data.map(normalizeItem);
       
       // Cache the items

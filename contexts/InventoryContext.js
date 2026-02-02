@@ -1,22 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, mmkvHelpers } from '../utils/storage';
 
 const InventoryContext = createContext();
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
-  process.env.AZURE_FUNCTION_APP_BASE_URL ||
-  '';
-
-const buildApiUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getCurrent`;
-};
-
-const API_URL = buildApiUrl();
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
@@ -80,9 +67,6 @@ export const InventoryProvider = ({ children }) => {
   const fetchBaroInventory = async (forceRefresh = false) => {
     try {
       setLoading(true);
-      if (!API_URL) {
-        throw new Error('Missing functions app base URL');
-      }
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
@@ -123,12 +107,7 @@ export const InventoryProvider = ({ children }) => {
         }
       }
 
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchCurrentBaro();
       const baroIsHere = Boolean(data?.isActive);
 
       console.log('API Response:', { 
