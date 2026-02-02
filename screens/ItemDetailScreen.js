@@ -31,6 +31,19 @@ export default function ItemDetailScreen({ route, navigation }) {
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
+  const LIKE_THROTTLE_MS = 3000;
+  const likeThrottleRef = useRef({
+    lastSentAt: 0,
+    pendingTarget: null,
+    timerId: null,
+    inFlight: false,
+    lastSentTarget: null,
+  });
+  const likeStateRef = useRef({ likeCount, userLiked });
+
+  useEffect(() => {
+    likeStateRef.current = { likeCount, userLiked };
+  }, [likeCount, userLiked]);
 
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-20, 20])
@@ -60,6 +73,100 @@ export default function ItemDetailScreen({ route, navigation }) {
     updateInventoryLikes(itemId, newCount);
     updateAllItemsLikes(itemId, newCount);
     updateWishlistLikes(itemId, newCount);
+  };
+
+  const schedulePendingLikeRequest = (itemId) => {
+    const throttle = likeThrottleRef.current;
+    if (throttle.timerId) return;
+
+    const elapsed = Date.now() - throttle.lastSentAt;
+    const delay = Math.max(LIKE_THROTTLE_MS - elapsed, 0);
+
+    throttle.timerId = setTimeout(() => {
+      throttle.timerId = null;
+      void flushPendingLikeRequest(itemId);
+    }, delay);
+  };
+
+  const sendLikeRequest = async (targetLiked, itemId) => {
+    const throttle = likeThrottleRef.current;
+    throttle.inFlight = true;
+    setIsLiking(true);
+
+    try {
+      if (targetLiked) {
+        console.log('📌 Making like API call', { itemId, uid: CURRENT_UID });
+        await likeItem(itemId, CURRENT_UID);
+        console.log('✅ Like API call succeeded', { itemId, uid: CURRENT_UID });
+      } else {
+        console.log('📌 Making unlike API call', { itemId, uid: CURRENT_UID });
+        await unlikeItem(itemId, CURRENT_UID);
+        console.log('✅ Unlike API call succeeded', { itemId, uid: CURRENT_UID });
+      }
+    } catch (error) {
+      console.error(
+        targetLiked ? '❌ Failed to add like' : '❌ Failed to remove like',
+        { itemId, uid: CURRENT_UID, error }
+      );
+      Alert.alert(
+        'Error',
+        targetLiked
+          ? 'Failed to add like. Please try again.'
+          : 'Failed to remove like. Please try again.'
+      );
+
+      const { likeCount: currentCount, userLiked: currentLiked } = likeStateRef.current;
+      if (currentLiked === targetLiked) {
+        const revertedLiked = !targetLiked;
+        const revertedCount = targetLiked
+          ? Math.max(currentCount - 1, 0)
+          : currentCount + 1;
+        setUserLiked(revertedLiked);
+        syncLikeCount(revertedCount);
+      }
+    } finally {
+      throttle.inFlight = false;
+      throttle.lastSentAt = Date.now();
+      throttle.lastSentTarget = targetLiked;
+      setIsLiking(false);
+
+      if (throttle.pendingTarget !== null && throttle.pendingTarget !== throttle.lastSentTarget) {
+        schedulePendingLikeRequest(itemId);
+      }
+    }
+  };
+
+  const flushPendingLikeRequest = async (itemId) => {
+    const throttle = likeThrottleRef.current;
+    if (throttle.inFlight) return;
+
+    const target = throttle.pendingTarget;
+    if (target === null || target === throttle.lastSentTarget) {
+      throttle.pendingTarget = null;
+      return;
+    }
+
+    throttle.pendingTarget = null;
+    await sendLikeRequest(target, itemId);
+  };
+
+  const enqueueLikeRequest = (targetLiked, itemId) => {
+    const throttle = likeThrottleRef.current;
+    throttle.pendingTarget = targetLiked;
+
+    if (throttle.inFlight) {
+      schedulePendingLikeRequest(itemId);
+      return;
+    }
+
+    const elapsed = Date.now() - throttle.lastSentAt;
+    if (elapsed >= LIKE_THROTTLE_MS) {
+      throttle.pendingTarget = null;
+      void sendLikeRequest(targetLiked, itemId);
+      return;
+    }
+
+    schedulePendingLikeRequest(itemId);
   };
 
   // Get user UID on mount
@@ -187,32 +294,14 @@ export default function ItemDetailScreen({ route, navigation }) {
     }
   };
 
-  const handleLike = async () => {
-    if (!userLiked) {
-      const nextCount = likeCount + 1;
-      setUserLiked(true);
-      syncLikeCount(nextCount);
+  const handleLike = () => {
+    const itemId = String(item.id || item._id);
+    const targetLiked = !userLiked;
+    const nextCount = targetLiked ? likeCount + 1 : Math.max(likeCount - 1, 0);
 
-      try {
-        await likeItem(String(item.id || item._id), CURRENT_UID);
-      } catch (error) {
-        console.error('Failed to add like', error);
-        setUserLiked(false);
-        syncLikeCount(Math.max(nextCount - 1, 0));
-      }
-    } else {
-      const nextCount = Math.max(likeCount - 1, 0);
-      setUserLiked(false);
-      syncLikeCount(nextCount);
-
-      try {
-        await unlikeItem(String(item.id || item._id), CURRENT_UID);
-      } catch (error) {
-        console.error('Failed to remove like', error);
-        setUserLiked(true);
-        syncLikeCount(nextCount + 1);
-      }
-    }
+    setUserLiked(targetLiked);
+    syncLikeCount(nextCount);
+    enqueueLikeRequest(targetLiked, itemId);
   };
 
   const handleWishlist = () => {
@@ -528,8 +617,9 @@ export default function ItemDetailScreen({ route, navigation }) {
             {/* Like Button - At top of Reviews Tab */}
             <View style={styles.likeSection}>
               <TouchableOpacity 
-                style={[styles.likeButton, userLiked && styles.likeButtonActive]} 
+                style={[styles.likeButton, userLiked && styles.likeButtonActive, isLiking && styles.likeButtonLoading]} 
                 onPress={handleLike}
+                disabled={isLiking}
               >
                 <Ionicons 
                   name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
@@ -904,6 +994,9 @@ const styles = StyleSheet.create({
   likeButtonActive: {
     backgroundColor: 'rgba(212, 165, 116, 0.1)',
     borderColor: '#D4A574',
+  },
+  likeButtonLoading: {
+    opacity: 0.6,
   },
   likeText: {
     fontSize: 16,
