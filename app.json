@@ -4,24 +4,24 @@
     "slug": "wherebaro-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "",
+    "icon": "./assets/logo_baro.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "",
+      "image": "./assets/logo_baro.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0A0E1A"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/logo_baro.png",
+        "backgroundColor": "#0A0E1A"
       }
     },
     "web": {
-      "favicon": ""
+      "favicon": "./assets/logo_baro.png"
     },
     "plugins": [
       "expo-sqlite",
