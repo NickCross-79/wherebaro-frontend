@@ -144,6 +144,24 @@ export const mmkvHelpers = {
     return value !== 'false';
   },
 
+  // Filter settings
+  setFilters: async (filters) => {
+    await secureStorage.setItem('filters', JSON.stringify(filters));
+  },
+
+  getFilters: async () => {
+    const value = await secureStorage.getItem('filters');
+    if (!value) {
+      return { categories: [], popularity: 'all' };
+    }
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error('Error parsing stored filters:', error);
+      return { categories: [], popularity: 'all' };
+    }
+  },
+
   // Settings
   setTheme: async (theme) => {
     await secureStorage.setItem('theme', theme);

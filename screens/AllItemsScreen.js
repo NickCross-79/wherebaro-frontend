@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
+import { mmkvHelpers } from '../utils/storage';
 import styles from '../styles/screens/AllItemsScreen.styles';
 
 export default function AllItemsScreen({ navigation }) {
@@ -13,6 +14,20 @@ export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, error, onRefresh } = useAllItems();
+
+  // Load filters on mount
+  useEffect(() => {
+    const loadFilters = async () => {
+      const savedFilters = await mmkvHelpers.getFilters();
+      setFilters(savedFilters);
+    };
+    loadFilters();
+  }, []);
+
+  // Save filters whenever they change
+  useEffect(() => {
+    mmkvHelpers.setFilters(filters);
+  }, [filters]);
 
   const filteredItems = searchQuery
     ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
