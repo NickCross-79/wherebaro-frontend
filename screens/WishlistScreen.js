@@ -1,18 +1,77 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ItemCard from '../components/ItemCard';
 import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
+
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
+  process.env.AZURE_FUNCTION_APP_BASE_URL ||
+  '';
+
+const buildGetLikesUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/getLikes`;
+};
+
+const GET_LIKES_URL = buildGetLikesUrl();
 
 export default function WishlistScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { wishlistItems } = useWishlist();
+  const [itemsWithLikes, setItemsWithLikes] = useState([]);
+
+  // Fetch fresh likes for all wishlist items
+  useEffect(() => {
+    const fetchLikesForWishlist = async () => {
+      if (wishlistItems.length === 0) {
+        setItemsWithLikes([]);
+        return;
+      }
+
+      if (!GET_LIKES_URL) {
+        console.warn('GET_LIKES_URL is not configured');
+        setItemsWithLikes(wishlistItems);
+        return;
+      }
+
+      try {
+        const itemsWithUpdatedLikes = await Promise.all(
+          wishlistItems.map(async (item) => {
+            try {
+              const response = await fetch(`${GET_LIKES_URL}?item_id=${item.id || item._id}`);
+              if (response.ok) {
+                const data = await response.json();
+                return { ...item, likes: data.likes || [] };
+              }
+              return item;
+            } catch (error) {
+              console.error(`Error fetching likes for item ${item.id || item._id}:`, error);
+              return item;
+            }
+          })
+        );
+        setItemsWithLikes(itemsWithUpdatedLikes);
+      } catch (error) {
+        console.error('Error fetching likes for wishlist:', error);
+        setItemsWithLikes(wishlistItems);
+      }
+    };
+
+    fetchLikesForWishlist();
+  }, [wishlistItems]);
+
+  // Use items with updated likes instead of wishlistItems
+  const displayItems = itemsWithLikes.length > 0 ? itemsWithLikes : wishlistItems;
 
   const filteredItems = searchQuery
-    ? wishlistItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : wishlistItems;
+    ? displayItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : displayItems;
 
   // Apply category filters
   const categoryFilteredItems = filters.categories.length > 0
@@ -56,7 +115,7 @@ export default function WishlistScreen({ navigation }) {
         {finalItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
+              {displayItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
             </Text>
             <Text style={styles.emptySubtext}>
               {wishlistItems.length === 0
