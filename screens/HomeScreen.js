@@ -1,11 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { useState } from 'react';
-import Header from '../components/Header';
-import InventoryList from '../components/InventoryList';
-import LoadingScreen from '../components/LoadingScreen';
-import BaroAbsentScreen from '../components/BaroAbsentScreen';
-import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
+import Header from '../components/ui/Header';
+import InventoryList from '../components/baro/InventoryList';
+import LoadingScreen from './LoadingScreen';
+import BaroAbsentScreen from './BaroAbsentScreen';
+import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 
 export default function HomeScreen({ navigation }) {

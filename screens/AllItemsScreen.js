@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState } from 'react';
-import ItemCard from '../components/ItemCard';
-import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
+import ItemCard from '../components/items/ItemCard';
+import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
 
 export default function AllItemsScreen({ navigation }) {

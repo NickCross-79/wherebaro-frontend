@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import BaroTimer from './BaroTimer';
-import NewItemShowcase from './NewItemShowcase';
+import BaroTimer from '../baro/BaroTimer';
+import NewItemShowcase from '../baro/NewItemShowcase';
 
 export default function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, newItem, onNewItemPress, children }) {
   return (

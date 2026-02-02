@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dbHelpers } from '../storage/storageManager';
+import { dbHelpers } from '../utils/storage';
 
 const WishlistContext = createContext();
 

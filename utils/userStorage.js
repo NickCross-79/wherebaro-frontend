@@ -1,4 +1,4 @@
-import { mmkvHelpers } from '../storage/storageManager';
+import { mmkvHelpers } from './storage';
 
 /**
  * Get the current user's UID (generated on first launch)

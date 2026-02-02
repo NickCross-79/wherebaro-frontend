@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useState, useEffect } from 'react';
-import ItemCard from '../components/ItemCard';
-import CollapsibleSearchBar from '../components/CollapsibleSearchBar';
+import ItemCard from '../components/items/ItemCard';
+import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
 
 const API_BASE_URL =

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Image, Pressable, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useWishlist } from '../contexts/WishlistContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { useState, useRef, useEffect } from 'react';
 
 export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
@@ -73,7 +73,7 @@ export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = fal
             source={{ uri: item.image }}
             style={styles.itemImage}
             resizeMode="contain"
-            defaultSource={require('../assets/logo_baro.png')}
+            defaultSource={require('../../assets/logo_baro.png')}
           />
         </View>
         
@@ -93,7 +93,7 @@ export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = fal
             <View style={styles.priceRow}>
               <View style={styles.priceLabelRow}>
                 <Image
-                  source={require('../assets/icons/icon_credits.png')}
+                  source={require('../../assets/icons/icon_credits.png')}
                   style={styles.creditIcon}
                 />
                 <Text style={styles.priceLabel}>Credits</Text>
@@ -105,7 +105,7 @@ export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = fal
             <View style={styles.priceRow}>
               <View style={styles.priceLabelRow}>
                 <Image
-                  source={require('../assets/icons/icon_ducats.png')}
+                  source={require('../../assets/icons/icon_ducats.png')}
                   style={styles.ducatIcon}
                 />
                 <Text style={styles.priceLabel}>Ducats</Text>

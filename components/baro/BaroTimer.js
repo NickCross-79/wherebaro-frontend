@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { useState, useEffect } from 'react';
-import TimeIcon from '../assets/icons/icon_time.svg';
+import TimeIcon from '../../assets/icons/icon_time.svg';
 
 export default function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
   const [timeRemaining, setTimeRemaining] = useState('');

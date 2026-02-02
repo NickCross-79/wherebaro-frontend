@@ -23,7 +23,7 @@ import ListInactive from './assets/icons/icon_list_inactive.svg';
 import HeartInactive from './assets/icons/icon_heart_inactive.svg';
 import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { initializeDatabase, mmkvHelpers } from './storage/storageManager';
+import { initializeDatabase, mmkvHelpers } from './utils/storage';
 
 const Tab = createMaterialTopTabNavigator();
 const HomeStack = createNativeStackNavigator();

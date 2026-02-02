@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, RefreshControl } from 'react-native';
-import ItemCard from './ItemCard';
-import EmptyState from './EmptyState';
+import ItemCard from '../items/ItemCard';
+import EmptyState from '../ui/EmptyState';
 
 export default function InventoryList({ items, refreshing, onRefresh, onItemPress }) {
   return (

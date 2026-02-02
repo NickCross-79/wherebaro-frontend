@@ -12,7 +12,7 @@ export default function NewItemShowcase({ item, onPress }) {
       
       <TouchableOpacity style={styles.showcaseCard} onPress={onPress}>
         <ImageBackground
-          source={require('../assets/background_newItem.png')}
+            source={require('../../assets/background_newItem.png')}
           style={styles.showcaseCardBackground}
           imageStyle={styles.showcaseCardImage}
           resizeMode="cover"
@@ -41,14 +41,14 @@ export default function NewItemShowcase({ item, onPress }) {
           <View style={styles.priceStack}>
             <View style={styles.priceItem}>
               <Image
-                source={require('../assets/icons/icon_credits.png')}
+                source={require('../../assets/icons/icon_credits.png')}
                 style={styles.priceIcon}
               />
               <Text style={styles.creditPrice}>{item.creditPrice?.toLocaleString()}</Text>
             </View>
             <View style={styles.priceItem}>
               <Image
-                source={require('../assets/icons/icon_ducats.png')}
+                source={require('../../assets/icons/icon_ducats.png')}
                 style={styles.priceIcon}
               />
               <Text style={styles.ducatPrice}>{item.ducatPrice}</Text>

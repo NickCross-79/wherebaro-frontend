@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dbHelpers, mmkvHelpers } from '../storage/storageManager';
+import { dbHelpers, mmkvHelpers } from '../utils/storage';
 
 const InventoryContext = createContext();
 
