@@ -99,10 +99,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   }
 
   const offeringDates = item.offeringDates || [];
-  const lastBrought = offeringDates.length >= 2 
-    ? offeringDates[offeringDates.length - 2]
-    : offeringDates.length === 1
-    ? offeringDates[0]
+  const lastBrought = offeringDates.length >= 1 
+    ? offeringDates[offeringDates.length - 1]
     : null;
 
   const handleWishlist = () => {
