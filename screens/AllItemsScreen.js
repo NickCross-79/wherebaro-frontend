@@ -7,7 +7,7 @@ import { useAllItems } from '../contexts/AllItemsContext';
 
 export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ types: [], popularity: 'all' });
+  const [filters, setFilters] = useState({ types: [], categories: [], popularity: 'all' });
   const { items, loading, refreshing, error, onRefresh } = useAllItems();
 
   const filteredItems = searchQuery
@@ -19,8 +19,13 @@ export default function AllItemsScreen({ navigation }) {
     ? filteredItems.filter(item => filters.types.some(filterType => item.type.startsWith(filterType)))
     : filteredItems;
 
+  // Apply category filters
+  const categoryFilteredItems = filters.categories.length > 0
+    ? typeFilteredItems.filter(item => filters.categories.some(category => item.type.toLowerCase().includes(category.toLowerCase())))
+    : typeFilteredItems;
+
   // Apply popularity sorting
-  let finalItems = [...typeFilteredItems];
+  let finalItems = [...categoryFilteredItems];
   if (filters.popularity === 'popular') {
     finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
   } else if (filters.popularity === 'unpopular') {

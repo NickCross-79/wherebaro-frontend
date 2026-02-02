@@ -11,6 +11,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   }, [filters, visible]);
   
   const itemTypes = ['Mod', 'Weapon', 'Cosmetic', 'Resource', 'Blueprint'];
+  const categories = ['Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
     { label: 'All Items', value: 'all' },
     { label: 'Most Popular', value: 'popular' },
@@ -24,12 +25,19 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     setLocalFilters({ ...localFilters, types: newTypes });
   };
 
+  const toggleCategory = (category) => {
+    const newCategories = (localFilters.categories || []).includes(category)
+      ? (localFilters.categories || []).filter(c => c !== category)
+      : [...(localFilters.categories || []), category];
+    setLocalFilters({ ...localFilters, categories: newCategories });
+  };
+
   const setPopularity = (value) => {
     setLocalFilters({ ...localFilters, popularity: value });
   };
 
   const clearFilters = () => {
-    setLocalFilters({ types: [], popularity: 'all' });
+    setLocalFilters({ types: [], categories: [], popularity: 'all' });
   };
 
   const applyFilters = () => {
@@ -37,7 +45,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     onClose();
   };
 
-  const hasActiveFilters = localFilters.types.length > 0 || localFilters.popularity !== 'all';
+  const hasActiveFilters = localFilters.types.length > 0 || (localFilters.categories || []).length > 0 || localFilters.popularity !== 'all';
 
   return (
     <Modal
@@ -72,6 +80,25 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                     )}
                   </View>
                   <Text style={styles.optionLabel}>{type}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Categories */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Categories</Text>
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={styles.filterOption}
+                  onPress={() => toggleCategory(category)}
+                >
+                  <View style={[styles.checkbox, (localFilters.categories || []).includes(category) && styles.checkboxActive]}>
+                    {(localFilters.categories || []).includes(category) && (
+                      <Ionicons name="checkmark" size={16} color="#0A0E1A" />
+                    )}
+                  </View>
+                  <Text style={styles.optionLabel}>{category}</Text>
                 </TouchableOpacity>
               ))}
             </View>
