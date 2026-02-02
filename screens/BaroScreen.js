@@ -8,7 +8,7 @@ import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 
-export default function HomeScreen({ navigation }) {
+export default function BaroScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();

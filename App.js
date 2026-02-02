@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import * as NavigationBar from 'expo-navigation-bar';
-import HomeScreen from './screens/HomeScreen';
+import BaroScreen from './screens/BaroScreen';
 import ItemDetailScreen from './screens/ItemDetailScreen';
 import WishlistScreen from './screens/WishlistScreen';
 import AllItemsScreen from './screens/AllItemsScreen';
@@ -16,8 +16,7 @@ import FeedbackScreen from './screens/FeedbackScreen';
 import { WishlistProvider, useWishlist } from './contexts/WishlistContext';
 import { InventoryProvider, useInventory } from './contexts/InventoryContext';
 import { AllItemsProvider } from './contexts/AllItemsContext';
-import HomeActive from './assets/icons/icon_home_active.svg';
-import HomeInactive from './assets/icons/icon_home_inactive.svg';
+import BaroIcon from './assets/icons/icon_baro.svg';
 import ListActive from './assets/icons/icon_list_active.svg';
 import ListInactive from './assets/icons/icon_list_inactive.svg';
 import HeartInactive from './assets/icons/icon_heart_inactive.svg';
@@ -26,21 +25,21 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { initializeDatabase, mmkvHelpers } from './utils/storage';
 
 const Tab = createMaterialTopTabNavigator();
-const HomeStack = createNativeStackNavigator();
+const BaroStack = createNativeStackNavigator();
 const WishlistStack = createNativeStackNavigator();
 const AllItemsStack = createNativeStackNavigator();
 const SettingsStack = createNativeStackNavigator();
 
-function HomeStackNavigator() {
+function BaroStackNavigator() {
   return (
-    <HomeStack.Navigator
+    <BaroStack.Navigator
       screenOptions={{
         headerShown: false,
       }}
     >
-      <HomeStack.Screen name="HomeList" component={HomeScreen} />
-      <HomeStack.Screen name="ItemDetail" component={ItemDetailScreen} />
-    </HomeStack.Navigator>
+      <BaroStack.Screen name="BaroList" component={BaroScreen} />
+      <BaroStack.Screen name="ItemDetail" component={ItemDetailScreen} />
+    </BaroStack.Navigator>
   );
 }
 
@@ -95,7 +94,7 @@ function TabNavigatorWithSafeArea() {
 
   const renderTabBar = ({ state, navigation }) => {
     const iconMap = {
-      Home: 'home',
+      Baro: 'baro',
       Wishlist: 'heart',
       'All Items': 'list',
       Settings: 'settings',
@@ -137,11 +136,19 @@ function TabNavigatorWithSafeArea() {
                 activeOpacity={0.8}
               >
                 <View style={styles.iconWrapper}>
-                  <Ionicons
-                    name={iconMap[route.name] || 'ellipse'}
-                    size={24}
-                    color={focused ? '#D4A574' : '#5A6B8C'}
-                  />
+                  {route.name === 'Baro' ? (
+                    <BaroIcon
+                      width={28}
+                      height={28}
+                      color={focused ? '#D4A574' : '#5A6B8C'}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={iconMap[route.name] || 'ellipse'}
+                      size={24}
+                      color={focused ? '#D4A574' : '#5A6B8C'}
+                    />
+                  )}
                   {route.name === 'Wishlist' && badgeCount > 0 && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>{badgeCount}</Text>
@@ -175,8 +182,8 @@ function TabNavigatorWithSafeArea() {
       tabBar={renderTabBar}
     >
         <Tab.Screen
-          name="Home"
-          component={HomeStackNavigator}
+          name="Baro"
+          component={BaroStackNavigator}
           options={{
             unmountOnBlur: true,
           }}
@@ -309,6 +316,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    width: 28,
+    height: 28,
   },
   badge: {
     position: 'absolute',
