@@ -38,7 +38,9 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   const {
     userLiked,
+    setUserLiked,
     likeCount,
+    setLikeCount,
     isLiking,
     handleLike: handleLikeClick,
   } = useLike(
@@ -106,9 +108,37 @@ export default function ItemDetailScreen({ route, navigation }) {
     toggleWishlist(item);
   };
 
+  const itemId = String(item._id?.$oid || item._id || item.id);
+
   const handlePostReviewWrapper = async () => {
-    await handlePostReview(CURRENT_UID, item._id?.$oid || item._id || item.id);
+    await handlePostReview(CURRENT_UID, itemId);
   };
+
+  useEffect(() => {
+    const loadLikes = async () => {
+      try {
+        if (!itemId) return;
+        const likeData = await fetchLikes(itemId);
+        const likes = Array.isArray(likeData?.likes) ? likeData.likes : [];
+        const count = Number.isFinite(likeData?.count) ? likeData.count : likes.length;
+
+        setLikeCount(count);
+        syncLikeCount(count);
+
+        if (!CURRENT_UID) {
+          return;
+        }
+
+        const currentUid = String(CURRENT_UID);
+        const likedByUser = likes.some((like) => String(like?.uid) === currentUid);
+        setUserLiked(likedByUser);
+      } catch (error) {
+        console.error('❌ Failed to load likes', { itemId, error });
+      }
+    };
+
+    void loadLikes();
+  }, [itemId, CURRENT_UID, setLikeCount, setUserLiked]);
   return (
     <GestureDetector gesture={swipeGesture}>
       <View style={styles.container}>
@@ -147,7 +177,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           likeCount={likeCount}
           userLiked={userLiked}
           isLiking={isLiking}
-          handleLike={() => handleLikeClick(String(item.id || item._id), CURRENT_UID)}
+          handleLike={() => handleLikeClick(itemId, CURRENT_UID)}
           hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
           newReview={newReview}
           setNewReview={setNewReview}
