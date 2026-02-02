@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet, StatusBar, View, Text } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as NavigationBar from 'expo-navigation-bar';
 import HomeScreen from './screens/HomeScreen';
 import ItemDetailScreen from './screens/ItemDetailScreen';
@@ -22,6 +22,7 @@ import ListInactive from './assets/icons/icon_list_inactive.svg';
 import HeartInactive from './assets/icons/icon_heart_inactive.svg';
 import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { initializeDatabase, mmkvHelpers } from './storage/storageManager';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -183,11 +184,47 @@ function TabNavigatorWithSafeArea() {
 }
 
 export default function App() {
+  const [dbInitialized, setDbInitialized] = useState(false);
+
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync('#0F1419');
     NavigationBar.setButtonStyleAsync('light');
     NavigationBar.setVisibilityAsync('visible');
   }, []);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Initialize database
+        await initializeDatabase();
+        
+        // Initialize MMKV on first launch
+        const isFirstLaunch = mmkvHelpers.getIsFirstLaunch();
+        if (isFirstLaunch) {
+          // Generate and store UID
+          mmkvHelpers.getOrCreateUID();
+          // Set first launch to false
+          mmkvHelpers.setIsFirstLaunch(false);
+          console.log('App initialized for first time');
+        }
+
+        setDbInitialized(true);
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        setDbInitialized(true); // Allow app to continue even if initialization fails
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  if (!dbInitialized) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0E1A' }}>
+        <Text style={{ color: '#FFFFFF' }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>

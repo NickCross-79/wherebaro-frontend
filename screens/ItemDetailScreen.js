@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
+import { getCurrentUID } from '../utils/userStorage';
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
@@ -74,10 +75,10 @@ const UPDATE_REVIEW_URL = buildUpdateReviewUrl();
 const DELETE_REVIEW_URL = buildDeleteReviewUrl();
 const LIKE_URL = buildLikeUrl();
 const UNLIKE_URL = buildUnlikeUrl();
-const CURRENT_UID = '123456789';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
+  const CURRENT_UID = getCurrentUID();
   const [userLiked, setUserLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item?.likes?.length || 0);
   const [isLiking, setIsLiking] = useState(false);
@@ -303,7 +304,7 @@ export default function ItemDetailScreen({ route, navigation }) {
       content: reviewText,
       date: new Date().toISOString().slice(0, 10),
       time: new Date().toTimeString().slice(0, 8),
-      uid: '123456789',
+      uid: CURRENT_UID,
     };
 
     try {

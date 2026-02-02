@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { dbHelpers } from '../storage/storageManager';
 
 const WishlistContext = createContext();
 
@@ -16,42 +16,17 @@ export const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [wishlistLoaded, setWishlistLoaded] = useState(false);
 
-  // Load wishlist from storage on mount
+  // Load wishlist from SQLite on mount
   useEffect(() => {
     loadWishlist();
   }, []);
 
   const loadWishlist = async () => {
     try {
-      const stored = await AsyncStorage.getItem('wishlist');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          // Legacy format: array of ids or array of item objects
-          if (parsed.length > 0 && typeof parsed[0] === 'object') {
-            const ids = parsed
-              .map((item) => item?.id || item?._id)
-              .filter(Boolean);
-            setWishlistItems(parsed);
-            setWishlistIds(ids);
-          } else {
-            setWishlistIds(parsed);
-            setWishlistItems([]);
-          }
-        } else if (parsed && typeof parsed === 'object') {
-          const ids = Array.isArray(parsed.ids) ? parsed.ids : [];
-          const items = Array.isArray(parsed.items) ? parsed.items : [];
-          setWishlistIds(ids);
-          setWishlistItems(items);
-        } else {
-          setWishlistIds([]);
-          setWishlistItems([]);
-          await AsyncStorage.setItem('wishlist', JSON.stringify({ ids: [], items: [] }));
-        }
-      } else {
-        setWishlistIds([]);
-        setWishlistItems([]);
-      }
+      const items = await dbHelpers.getWishlistItems();
+      const ids = await dbHelpers.getWishlistIds();
+      setWishlistItems(items);
+      setWishlistIds(ids);
     } catch (error) {
       console.error('Error loading wishlist:', error);
       setWishlistIds([]);
@@ -61,34 +36,29 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
-  const saveWishlist = async (ids, items) => {
-    try {
-      await AsyncStorage.setItem('wishlist', JSON.stringify({ ids, items }));
-    } catch (error) {
-      console.error('Error saving wishlist:', error);
-    }
-  };
-
-  const toggleWishlist = (item) => {
+  const toggleWishlist = async (item) => {
     const itemId = item?.id || item?._id;
     if (!itemId) {
       return;
     }
 
-    setWishlistIds((prevIds) => {
-      const isAlready = prevIds.includes(itemId);
-      const newIds = isAlready ? prevIds.filter((id) => id !== itemId) : [...prevIds, itemId];
+    try {
+      const isAlready = wishlistIds.includes(itemId);
 
-      setWishlistItems((prevItems) => {
-        const newItems = isAlready
-          ? prevItems.filter((wishlistItem) => (wishlistItem?.id || wishlistItem?._id) !== itemId)
-          : [...prevItems, item];
-        saveWishlist(newIds, newItems);
-        return newItems;
-      });
-
-      return newIds;
-    });
+      if (isAlready) {
+        // Remove from wishlist
+        await dbHelpers.removeFromWishlist(itemId);
+        setWishlistIds(wishlistIds.filter((id) => id !== itemId));
+        setWishlistItems(wishlistItems.filter((wishlistItem) => (wishlistItem?.id || wishlistItem?._id) !== itemId));
+      } else {
+        // Add to wishlist
+        await dbHelpers.addToWishlist(item);
+        setWishlistIds([...wishlistIds, itemId]);
+        setWishlistItems([...wishlistItems, item]);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
   };
 
   const isInWishlist = (itemId) => {
@@ -97,7 +67,7 @@ export const WishlistProvider = ({ children }) => {
 
   const getWishlistCount = (currentInventory) => {
     if (!currentInventory || currentInventory.length === 0) return 0;
-    
+
     // Count how many wishlist items are in current inventory
     return currentInventory.filter(item => wishlistIds.includes(item.id || item._id)).length;
   };

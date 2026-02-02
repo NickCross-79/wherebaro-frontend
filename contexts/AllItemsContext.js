@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { dbHelpers, mmkvHelpers } from '../storage/storageManager';
 
 const AllItemsContext = createContext();
 
@@ -17,6 +18,7 @@ const buildApiUrl = () => {
 
 const API_URL = buildApiUrl();
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 const normalizeItem = (item) => {
   return {
@@ -47,12 +49,31 @@ export const AllItemsProvider = ({ children }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchItems = async () => {
+  const fetchItems = async (forceRefresh = false) => {
     try {
       if (!API_URL) {
         throw new Error('Missing functions app base URL');
       }
       setError(null);
+
+      // Check cache first if not forcing refresh
+      if (!forceRefresh) {
+        const lastRefresh = mmkvHelpers.getLastDataRefresh();
+        const now = Date.now();
+        
+        if (now - lastRefresh < CACHE_DURATION) {
+          // Use cached data
+          const cachedItems = await dbHelpers.getCachedItems();
+          if (cachedItems.length > 0) {
+            console.log('Using cached all items');
+            setItems(cachedItems);
+            setLoading(false);
+            setRefreshing(false);
+            return;
+          }
+        }
+      }
+
       const response = await fetch(API_URL);
       
       if (!response.ok) {
@@ -61,10 +82,27 @@ export const AllItemsProvider = ({ children }) => {
       
       const data = await response.json();
       const normalized = data.map(normalizeItem);
+      
+      // Cache the items
+      await dbHelpers.clearItemsCache();
+      await dbHelpers.cacheItems(normalized);
+      mmkvHelpers.setLastDataRefresh(Date.now());
+      
       setItems(normalized);
     } catch (err) {
       console.error('Error fetching items:', err);
       setError(err.message);
+      
+      // Fall back to cache on error
+      try {
+        const cachedItems = await dbHelpers.getCachedItems();
+        if (cachedItems.length > 0) {
+          console.log('Using cached all items on error');
+          setItems(cachedItems);
+        }
+      } catch (cacheError) {
+        console.error('Error loading cache:', cacheError);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -77,7 +115,7 @@ export const AllItemsProvider = ({ children }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchItems();
+    fetchItems(true); // Force refresh
   };
 
   return (

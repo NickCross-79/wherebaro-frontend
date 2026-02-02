@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { dbHelpers, mmkvHelpers } from '../storage/storageManager';
 
 const InventoryContext = createContext();
 
@@ -17,6 +18,7 @@ const buildApiUrl = () => {
 
 const API_URL = buildApiUrl();
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images/';
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 // Normalize backend data to frontend format
 const normalizeItem = (item) => {
@@ -75,11 +77,28 @@ export const InventoryProvider = ({ children }) => {
     return { name: trimmed, planet: '' };
   };
 
-  const fetchBaroInventory = async () => {
+  const fetchBaroInventory = async (forceRefresh = false) => {
     try {
       setLoading(true);
       if (!API_URL) {
         throw new Error('Missing functions app base URL');
+      }
+
+      // Check cache first if not forcing refresh
+      if (!forceRefresh) {
+        const lastRefresh = mmkvHelpers.getLastDataRefresh();
+        const now = Date.now();
+        
+        if (now - lastRefresh < CACHE_DURATION) {
+          // Use cached data
+          const cachedItems = await dbHelpers.getCachedItems();
+          if (cachedItems.length > 0) {
+            console.log('Using cached inventory items');
+            setItems(cachedItems);
+            setLoading(false);
+            return;
+          }
+        }
       }
 
       const response = await fetch(API_URL);
@@ -100,6 +119,12 @@ export const InventoryProvider = ({ children }) => {
         return b.dateAdded - a.dateAdded;
       });
 
+      // Cache the items
+      await dbHelpers.clearItemsCache();
+      await dbHelpers.cacheItems(sortedItems);
+      mmkvHelpers.setLastDataRefresh(Date.now());
+      mmkvHelpers.setLastBaroCheck(Date.now());
+
       setItems(sortedItems);
       setIsHere(baroIsHere);
 
@@ -108,6 +133,17 @@ export const InventoryProvider = ({ children }) => {
       setNextLocation(parseLocation(data?.location));
     } catch (error) {
       console.error('Error fetching Baro inventory:', error);
+      
+      // Fall back to cache on error
+      try {
+        const cachedItems = await dbHelpers.getCachedItems();
+        if (cachedItems.length > 0) {
+          console.log('Using cached inventory on error');
+          setItems(cachedItems);
+        }
+      } catch (cacheError) {
+        console.error('Error loading cache:', cacheError);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -120,7 +156,7 @@ export const InventoryProvider = ({ children }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchBaroInventory();
+    fetchBaroInventory(true); // Force refresh
   };
 
   return (
