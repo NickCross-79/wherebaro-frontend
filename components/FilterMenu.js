@@ -11,7 +11,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     setLocalFilters(filters);
   }, [filters, visible]);
   
-  const categories = ['Mod', 'Weapon', 'Cosmetic', 'Resource', 'Blueprint', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
+  const categories = ['Mod', 'Weapon', 'Cosmetic', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
     { label: 'Default', value: 'all' },
     { label: 'Most Popular', value: 'popular' },
