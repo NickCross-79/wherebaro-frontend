@@ -8,6 +8,7 @@ import LoadingScreen from './LoadingScreen';
 import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
+import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/BaroScreen.styles';
 
 export default function BaroScreen({ navigation }) {
@@ -17,26 +18,7 @@ export default function BaroScreen({ navigation }) {
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
 
-  const filteredItems = searchQuery
-    ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : items;
-
-  // Apply category filters
-  const categoryFilteredItems = filters.categories.length > 0
-    ? filteredItems.filter(item => filters.categories.some(category => item.type.toLowerCase().includes(category.toLowerCase())))
-    : filteredItems;
-
-  // Apply popularity sorting
-  let finalItems = [...categoryFilteredItems];
-  if (filters.popularity === 'popular') {
-    finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-  } else if (filters.popularity === 'unpopular') {
-    finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
-  } else if (filters.popularity === 'most-reviews') {
-    finalItems.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
-  } else if (filters.popularity === 'least-reviews') {
-    finalItems.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
-  }
+  const finalItems = applyAllFilters(items, searchQuery, filters);
 
   // Get newest item (first in sorted list when Baro is here)
   const newestItem = isHere && items.length > 0 ? items[0] : null;

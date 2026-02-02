@@ -6,6 +6,7 @@ import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { storageHelpers } from '../utils/storage';
+import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/AllItemsScreen.styles';
 
 export default function AllItemsScreen({ navigation }) {
@@ -29,26 +30,7 @@ export default function AllItemsScreen({ navigation }) {
     storageHelpers.setFilters(filters);
   }, [filters]);
 
-  const filteredItems = searchQuery
-    ? items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : items;
-
-  // Apply category filters
-  const categoryFilteredItems = filters.categories.length > 0
-    ? filteredItems.filter(item => filters.categories.some(category => item.type.toLowerCase().includes(category.toLowerCase())))
-    : filteredItems;
-
-  // Apply popularity sorting
-  let finalItems = [...categoryFilteredItems];
-  if (filters.popularity === 'popular') {
-    finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-  } else if (filters.popularity === 'unpopular') {
-    finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
-  } else if (filters.popularity === 'most-reviews') {
-    finalItems.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
-  } else if (filters.popularity === 'least-reviews') {
-    finalItems.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
-  }
+  const finalItems = applyAllFilters(items, searchQuery, filters);
 
   return (
     <View style={styles.container}>

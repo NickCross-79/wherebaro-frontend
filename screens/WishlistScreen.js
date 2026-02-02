@@ -5,6 +5,7 @@ import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
+import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/WishlistScreen.styles';
 
 export default function WishlistScreen({ navigation }) {
@@ -17,26 +18,7 @@ export default function WishlistScreen({ navigation }) {
   // Use cached wishlist items directly (likes are already stored locally)
   const displayItems = wishlistItems;
 
-  const filteredItems = searchQuery
-    ? displayItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : displayItems;
-
-  // Apply category filters
-  const categoryFilteredItems = filters.categories.length > 0
-    ? filteredItems.filter(item => filters.categories.some(category => item.type.toLowerCase().includes(category.toLowerCase())))
-    : filteredItems;
-
-  // Apply popularity sorting
-  let finalItems = [...categoryFilteredItems];
-  if (filters.popularity === 'popular') {
-    finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-  } else if (filters.popularity === 'unpopular') {
-    finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
-  } else if (filters.popularity === 'most-reviews') {
-    finalItems.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
-  } else if (filters.popularity === 'least-reviews') {
-    finalItems.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
-  }
+  const finalItems = applyAllFilters(displayItems, searchQuery, filters);
 
   return (
     <View style={styles.container}>
