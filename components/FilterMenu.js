@@ -29,7 +29,10 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   };
 
   const clearFilters = () => {
-    setLocalFilters({ categories: [], popularity: 'all' });
+    const clearedFilters = { categories: [], popularity: 'all' };
+    setLocalFilters(clearedFilters);
+    onApplyFilters(clearedFilters);
+    onClose();
   };
 
   const applyFilters = () => {
