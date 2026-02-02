@@ -627,27 +627,34 @@ export default function ItemDetailScreen({ route, navigation }) {
         contentContainerStyle={{ paddingBottom: bottomSpacer }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Like Button - At top of Reviews Tab */}
-        <View style={styles.likeSection}>
-          <TouchableOpacity 
-            style={[styles.likeButton, userLiked && styles.likeButtonActive]} 
-            onPress={handleLike}
-          >
-            <Ionicons 
-              name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
-              size={24} 
-              color={userLiked ? "#D4A574" : "#8B9DC3"} 
-            />
-            <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
-              {likeCount} Likes
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {isLoadingReviews ? (
+          <View style={styles.loadingReviews}>
+            <Ionicons name="hourglass-outline" size={48} color="#D4A574" />
+            <Text style={styles.loadingReviewsText}>Loading reviews and likes...</Text>
+          </View>
+        ) : (
+          <>
+            {/* Like Button - At top of Reviews Tab */}
+            <View style={styles.likeSection}>
+              <TouchableOpacity 
+                style={[styles.likeButton, userLiked && styles.likeButtonActive]} 
+                onPress={handleLike}
+              >
+                <Ionicons 
+                  name={userLiked ? "thumbs-up" : "thumbs-up-outline"} 
+                  size={24} 
+                  color={userLiked ? "#D4A574" : "#8B9DC3"} 
+                />
+                <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
+                  {likeCount} Likes
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* Post Review Section */}
-        {!hasUserReview && (
-          <View style={styles.postReviewSection}>
-            <Text style={styles.sectionTitle}>Write a Review</Text>
+            {/* Post Review Section */}
+            {!hasUserReview && (
+              <View style={styles.postReviewSection}>
+                <Text style={styles.sectionTitle}>Write a Review</Text>
             <TextInput
               style={styles.reviewInput}
               placeholder="Share your thoughts about this item..."
@@ -676,12 +683,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           <Text style={styles.sectionTitle}>
             Reviews ({reviews.length})
           </Text>
-          {isLoadingReviews ? (
-            <View style={styles.loadingReviews}>
-              <Ionicons name="spinner" size={48} color="#D4A574" />
-              <Text style={styles.loadingReviewsText}>Loading reviews...</Text>
-            </View>
-          ) : reviews.length === 0 ? (
+          {reviews.length === 0 ? (
             <View style={styles.emptyReviews}>
               <Ionicons name="chatbubbles-outline" size={48} color="#5A6B8C" />
               <Text style={styles.emptyReviewsText}>No reviews yet</Text>
@@ -754,6 +756,8 @@ export default function ItemDetailScreen({ route, navigation }) {
             ))
           )}
         </View>
+          </>
+        )}
       </ScrollView>
       )}
     </View>
