@@ -1,45 +1,45 @@
-import { mmkvHelpers } from './storage';
+import { storageHelpers } from './storage';
 
 /**
  * Get the current user's UID (generated on first launch)
  */
 export const getCurrentUID = async () => {
-  return await mmkvHelpers.getOrCreateUID();
+  return await storageHelpers.getOrCreateUID();
 };
 
 /**
  * Get the current username
  */
 export const getCurrentUsername = async () => {
-  return await mmkvHelpers.getUsername();
+  return await storageHelpers.getUsername();
 };
 
 /**
  * Set the current username
  */
 export const setCurrentUsername = async (username) => {
-  await mmkvHelpers.setUsername(username);
+  await storageHelpers.setUsername(username);
 };
 
 /**
  * Check if this is the first launch
  */
 export const isFirstLaunch = async () => {
-  return await mmkvHelpers.getIsFirstLaunch();
+  return await storageHelpers.getIsFirstLaunch();
 };
 
 /**
  * Get the last time Baro was checked
  */
 export const getLastBaroCheck = async () => {
-  return await mmkvHelpers.getLastBaroCheck();
+  return await storageHelpers.getLastBaroCheck();
 };
 
 /**
  * Get the last data refresh time
  */
 export const getLastDataRefresh = async () => {
-  return await mmkvHelpers.getLastDataRefresh();
+  return await storageHelpers.getLastDataRefresh();
 };
 
 /**
@@ -47,8 +47,8 @@ export const getLastDataRefresh = async () => {
  */
 export const getAppSettings = async () => {
   return {
-    theme: await mmkvHelpers.getTheme(),
-    language: await mmkvHelpers.getLanguage(),
+    theme: await storageHelpers.getTheme(),
+    language: await storageHelpers.getLanguage(),
   };
 };
 
@@ -57,10 +57,10 @@ export const getAppSettings = async () => {
  */
 export const updateAppSettings = async (settings) => {
   if (settings.theme) {
-    await mmkvHelpers.setTheme(settings.theme);
+    await storageHelpers.setTheme(settings.theme);
   }
   if (settings.language) {
-    await mmkvHelpers.setLanguage(settings.language);
+    await storageHelpers.setLanguage(settings.language);
   }
 };
 

@@ -95,8 +95,8 @@ const createTables = async () => {
   }
 };
 
-// SecureStore Helper functions (replacing MMKV)
-export const mmkvHelpers = {
+// SecureStore Helper functions
+export const storageHelpers = {
   // UID management
   getOrCreateUID: async () => {
     let uid = await secureStorage.getItem('uid');
@@ -393,6 +393,6 @@ export const dbHelpers = {
 export default {
   initializeDatabase,
   secureStorage,
-  mmkvHelpers,
+  storageHelpers,
   dbHelpers,
 };

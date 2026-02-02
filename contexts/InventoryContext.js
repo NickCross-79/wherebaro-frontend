@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCurrentBaro } from '../services/api';
-import { dbHelpers, mmkvHelpers } from '../utils/storage';
+import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 
 const InventoryContext = createContext();
@@ -47,14 +47,14 @@ export const InventoryProvider = ({ children }) => {
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
-        const lastRefresh = await mmkvHelpers.getLastDataRefresh();
+        const lastRefresh = await storageHelpers.getLastDataRefresh();
         const now = Date.now();
         
         if (now - lastRefresh < CACHE_DURATION) {
           // Use cached data
           const cachedItems = await dbHelpers.getCachedItems();
-          const cachedExpiry = await mmkvHelpers.get('baroExpiry');
-          const cachedActivation = await mmkvHelpers.get('baroActivation');
+          const cachedExpiry = await storageHelpers.get('baroExpiry');
+          const cachedActivation = await storageHelpers.get('baroActivation');
           
           // Only use cache if we have both items AND Baro state
           if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
@@ -69,8 +69,8 @@ export const InventoryProvider = ({ children }) => {
               setItems(cachedItems);
               
               // Restore Baro state from cache
-              const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
-              const cachedLocation = await mmkvHelpers.get('baroLocation');
+              const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
+              const cachedLocation = await storageHelpers.get('baroLocation');
               
               setIsHere(cachedBaroIsHere);
               const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
@@ -115,14 +115,14 @@ export const InventoryProvider = ({ children }) => {
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(sortedItems);
-      await mmkvHelpers.setLastDataRefresh(Date.now());
-      await mmkvHelpers.setLastBaroCheck(Date.now());
+      await storageHelpers.setLastDataRefresh(Date.now());
+      await storageHelpers.setLastBaroCheck(Date.now());
       
       // Cache Baro state
-      await mmkvHelpers.setBoolean('baroIsHere', baroIsHere);
-      if (data?.expiry) await mmkvHelpers.set('baroExpiry', data.expiry);
-      if (data?.activation) await mmkvHelpers.set('baroActivation', data.activation);
-      if (data?.location) await mmkvHelpers.set('baroLocation', data.location);
+      await storageHelpers.setBoolean('baroIsHere', baroIsHere);
+      if (data?.expiry) await storageHelpers.set('baroExpiry', data.expiry);
+      if (data?.activation) await storageHelpers.set('baroActivation', data.activation);
+      if (data?.location) await storageHelpers.set('baroLocation', data.location);
 
       setItems(sortedItems);
       setIsHere(baroIsHere);
@@ -142,10 +142,10 @@ export const InventoryProvider = ({ children }) => {
           setItems(cachedItems);
           
           // Restore Baro state from cache
-          const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
-          const cachedExpiry = await mmkvHelpers.get('baroExpiry');
-          const cachedActivation = await mmkvHelpers.get('baroActivation');
-          const cachedLocation = await mmkvHelpers.get('baroLocation');
+          const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
+          const cachedExpiry = await storageHelpers.get('baroExpiry');
+          const cachedActivation = await storageHelpers.get('baroActivation');
+          const cachedLocation = await storageHelpers.get('baroLocation');
           
           setIsHere(cachedBaroIsHere);
           const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;

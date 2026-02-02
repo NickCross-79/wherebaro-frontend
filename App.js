@@ -22,7 +22,7 @@ import ListInactive from './assets/icons/icon_list_inactive.svg';
 import HeartInactive from './assets/icons/icon_heart_inactive.svg';
 import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { initializeDatabase, mmkvHelpers } from './utils/storage';
+import { initializeDatabase, storageHelpers } from './utils/storage';
 
 const Tab = createMaterialTopTabNavigator();
 const BaroStack = createNativeStackNavigator();
@@ -228,18 +228,18 @@ export default function App() {
         // Initialize database
         await initializeDatabase();
         
-        // Initialize MMKV on first launch
-        const isFirstLaunch = await mmkvHelpers.getIsFirstLaunch();
+        // Initialize app state on first launch
+        const isFirstLaunch = await storageHelpers.getIsFirstLaunch();
         if (isFirstLaunch) {
           // Generate and store UID
-          await mmkvHelpers.getOrCreateUID();
+          await storageHelpers.getOrCreateUID();
           // Set first launch to false
-          await mmkvHelpers.setIsFirstLaunch(false);
+          await storageHelpers.setIsFirstLaunch(false);
           console.log('App initialized for first time');
         }
 
         // Get and display UID
-        const deviceUID = await mmkvHelpers.getOrCreateUID();
+        const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         console.log('Device UID:', deviceUID);
 

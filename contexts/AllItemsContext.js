@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchAllItems } from '../services/api';
-import { dbHelpers, mmkvHelpers } from '../utils/storage';
+import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 
 const AllItemsContext = createContext();
@@ -27,7 +27,7 @@ export const AllItemsProvider = ({ children }) => {
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
-        const lastRefresh = await mmkvHelpers.getLastDataRefresh();
+        const lastRefresh = await storageHelpers.getLastDataRefresh();
         const now = Date.now();
         
         if (now - lastRefresh < CACHE_DURATION) {
@@ -54,7 +54,7 @@ export const AllItemsProvider = ({ children }) => {
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(normalized);
-      await mmkvHelpers.setLastDataRefresh(Date.now());
+      await storageHelpers.setLastDataRefresh(Date.now());
       
       setItems(normalized);
     } catch (err) {

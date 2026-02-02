@@ -5,7 +5,7 @@ import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
-import { mmkvHelpers } from '../utils/storage';
+import { storageHelpers } from '../utils/storage';
 import styles from '../styles/screens/AllItemsScreen.styles';
 
 export default function AllItemsScreen({ navigation }) {
@@ -18,7 +18,7 @@ export default function AllItemsScreen({ navigation }) {
   // Load filters on mount
   useEffect(() => {
     const loadFilters = async () => {
-      const savedFilters = await mmkvHelpers.getFilters();
+      const savedFilters = await storageHelpers.getFilters();
       setFilters(savedFilters);
     };
     loadFilters();
@@ -26,7 +26,7 @@ export default function AllItemsScreen({ navigation }) {
 
   // Save filters whenever they change
   useEffect(() => {
-    mmkvHelpers.setFilters(filters);
+    storageHelpers.setFilters(filters);
   }, [filters]);
 
   const filteredItems = searchQuery
