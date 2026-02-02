@@ -78,7 +78,7 @@ const UNLIKE_URL = buildUnlikeUrl();
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
-  const CURRENT_UID = getCurrentUID();
+  const [CURRENT_UID, setCURRENT_UID] = useState(null);
   const [userLiked, setUserLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item?.likes?.length || 0);
   const [isLiking, setIsLiking] = useState(false);
@@ -94,6 +94,15 @@ export default function ItemDetailScreen({ route, navigation }) {
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
+
+  // Get user UID on mount
+  useEffect(() => {
+    const loadUID = async () => {
+      const uid = await getCurrentUID();
+      setCURRENT_UID(uid);
+    };
+    loadUID();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {

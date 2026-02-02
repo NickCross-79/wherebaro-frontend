@@ -86,17 +86,39 @@ export const InventoryProvider = ({ children }) => {
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
-        const lastRefresh = mmkvHelpers.getLastDataRefresh();
+        const lastRefresh = await mmkvHelpers.getLastDataRefresh();
         const now = Date.now();
         
         if (now - lastRefresh < CACHE_DURATION) {
           // Use cached data
           const cachedItems = await dbHelpers.getCachedItems();
-          if (cachedItems.length > 0) {
+          const cachedExpiry = await mmkvHelpers.get('baroExpiry');
+          const cachedActivation = await mmkvHelpers.get('baroActivation');
+          
+          // Only use cache if we have both items AND Baro state
+          if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
             console.log('Using cached inventory items');
             setItems(cachedItems);
+            
+            // Restore Baro state from cache
+            const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
+            const cachedLocation = await mmkvHelpers.get('baroLocation');
+            
+            setIsHere(cachedBaroIsHere);
+            const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
+            setNextArrival(nextDate ? new Date(nextDate) : null);
+            setNextLocation(parseLocation(cachedLocation));
+            
+            console.log('Restored Baro state from cache:', { 
+              isHere: cachedBaroIsHere, 
+              nextDate, 
+              location: cachedLocation 
+            });
+            
             setLoading(false);
             return;
+          } else {
+            console.log('No complete cache found, fetching from API');
           }
         }
       }
@@ -108,6 +130,13 @@ export const InventoryProvider = ({ children }) => {
 
       const data = await response.json();
       const baroIsHere = Boolean(data?.isActive);
+
+      console.log('API Response:', { 
+        isActive: data?.isActive, 
+        expiry: data?.expiry, 
+        activation: data?.activation,
+        location: data?.location 
+      });
 
       const normalizedItems = Array.isArray(data?.items)
         ? data.items.map(normalizeItem)
@@ -122,13 +151,20 @@ export const InventoryProvider = ({ children }) => {
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(sortedItems);
-      mmkvHelpers.setLastDataRefresh(Date.now());
-      mmkvHelpers.setLastBaroCheck(Date.now());
+      await mmkvHelpers.setLastDataRefresh(Date.now());
+      await mmkvHelpers.setLastBaroCheck(Date.now());
+      
+      // Cache Baro state
+      await mmkvHelpers.setBoolean('baroIsHere', baroIsHere);
+      if (data?.expiry) await mmkvHelpers.set('baroExpiry', data.expiry);
+      if (data?.activation) await mmkvHelpers.set('baroActivation', data.activation);
+      if (data?.location) await mmkvHelpers.set('baroLocation', data.location);
 
       setItems(sortedItems);
       setIsHere(baroIsHere);
 
       const nextDate = baroIsHere ? data?.expiry : data?.activation;
+      console.log('Setting nextArrival:', { nextDate, baroIsHere });
       setNextArrival(nextDate ? new Date(nextDate) : null);
       setNextLocation(parseLocation(data?.location));
     } catch (error) {
@@ -140,6 +176,17 @@ export const InventoryProvider = ({ children }) => {
         if (cachedItems.length > 0) {
           console.log('Using cached inventory on error');
           setItems(cachedItems);
+          
+          // Restore Baro state from cache
+          const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
+          const cachedExpiry = await mmkvHelpers.get('baroExpiry');
+          const cachedActivation = await mmkvHelpers.get('baroActivation');
+          const cachedLocation = await mmkvHelpers.get('baroLocation');
+          
+          setIsHere(cachedBaroIsHere);
+          const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
+          setNextArrival(nextDate ? new Date(nextDate) : null);
+          setNextLocation(parseLocation(cachedLocation));
         }
       } catch (cacheError) {
         console.error('Error loading cache:', cacheError);

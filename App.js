@@ -185,6 +185,7 @@ function TabNavigatorWithSafeArea() {
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
+  const [uid, setUid] = useState(null);
 
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync('#0F1419');
@@ -199,14 +200,19 @@ export default function App() {
         await initializeDatabase();
         
         // Initialize MMKV on first launch
-        const isFirstLaunch = mmkvHelpers.getIsFirstLaunch();
+        const isFirstLaunch = await mmkvHelpers.getIsFirstLaunch();
         if (isFirstLaunch) {
           // Generate and store UID
-          mmkvHelpers.getOrCreateUID();
+          await mmkvHelpers.getOrCreateUID();
           // Set first launch to false
-          mmkvHelpers.setIsFirstLaunch(false);
+          await mmkvHelpers.setIsFirstLaunch(false);
           console.log('App initialized for first time');
         }
+
+        // Get and display UID
+        const deviceUID = await mmkvHelpers.getOrCreateUID();
+        setUid(deviceUID);
+        console.log('Device UID:', deviceUID);
 
         setDbInitialized(true);
       } catch (error) {
@@ -220,8 +226,14 @@ export default function App() {
 
   if (!dbInitialized) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0E1A' }}>
-        <Text style={{ color: '#FFFFFF' }}>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0E1A', padding: 20 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 18, marginBottom: 20 }}>Loading...</Text>
+        {uid && (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: '#D4A574', fontSize: 12, marginBottom: 4 }}>Device UID</Text>
+            <Text style={{ color: '#8B9DC3', fontSize: 10, fontFamily: 'monospace' }}>{uid}</Text>
+          </View>
+        )}
       </View>
     );
   }

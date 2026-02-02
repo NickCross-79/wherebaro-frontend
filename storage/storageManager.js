@@ -1,164 +1,190 @@
-import { MMKV } from 'react-native-mmkv';
-import SQLite from 'react-native-sqlite-storage';
+import * as SecureStore from 'expo-secure-store';
+import * as SQLite from 'expo-sqlite';
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
-// MMKV instance for app state and settings
-export const mmkvStorage = new MMKV();
+// Expo SecureStore wrapper for MMKV-like functionality
+class SecureStorage {
+  async setItem(key, value) {
+    try {
+      await SecureStore.setItemAsync(key, String(value));
+    } catch (error) {
+      console.error('SecureStore setItem error:', error);
+    }
+  }
+
+  async getItem(key) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch (error) {
+      console.error('SecureStore getItem error:', error);
+      return null;
+    }
+  }
+
+  async deleteItem(key) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch (error) {
+      console.error('SecureStore deleteItem error:', error);
+    }
+  }
+}
+
+// SecureStore instance for app state and settings
+export const secureStorage = new SecureStorage();
 
 // SQLite database instance
 let db = null;
 
 export const initializeDatabase = async () => {
-  return new Promise((resolve, reject) => {
-    SQLite.openDatabase(
-      {
-        name: 'wherebaro.db',
-        location: 'default',
-        createFromLocation: '~wherebaro.db',
-      },
-      (database) => {
-        db = database;
-        createTables();
-        resolve(db);
-      },
-      (error) => {
-        console.error('Database initialization error:', error);
-        reject(error);
-      }
-    );
-  });
+  try {
+    db = await SQLite.openDatabaseAsync('wherebaro.db');
+    await createTables();
+    return db;
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    throw error;
+  }
 };
 
-const createTables = () => {
+const createTables = async () => {
   if (!db) return;
 
-  // Wishlist table
-  db.executeSql(
-    `CREATE TABLE IF NOT EXISTS wishlist (
-      id TEXT PRIMARY KEY,
-      _id TEXT UNIQUE,
-      name TEXT NOT NULL,
-      type TEXT,
-      image TEXT,
-      creditPrice INTEGER,
-      ducatPrice INTEGER,
-      likes TEXT,
-      reviews TEXT,
-      createdAt INTEGER
-    );`,
-    [],
-    () => console.log('Wishlist table created'),
-    (error) => console.error('Error creating wishlist table:', error)
-  );
+  try {
+    // Wishlist table
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS wishlist (
+        id TEXT PRIMARY KEY,
+        _id TEXT UNIQUE,
+        name TEXT NOT NULL,
+        type TEXT,
+        image TEXT,
+        creditPrice INTEGER,
+        ducatPrice INTEGER,
+        likes TEXT,
+        reviews TEXT,
+        createdAt INTEGER
+      );
+    `);
+    console.log('Wishlist table created');
 
-  // Items cache table (for storing fetched items)
-  db.executeSql(
-    `CREATE TABLE IF NOT EXISTS items_cache (
-      id TEXT PRIMARY KEY,
-      _id TEXT UNIQUE,
-      name TEXT NOT NULL,
-      type TEXT,
-      image TEXT,
-      creditPrice INTEGER,
-      ducatPrice INTEGER,
-      likes TEXT,
-      reviews TEXT,
-      createdAt INTEGER,
-      cachedAt INTEGER
-    );`,
-    [],
-    () => console.log('Items cache table created'),
-    (error) => console.error('Error creating items cache table:', error)
-  );
+    // Items cache table
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS items_cache (
+        id TEXT PRIMARY KEY,
+        _id TEXT UNIQUE,
+        name TEXT NOT NULL,
+        type TEXT,
+        image TEXT,
+        creditPrice INTEGER,
+        ducatPrice INTEGER,
+        likes TEXT,
+        reviews TEXT,
+        createdAt INTEGER,
+        cachedAt INTEGER
+      );
+    `);
+    console.log('Items cache table created');
+  } catch (error) {
+    console.error('Error creating tables:', error);
+  }
 };
 
-// MMKV Helper functions
+// SecureStore Helper functions (replacing MMKV)
 export const mmkvHelpers = {
   // UID management
-  getOrCreateUID: () => {
-    let uid = mmkvStorage.getString('uid');
+  getOrCreateUID: async () => {
+    let uid = await secureStorage.getItem('uid');
     if (!uid) {
       uid = uuidv4();
-      mmkvStorage.set('uid', uid);
+      await secureStorage.setItem('uid', uid);
     }
     return uid;
   },
 
-  setUsername: (username) => {
-    mmkvStorage.set('username', username);
+  setUsername: async (username) => {
+    await secureStorage.setItem('username', username);
   },
 
-  getUsername: () => {
-    return mmkvStorage.getString('username') || 'Anonymous';
+  getUsername: async () => {
+    const username = await secureStorage.getItem('username');
+    return username || 'Anonymous';
   },
 
   // App state
-  setLastBaroCheck: (timestamp) => {
-    mmkvStorage.set('lastBaroCheck', timestamp.toString());
+  setLastBaroCheck: async (timestamp) => {
+    await secureStorage.setItem('lastBaroCheck', timestamp.toString());
   },
 
-  getLastBaroCheck: () => {
-    return parseInt(mmkvStorage.getString('lastBaroCheck') || '0', 10);
+  getLastBaroCheck: async () => {
+    const value = await secureStorage.getItem('lastBaroCheck');
+    return parseInt(value || '0', 10);
   },
 
-  setLastDataRefresh: (timestamp) => {
-    mmkvStorage.set('lastDataRefresh', timestamp.toString());
+  setLastDataRefresh: async (timestamp) => {
+    await secureStorage.setItem('lastDataRefresh', timestamp.toString());
   },
 
-  getLastDataRefresh: () => {
-    return parseInt(mmkvStorage.getString('lastDataRefresh') || '0', 10);
+  getLastDataRefresh: async () => {
+    const value = await secureStorage.getItem('lastDataRefresh');
+    return parseInt(value || '0', 10);
   },
 
-  setIsFirstLaunch: (isFirst) => {
-    mmkvStorage.set('isFirstLaunch', isFirst.toString());
+  setIsFirstLaunch: async (isFirst) => {
+    await secureStorage.setItem('isFirstLaunch', isFirst.toString());
   },
 
-  getIsFirstLaunch: () => {
-    return mmkvStorage.getString('isFirstLaunch') !== 'false';
+  getIsFirstLaunch: async () => {
+    const value = await secureStorage.getItem('isFirstLaunch');
+    return value !== 'false';
   },
 
   // Settings
-  setTheme: (theme) => {
-    mmkvStorage.set('theme', theme);
+  setTheme: async (theme) => {
+    await secureStorage.setItem('theme', theme);
   },
 
-  getTheme: () => {
-    return mmkvStorage.getString('theme') || 'dark';
+  getTheme: async () => {
+    const value = await secureStorage.getItem('theme');
+    return value || 'dark';
   },
 
-  setLanguage: (language) => {
-    mmkvStorage.set('language', language);
+  setLanguage: async (language) => {
+    await secureStorage.setItem('language', language);
   },
 
-  getLanguage: () => {
-    return mmkvStorage.getString('language') || 'en';
+  getLanguage: async () => {
+    const value = await secureStorage.getItem('language');
+    return value || 'en';
   },
 
   // Generic get/set
-  set: (key, value) => {
-    mmkvStorage.set(key, value.toString());
+  set: async (key, value) => {
+    await secureStorage.setItem(key, value.toString());
   },
 
-  get: (key) => {
-    return mmkvStorage.getString(key);
+  get: async (key) => {
+    return await secureStorage.getItem(key);
   },
 
-  getBoolean: (key, defaultValue = false) => {
-    return mmkvStorage.getString(key) === 'true' || defaultValue;
+  getBoolean: async (key, defaultValue = false) => {
+    const value = await secureStorage.getItem(key);
+    return value === 'true' || defaultValue;
   },
 
-  setBoolean: (key, value) => {
-    mmkvStorage.set(key, value.toString());
+  setBoolean: async (key, value) => {
+    await secureStorage.setItem(key, value.toString());
   },
 };
 
 // SQLite Helper functions
 export const dbHelpers = {
   // Wishlist operations
-  addToWishlist: (item) => {
-    return new Promise((resolve, reject) => {
+  addToWishlist: async (item) => {
+    try {
       const itemId = item.id || item._id;
-      db.executeSql(
+      await db.runAsync(
         `INSERT OR REPLACE INTO wishlist (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, createdAt)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -172,164 +198,139 @@ export const dbHelpers = {
           JSON.stringify(item.likes || []),
           JSON.stringify(item.reviews || []),
           Date.now(),
-        ],
-        () => resolve(),
-        (error) => reject(error)
+        ]
       );
-    });
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      throw error;
+    }
   },
 
-  removeFromWishlist: (itemId) => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
+  removeFromWishlist: async (itemId) => {
+    try {
+      await db.runAsync(
         `DELETE FROM wishlist WHERE id = ? OR _id = ?`,
-        [itemId, itemId],
-        () => resolve(),
-        (error) => reject(error)
+        [itemId, itemId]
       );
-    });
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      throw error;
+    }
   },
 
-  getWishlistItems: () => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
-        `SELECT * FROM wishlist ORDER BY createdAt DESC`,
-        [],
-        (result) => {
-          const items = [];
-          for (let i = 0; i < result.rows.length; i++) {
-            const row = result.rows.item(i);
-            items.push({
-              ...row,
-              likes: JSON.parse(row.likes || '[]'),
-              reviews: JSON.parse(row.reviews || '[]'),
-            });
-          }
-          resolve(items);
-        },
-        (error) => reject(error)
+  getWishlistItems: async () => {
+    try {
+      const result = await db.getAllAsync(
+        `SELECT * FROM wishlist ORDER BY createdAt DESC`
       );
-    });
+      return result.map((row) => ({
+        ...row,
+        likes: JSON.parse(row.likes || '[]'),
+        reviews: JSON.parse(row.reviews || '[]'),
+      }));
+    } catch (error) {
+      console.error('Error getting wishlist items:', error);
+      return [];
+    }
   },
 
-  getWishlistIds: () => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
-        `SELECT id, _id FROM wishlist`,
-        [],
-        (result) => {
-          const ids = [];
-          for (let i = 0; i < result.rows.length; i++) {
-            const row = result.rows.item(i);
-            ids.push(row.id || row._id);
-          }
-          resolve(ids);
-        },
-        (error) => reject(error)
-      );
-    });
+  getWishlistIds: async () => {
+    try {
+      const result = await db.getAllAsync(`SELECT id, _id FROM wishlist`);
+      return result.map((row) => row.id || row._id);
+    } catch (error) {
+      console.error('Error getting wishlist IDs:', error);
+      return [];
+    }
   },
 
-  isInWishlist: (itemId) => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
+  isInWishlist: async (itemId) => {
+    try {
+      const result = await db.getFirstAsync(
         `SELECT id FROM wishlist WHERE id = ? OR _id = ? LIMIT 1`,
-        [itemId, itemId],
-        (result) => {
-          resolve(result.rows.length > 0);
-        },
-        (error) => reject(error)
+        [itemId, itemId]
       );
-    });
+      return result !== null;
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+      return false;
+    }
   },
 
   // Items cache operations
-  cacheItems: (items) => {
-    return new Promise((resolve, reject) => {
+  cacheItems: async (items) => {
+    try {
       const now = Date.now();
-      const promises = items.map(
-        (item) =>
-          new Promise((res, rej) => {
-            const itemId = item.id || item._id;
-            db.executeSql(
-              `INSERT OR REPLACE INTO items_cache (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, cachedAt)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [
-                itemId,
-                item._id || itemId,
-                item.name,
-                item.type,
-                item.image,
-                item.creditPrice || 0,
-                item.ducatPrice || 0,
-                JSON.stringify(item.likes || []),
-                JSON.stringify(item.reviews || []),
-                now,
-              ],
-              () => res(),
-              (error) => rej(error)
-            );
-          })
-      );
-
-      Promise.all(promises).then(() => resolve()).catch(reject);
-    });
+      for (const item of items) {
+        const itemId = item.id || item._id;
+        await db.runAsync(
+          `INSERT OR REPLACE INTO items_cache (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            itemId,
+            item._id || itemId,
+            item.name,
+            item.type,
+            item.image,
+            item.creditPrice || 0,
+            item.ducatPrice || 0,
+            JSON.stringify(item.likes || []),
+            JSON.stringify(item.reviews || []),
+            now,
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error caching items:', error);
+      throw error;
+    }
   },
 
-  getCachedItems: () => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
-        `SELECT * FROM items_cache ORDER BY cachedAt DESC`,
-        [],
-        (result) => {
-          const items = [];
-          for (let i = 0; i < result.rows.length; i++) {
-            const row = result.rows.item(i);
-            items.push({
-              ...row,
-              likes: JSON.parse(row.likes || '[]'),
-              reviews: JSON.parse(row.reviews || '[]'),
-            });
-          }
-          resolve(items);
-        },
-        (error) => reject(error)
+  getCachedItems: async () => {
+    try {
+      const result = await db.getAllAsync(
+        `SELECT * FROM items_cache ORDER BY cachedAt DESC`
       );
-    });
+      return result.map((row) => ({
+        ...row,
+        likes: JSON.parse(row.likes || '[]'),
+        reviews: JSON.parse(row.reviews || '[]'),
+      }));
+    } catch (error) {
+      console.error('Error getting cached items:', error);
+      return [];
+    }
   },
 
-  clearItemsCache: () => {
-    return new Promise((resolve, reject) => {
-      db.executeSql(
-        `DELETE FROM items_cache`,
-        [],
-        () => resolve(),
-        (error) => reject(error)
-      );
-    });
+  clearItemsCache: async () => {
+    try {
+      await db.runAsync(`DELETE FROM items_cache`);
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
   },
 
-  updateItemInCache: (itemId, updates) => {
-    return new Promise((resolve, reject) => {
+  updateItemInCache: async (itemId, updates) => {
+    try {
       const setClause = Object.keys(updates)
         .map((key) => `${key} = ?`)
         .join(', ');
       const values = Object.values(updates);
-      values.push(itemId);
-
-      db.executeSql(
+      
+      await db.runAsync(
         `UPDATE items_cache SET ${setClause} WHERE id = ? OR _id = ?`,
-        [...values, itemId],
-        () => resolve(),
-        (error) => reject(error)
+        [...values, itemId, itemId]
       );
-    });
+    } catch (error) {
+      console.error('Error updating item in cache:', error);
+      throw error;
+    }
   },
 };
 
 export default {
   initializeDatabase,
-  mmkvStorage,
+  secureStorage,
   mmkvHelpers,
   dbHelpers,
 };

@@ -58,7 +58,7 @@ export const AllItemsProvider = ({ children }) => {
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
-        const lastRefresh = mmkvHelpers.getLastDataRefresh();
+        const lastRefresh = await mmkvHelpers.getLastDataRefresh();
         const now = Date.now();
         
         if (now - lastRefresh < CACHE_DURATION) {
@@ -86,7 +86,7 @@ export const AllItemsProvider = ({ children }) => {
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(normalized);
-      mmkvHelpers.setLastDataRefresh(Date.now());
+      await mmkvHelpers.setLastDataRefresh(Date.now());
       
       setItems(normalized);
     } catch (err) {
