@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, Animated, Easing, Image } from 'react-native';
+import { StyleSheet, Text, View, Animated, Easing } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import EarthIcon from '../assets/icons/icon_earth.svg';
 import TimeIcon from '../assets/icons/icon_time.svg';
+import BaroIcon from '../assets/icons/icon_baro.svg';
 
 export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
   const cycleAnim = useRef(new Animated.Value(0)).current;
@@ -84,10 +85,10 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
         <View style={styles.journeyContainer}>
           {/* Baro Icon on Left */}
           <View style={styles.iconWrapper}>
-            <Image
-              source={require('../assets/logo_baro.png')}
-              style={styles.baroIcon}
-              resizeMode="contain"
+            <BaroIcon
+              width={80}
+              height={80}
+              color="#F0EFF4"
             />
           </View>
 

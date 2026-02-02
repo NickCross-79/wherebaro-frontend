@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, Image, Pressable, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import BaroIcon from '../../assets/icons/icon_baro.svg';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useState, useRef, useEffect } from 'react';
 
@@ -69,12 +70,15 @@ export default function ItemCard({ item, onPress, isNew, hideWishlistBadge = fal
       >
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.image }}
-            style={styles.itemImage}
-            resizeMode="contain"
-            defaultSource={require('../../assets/logo_baro.png')}
-          />
+          {item?.image ? (
+            <Image
+              source={{ uri: item.image }}
+              style={styles.itemImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <BaroIcon width={64} height={64} color="#D4A574" />
+          )}
         </View>
         
         <View style={styles.itemInfo}>
