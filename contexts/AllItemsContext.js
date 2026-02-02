@@ -34,11 +34,16 @@ export const AllItemsProvider = ({ children }) => {
           // Use cached data
           const cachedItems = await dbHelpers.getCachedItems();
           if (cachedItems.length > 0) {
-            console.log('Using cached all items');
-            setItems(cachedItems);
-            setLoading(false);
-            setRefreshing(false);
-            return;
+            const hasOfferingDates = cachedItems.some(
+              (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
+            );
+            if (hasOfferingDates) {
+              console.log('Using cached all items');
+              setItems(cachedItems);
+              setLoading(false);
+              setRefreshing(false);
+              return;
+            }
           }
         }
       }

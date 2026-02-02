@@ -58,26 +58,34 @@ export const InventoryProvider = ({ children }) => {
           
           // Only use cache if we have both items AND Baro state
           if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
-            console.log('Using cached inventory items');
-            setItems(cachedItems);
-            
-            // Restore Baro state from cache
-            const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
-            const cachedLocation = await mmkvHelpers.get('baroLocation');
-            
-            setIsHere(cachedBaroIsHere);
-            const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
-            setNextArrival(nextDate ? new Date(nextDate) : null);
-            setNextLocation(parseLocation(cachedLocation));
-            
-            console.log('Restored Baro state from cache:', { 
-              isHere: cachedBaroIsHere, 
-              nextDate, 
-              location: cachedLocation 
-            });
-            
-            setLoading(false);
-            return;
+            const hasOfferingDates = cachedItems.some(
+              (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
+            );
+
+            if (!hasOfferingDates) {
+              console.log('Cached inventory missing offering dates, fetching from API');
+            } else {
+              console.log('Using cached inventory items');
+              setItems(cachedItems);
+              
+              // Restore Baro state from cache
+              const cachedBaroIsHere = await mmkvHelpers.getBoolean('baroIsHere', false);
+              const cachedLocation = await mmkvHelpers.get('baroLocation');
+              
+              setIsHere(cachedBaroIsHere);
+              const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
+              setNextArrival(nextDate ? new Date(nextDate) : null);
+              setNextLocation(parseLocation(cachedLocation));
+              
+              console.log('Restored Baro state from cache:', { 
+                isHere: cachedBaroIsHere, 
+                nextDate, 
+                location: cachedLocation 
+              });
+              
+              setLoading(false);
+              return;
+            }
           } else {
             console.log('No complete cache found, fetching from API');
           }

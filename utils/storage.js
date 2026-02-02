@@ -71,6 +71,7 @@ const createTables = async () => {
         ducatPrice INTEGER,
         likes TEXT,
         reviews TEXT,
+        offeringDates TEXT,
         inWishlist INTEGER DEFAULT 0,
         createdAt INTEGER,
         cachedAt INTEGER
@@ -83,6 +84,12 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_wishlist ON items(inWishlist);
     `);
     console.log('Wishlist index created');
+
+    const columns = await db.getAllAsync('PRAGMA table_info(items)');
+    const hasOfferingDates = columns.some((column) => column.name === 'offeringDates');
+    if (!hasOfferingDates) {
+      await db.execAsync('ALTER TABLE items ADD COLUMN offeringDates TEXT;');
+    }
   } catch (error) {
     console.error('Error creating tables:', error);
   }
@@ -183,8 +190,8 @@ export const dbHelpers = {
       await ensureDb();
       const itemId = item.id || item._id;
       await db.runAsync(
-        `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, inWishlist, createdAt, cachedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           itemId,
           item._id || itemId,
@@ -195,6 +202,7 @@ export const dbHelpers = {
           item.ducatPrice || 0,
           JSON.stringify(item.likes || []),
           JSON.stringify(item.reviews || []),
+          JSON.stringify(item.offeringDates || []),
           1, // inWishlist = true
           Date.now(),
           Date.now(),
@@ -229,6 +237,7 @@ export const dbHelpers = {
         ...row,
         likes: JSON.parse(row.likes || '[]'),
         reviews: JSON.parse(row.reviews || '[]'),
+        offeringDates: JSON.parse(row.offeringDates || '[]'),
       }));
     } catch (error) {
       console.error('Error getting wishlist items:', error);
@@ -278,8 +287,8 @@ export const dbHelpers = {
         const inWishlist = existingItem?.inWishlist || 0;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, inWishlist, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -290,6 +299,7 @@ export const dbHelpers = {
             item.ducatPrice || 0,
             JSON.stringify(item.likes || []),
             JSON.stringify(item.reviews || []),
+            JSON.stringify(item.offeringDates || []),
             inWishlist, // Preserve wishlist flag
             now,
           ]
@@ -311,6 +321,7 @@ export const dbHelpers = {
         ...row,
         likes: JSON.parse(row.likes || '[]'),
         reviews: JSON.parse(row.reviews || '[]'),
+        offeringDates: JSON.parse(row.offeringDates || '[]'),
       }));
     } catch (error) {
       console.error('Error getting cached items:', error);

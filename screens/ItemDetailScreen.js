@@ -24,8 +24,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const { toggleWishlist, isInWishlist, updateWishlistLikes } = useWishlist();
-  const { updateItemLikes: updateInventoryLikes } = useInventory();
-  const { updateItemLikes: updateAllItemsLikes } = useAllItems();
+  const { items: inventoryItems, updateItemLikes: updateInventoryLikes } = useInventory();
+  const { items: allItems, updateItemLikes: updateAllItemsLikes } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
@@ -110,6 +110,12 @@ export default function ItemDetailScreen({ route, navigation }) {
   };
 
   const itemId = String(item._id?.$oid || item._id || item.id);
+  const fallbackItem =
+    allItems?.find((current) => String(current?.id || current?._id) === itemId) ||
+    inventoryItems?.find((current) => String(current?.id || current?._id) === itemId);
+  const displayItem = fallbackItem?.offeringDates?.length
+    ? { ...item, offeringDates: fallbackItem.offeringDates }
+    : item;
 
   const handlePostReviewWrapper = async () => {
     await handlePostReview(CURRENT_UID, itemId);
@@ -163,7 +169,7 @@ export default function ItemDetailScreen({ route, navigation }) {
 
       {activeTab === 'details' ? (
         <ItemDetailsTab
-          item={item}
+          item={displayItem}
           bottomSpacer={bottomSpacer}
           showOfferings={showOfferings}
           setShowOfferings={setShowOfferings}
