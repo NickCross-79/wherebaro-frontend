@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { Text, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import styles from '../styles/screens/LoadingScreen.styles';
 
 export default function LoadingScreen() {
   return (
@@ -11,17 +12,3 @@ export default function LoadingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#0A0E1A',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    color: '#D4A574',
-    fontSize: 16,
-    marginTop: 20,
-    fontWeight: '500',
-  },
-});

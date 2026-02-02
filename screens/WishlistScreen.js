@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
+import styles from '../styles/screens/WishlistScreen.styles';
 
 export default function WishlistScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -87,49 +88,3 @@ export default function WishlistScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0E1A',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 14,
-    paddingHorizontal: 20,
-    backgroundColor: '#0F1419',
-    borderBottomWidth: 2,
-    borderBottomColor: '#D4A574',
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#D4A574',
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#8B9DC3',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#5A6B8C',
-    textAlign: 'center',
-  },
-});

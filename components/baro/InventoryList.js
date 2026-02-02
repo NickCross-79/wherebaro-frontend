@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
-import { ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native';
 import ItemCard from '../items/ItemCard';
 import EmptyState from '../ui/EmptyState';
+import styles from '../../styles/components/baro/InventoryList.styles';
 
 const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress }, ref) => {
   return (
@@ -35,12 +36,3 @@ const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress },
 
 export default InventoryList;
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-});

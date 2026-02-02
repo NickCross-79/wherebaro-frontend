@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import Header from '../components/ui/Header';
@@ -8,6 +8,7 @@ import LoadingScreen from './LoadingScreen';
 import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
+import styles from '../styles/screens/BaroScreen.styles';
 
 export default function BaroScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -84,9 +85,3 @@ export default function BaroScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0E1A',
-  },
-});
