@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getCurrentUsername, setCurrentUsername } from '../utils/userStorage';
 
 export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
@@ -9,6 +10,21 @@ export default function SettingsScreen({ navigation }) {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [displayName, setDisplayName] = useState('Anonymous');
   const insets = useSafeAreaInsets();
+
+  // Load username on mount
+  useEffect(() => {
+    const loadUsername = async () => {
+      const username = await getCurrentUsername();
+      setDisplayName(username);
+    };
+    loadUsername();
+  }, []);
+
+  // Save username when it changes
+  const handleDisplayNameChange = async (newName) => {
+    setDisplayName(newName);
+    await setCurrentUsername(newName);
+  };
 
   return (
     <View style={styles.container}>
@@ -73,7 +89,7 @@ export default function SettingsScreen({ navigation }) {
             <TextInput
               style={styles.textInput}
               value={displayName}
-              onChangeText={setDisplayName}
+              onChangeText={handleDisplayNameChange}
               placeholder="Enter display name"
               placeholderTextColor="#5A6B8C"
               maxLength={24}

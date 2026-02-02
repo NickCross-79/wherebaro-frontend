@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
-import { getCurrentUID } from '../utils/userStorage';
+import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
@@ -307,9 +307,11 @@ export default function ItemDetailScreen({ route, navigation }) {
       return;
     }
 
+    const username = await getCurrentUsername();
+
     const payload = {
       item_oid: String(item.id || item._id),
-      user: 'Anonymous',
+      user: username,
       content: reviewText,
       date: new Date().toISOString().slice(0, 10),
       time: new Date().toTimeString().slice(0, 8),
