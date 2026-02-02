@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ScrollView, Text, Image, TouchableOpacity, TextInput, ImageBackground, Alert } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
@@ -98,6 +99,26 @@ export default function ItemDetailScreen({ route, navigation }) {
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
+
+  const swipeGesture = Gesture.Pan()
+    .onEnd((event) => {
+      const { translationX } = event;
+      
+      // Right swipe
+      if (translationX > 80) {
+        if (activeTab === 'reviews') {
+          // On reviews tab: go back to details
+          setActiveTab('details');
+        } else {
+          // On details tab: go back to previous screen
+          navigation.goBack();
+        }
+      }
+      // Left swipe: go to reviews (if not already there)
+      else if (translationX < -80 && activeTab !== 'reviews') {
+        setActiveTab('reviews');
+      }
+    });
 
   const syncLikeCount = (newCount) => {
     const itemId = item.id || item._id;
@@ -491,7 +512,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <GestureDetector gesture={swipeGesture}>
+      <View style={styles.container}>
       <StatusBar style="light" />
       
       {/* Header */}
@@ -786,7 +808,8 @@ export default function ItemDetailScreen({ route, navigation }) {
         )}
       </ScrollView>
       )}
-    </View>
+      </View>
+    </GestureDetector>
   );
 }
 

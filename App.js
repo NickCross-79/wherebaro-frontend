@@ -1,8 +1,9 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, StatusBar, View, Text } from 'react-native';
+import { StyleSheet, StatusBar, View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -24,7 +25,7 @@ import SettingsInactive from './assets/icons/icon_settings_inactive.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { initializeDatabase, mmkvHelpers } from './storage/storageManager';
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const WishlistStack = createNativeStackNavigator();
 const AllItemsStack = createNativeStackNavigator();
@@ -91,40 +92,93 @@ function TabNavigatorWithSafeArea() {
   const badgeCount = wishlistLoaded && wishlistIds.length > 0 && isHere
     ? getWishlistCount(items)
     : 0;
-  
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
+
+  const renderTabBar = ({ state, navigation }) => {
+    const iconMap = {
+      Home: 'home',
+      Wishlist: 'heart',
+      'All Items': 'list',
+      Settings: 'settings',
+    };
+
+    return (
+      <View
+        style={{
           ...styles.tabBar,
           paddingBottom: insets.bottom + 10,
           height: insets.bottom + 70,
-        },
-                tabBarBackground: () => (
-                  <LinearGradient
-                    colors={['rgba(15, 20, 25, 0.15)', 'rgba(15, 20, 25, 0.85)', '#0F1419']}
-                    locations={[0, 0.45, 1]}
-                    style={{ flex: 1 }}
+        }}
+      >
+        <LinearGradient
+          colors={['rgba(15, 20, 25, 0.15)', 'rgba(15, 20, 25, 0.85)', '#0F1419']}
+          locations={[0, 0.45, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.tabBarContent}>
+          {state.routes.map((route, index) => {
+            const focused = state.index === index;
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!focused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
+
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={onPress}
+                style={styles.tabItem}
+                activeOpacity={0.8}
+              >
+                <View style={styles.iconWrapper}>
+                  <Ionicons
+                    name={iconMap[route.name] || 'ellipse'}
+                    size={24}
+                    color={focused ? '#D4A574' : '#5A6B8C'}
                   />
-                ),
-        tabBarActiveTintColor: '#D4A574',
-        tabBarInactiveTintColor: '#5A6B8C',
-        tabBarLabelStyle: styles.tabBarLabel,
+                  {route.name === 'Wishlist' && badgeCount > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{badgeCount}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.tabBarLabel,
+                    { color: focused ? '#D4A574' : '#5A6B8C' },
+                  ]}
+                >
+                  {route.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+  
+  return (
+    <Tab.Navigator
+      tabBarPosition="bottom"
+      screenOptions={{
+        headerShown: false,
+        swipeEnabled: true,
+        animationEnabled: false,
       }}
+      tabBar={renderTabBar}
     >
         <Tab.Screen
           name="Home"
           component={HomeStackNavigator}
           options={{
             unmountOnBlur: true,
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name="home" 
-                size={24} 
-                color={focused ? '#D4A574' : '#5A6B8C'} 
-              />
-            ),
           }}
         />
         <Tab.Screen
@@ -132,24 +186,6 @@ function TabNavigatorWithSafeArea() {
           component={WishlistStackNavigator}
           options={{
             unmountOnBlur: true,
-            tabBarBadge: badgeCount > 0 ? badgeCount : null,
-            tabBarBadgeStyle: {
-              backgroundColor: '#D4A574',
-              color: '#0A0E1A',
-              fontSize: 10,
-              fontWeight: '700',
-              minWidth: 18,
-              height: 18,
-              borderRadius: 9,
-              marginTop: 2,
-            },
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name="heart" 
-                size={24} 
-                color={focused ? '#D4A574' : '#5A6B8C'} 
-              />
-            ),
           }}
         />
         <Tab.Screen
@@ -157,26 +193,12 @@ function TabNavigatorWithSafeArea() {
           component={AllItemsStackNavigator}
           options={{
             unmountOnBlur: true,
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name="list" 
-                size={24} 
-                color={focused ? '#D4A574' : '#5A6B8C'} 
-              />
-            ),
           }}
         />
         <Tab.Screen
           name="Settings"
           component={SettingsStackNavigator}
           options={{
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name="settings" 
-                size={24} 
-                color={focused ? '#D4A574' : '#5A6B8C'} 
-              />
-            ),
           }}
         />
       </Tab.Navigator>
@@ -239,32 +261,71 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <WishlistProvider>
-        <InventoryProvider>
-          <AllItemsProvider>
-            <StatusBar 
-              barStyle="light-content" 
-              backgroundColor="#0F1419" 
-              translucent={false}
-            />
-            <NavigationContainer>
-              <TabNavigatorWithSafeArea />
-            </NavigationContainer>
-          </AllItemsProvider>
-        </InventoryProvider>
-      </WishlistProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <WishlistProvider>
+          <InventoryProvider>
+            <AllItemsProvider>
+              <StatusBar 
+                barStyle="light-content" 
+                backgroundColor="#0F1419" 
+                translucent={false}
+              />
+              <NavigationContainer>
+                <TabNavigatorWithSafeArea />
+              </NavigationContainer>
+            </AllItemsProvider>
+          </InventoryProvider>
+        </WishlistProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderTopWidth: 0,
     elevation: 0,
     backgroundColor: 'transparent',
     paddingTop: 10,
+  },
+  tabBarContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  iconWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -12,
+    backgroundColor: '#D4A574',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#0A0E1A',
+    fontSize: 10,
+    fontWeight: '700',
   },
   tabBarLabel: {
     fontSize: 11,
