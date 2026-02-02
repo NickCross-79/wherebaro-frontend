@@ -6,20 +6,9 @@ import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
-  process.env.AZURE_FUNCTION_APP_BASE_URL ||
-  '';
 
-const buildGetLikesUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getLikes`;
-};
 
-const GET_LIKES_URL = buildGetLikesUrl();
+import { fetchLikes } from '../services/api';
 
 export default function WishlistScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -37,22 +26,13 @@ export default function WishlistScreen({ navigation }) {
         return;
       }
 
-      if (!GET_LIKES_URL) {
-        console.warn('GET_LIKES_URL is not configured');
-        setItemsWithLikes(wishlistItems);
-        return;
-      }
 
       try {
         const itemsWithUpdatedLikes = await Promise.all(
           wishlistItems.map(async (item) => {
             try {
-              const response = await fetch(`${GET_LIKES_URL}?item_id=${item.id || item._id}`);
-              if (response.ok) {
-                const data = await response.json();
-                return { ...item, likes: data.likes || [] };
-              }
-              return item;
+              const data = await fetchLikes(item.id || item._id);
+              return { ...item, likes: data.likes || [] };
             } catch (error) {
               console.error(`Error fetching likes for item ${item.id || item._id}:`, error);
               return item;
