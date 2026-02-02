@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput } from 'rea
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getCurrentUsername, setCurrentUsername } from '../utils/userStorage';
+import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import styles from '../styles/screens/SettingsScreen.styles';
 
 export default function SettingsScreen({ navigation }) {
@@ -15,19 +15,41 @@ export default function SettingsScreen({ navigation }) {
   const [displayName, setDisplayName] = useState('Anonymous');
   const insets = useSafeAreaInsets();
 
-  // Load username on mount
+  // Load username and settings on mount
   useEffect(() => {
     const loadUsername = async () => {
       const username = await getCurrentUsername();
       setDisplayName(username);
     };
+    const loadSettings = async () => {
+      const settings = await getNotificationSettings();
+      setNotifications(settings.notifications);
+      setWishlistAlerts(settings.wishlistAlerts);
+      setAutoRefresh(settings.autoRefresh);
+    };
     loadUsername();
+    loadSettings();
   }, []);
 
   // Save username when it changes
   const handleDisplayNameChange = async (newName) => {
     setDisplayName(newName);
     await setCurrentUsername(newName);
+  };
+
+  const handleNotificationsChange = async (value) => {
+    setNotifications(value);
+    await updateNotificationSettings({ notifications: value });
+  };
+
+  const handleWishlistAlertsChange = async (value) => {
+    setWishlistAlerts(value);
+    await updateNotificationSettings({ wishlistAlerts: value });
+  };
+
+  const handleAutoRefreshChange = async (value) => {
+    setAutoRefresh(value);
+    await updateNotificationSettings({ autoRefresh: value });
   };
 
   return (
@@ -58,7 +80,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
             <Switch
               value={notifications}
-              onValueChange={setNotifications}
+              onValueChange={handleNotificationsChange}
               trackColor={{ false: '#2A3442', true: '#D4A574' }}
               thumbColor={notifications ? '#FFFFFF' : '#8B9DC3'}
             />
@@ -73,7 +95,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
             <Switch
               value={wishlistAlerts}
-              onValueChange={setWishlistAlerts}
+              onValueChange={handleWishlistAlertsChange}
               trackColor={{ false: '#2A3442', true: '#D4A574' }}
               thumbColor={wishlistAlerts ? '#FFFFFF' : '#8B9DC3'}
             />
@@ -110,7 +132,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
             <Switch
               value={autoRefresh}
-              onValueChange={setAutoRefresh}
+              onValueChange={handleAutoRefreshChange}
               trackColor={{ false: '#2A3442', true: '#D4A574' }}
               thumbColor={autoRefresh ? '#FFFFFF' : '#8B9DC3'}
             />

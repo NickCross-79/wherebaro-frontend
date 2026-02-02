@@ -192,7 +192,10 @@ export const storageHelpers = {
 
   getBoolean: async (key, defaultValue = false) => {
     const value = await secureStorage.getItem(key);
-    return value === 'true' || defaultValue;
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+    return value === 'true';
   },
 
   setBoolean: async (key, value) => {

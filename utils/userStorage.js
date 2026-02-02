@@ -64,6 +64,38 @@ export const updateAppSettings = async (settings) => {
   }
 };
 
+/**
+ * Get notification-related settings
+ */
+export const getNotificationSettings = async () => {
+  const [notifications, wishlistAlerts, autoRefresh] = await Promise.all([
+    storageHelpers.getBoolean('notificationsEnabled', true),
+    storageHelpers.getBoolean('wishlistAlertsEnabled', true),
+    storageHelpers.getBoolean('autoRefreshEnabled', false),
+  ]);
+
+  return {
+    notifications,
+    wishlistAlerts,
+    autoRefresh,
+  };
+};
+
+/**
+ * Update notification-related settings
+ */
+export const updateNotificationSettings = async (settings) => {
+  if (typeof settings.notifications === 'boolean') {
+    await storageHelpers.setBoolean('notificationsEnabled', settings.notifications);
+  }
+  if (typeof settings.wishlistAlerts === 'boolean') {
+    await storageHelpers.setBoolean('wishlistAlertsEnabled', settings.wishlistAlerts);
+  }
+  if (typeof settings.autoRefresh === 'boolean') {
+    await storageHelpers.setBoolean('autoRefreshEnabled', settings.autoRefresh);
+  }
+};
+
 export default {
   getCurrentUID,
   getCurrentUsername,
@@ -73,4 +105,6 @@ export default {
   getLastDataRefresh,
   getAppSettings,
   updateAppSettings,
+  getNotificationSettings,
+  updateNotificationSettings,
 };
