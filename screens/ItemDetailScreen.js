@@ -9,75 +9,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
-  process.env.AZURE_FUNCTION_APP_BASE_URL ||
-  '';
-
-const buildPostReviewUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/postReview`;
-};
-
-const buildGetReviewsUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getReviews`;
-};
-
-const buildGetLikesUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/getLikes`;
-};
-
-const buildUpdateReviewUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/updateReview`;
-};
-
-const buildDeleteReviewUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/deleteReview`;
-};
-
-const buildLikeUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/likeItem`;
-};
-
-const buildUnlikeUrl = () => {
-  if (!API_BASE_URL) return '';
-  const normalizedBase = API_BASE_URL.startsWith('http')
-    ? API_BASE_URL
-    : `https://${API_BASE_URL}`;
-  return `${normalizedBase.replace(/\/$/, '')}/unlikeItem`;
-};
-
-const POST_REVIEW_URL = buildPostReviewUrl();
-const GET_REVIEWS_URL = buildGetReviewsUrl();
-const GET_LIKES_URL = buildGetLikesUrl();
-const UPDATE_REVIEW_URL = buildUpdateReviewUrl();
-const DELETE_REVIEW_URL = buildDeleteReviewUrl();
-const LIKE_URL = buildLikeUrl();
-const UNLIKE_URL = buildUnlikeUrl();
+import { fetchReviews, postReview, updateReview, deleteReview, fetchLikes, likeItem, unlikeItem } from '../services/api';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -151,34 +83,16 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   // Fetch reviews and likes when reviews tab is opened
   useEffect(() => {
-    if (activeTab === 'reviews' && GET_REVIEWS_URL) {
+    if (activeTab === 'reviews') {
       const fetchReviewsAndLikes = async () => {
         try {
           setIsLoadingReviews(true);
           const itemId = item.id || item._id;
           
           // Fetch both reviews and likes in parallel
-          const requests = [
-            fetch(`${GET_REVIEWS_URL}?item_id=${itemId}`),
-            GET_LIKES_URL ? fetch(`${GET_LIKES_URL}?item_id=${itemId}`) : null,
-          ].filter(Boolean);
-
-          const responses = await Promise.all(requests);
-          const [reviewsResponse, likesResponse] = responses;
-
-          // Validate responses
-          if (!reviewsResponse?.ok) {
-            throw new Error(`Reviews fetch failed: HTTP ${reviewsResponse?.status}`);
-          }
-
-          if (likesResponse && !likesResponse.ok) {
-            throw new Error(`Likes fetch failed: HTTP ${likesResponse.status}`);
-          }
-
-          // Parse both responses in parallel
           const [reviewsResult, likesResult] = await Promise.all([
-            reviewsResponse.json(),
-            likesResponse ? likesResponse.json() : Promise.resolve({ likes: [] })
+            fetchReviews(itemId),
+            fetchLikes(itemId),
           ]);
 
           // Process fetched data
@@ -279,54 +193,24 @@ export default function ItemDetailScreen({ route, navigation }) {
       setUserLiked(true);
       syncLikeCount(nextCount);
 
-      if (LIKE_URL) {
-        try {
-          const response = await fetch(LIKE_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              item_oid: String(item.id || item._id),
-              uid: CURRENT_UID,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-        } catch (error) {
-          console.error('Failed to add like', error);
-          setUserLiked(false);
-          syncLikeCount(Math.max(nextCount - 1, 0));
-        }
+      try {
+        await likeItem(String(item.id || item._id), CURRENT_UID);
+      } catch (error) {
+        console.error('Failed to add like', error);
+        setUserLiked(false);
+        syncLikeCount(Math.max(nextCount - 1, 0));
       }
     } else {
       const nextCount = Math.max(likeCount - 1, 0);
       setUserLiked(false);
       syncLikeCount(nextCount);
 
-      if (UNLIKE_URL) {
-        try {
-          const response = await fetch(UNLIKE_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              item_oid: String(item.id || item._id),
-              uid: CURRENT_UID,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-        } catch (error) {
-          console.error('Failed to remove like', error);
-          setUserLiked(true);
-          syncLikeCount(nextCount + 1);
-        }
+      try {
+        await unlikeItem(String(item.id || item._id), CURRENT_UID);
+      } catch (error) {
+        console.error('Failed to remove like', error);
+        setUserLiked(true);
+        syncLikeCount(nextCount + 1);
       }
     }
   };
@@ -339,15 +223,10 @@ export default function ItemDetailScreen({ route, navigation }) {
     const reviewText = newReview.trim();
     if (!reviewText) return;
 
-    if (!POST_REVIEW_URL) {
-      console.error('Post review URL is not configured');
-      return;
-    }
-
     const username = await getCurrentUsername();
 
     const payload = {
-      item_oid: String(item.id || item._id),
+      item_id: String(item.id || item._id),
       user: username,
       content: reviewText,
       date: new Date().toISOString().slice(0, 10),
@@ -357,19 +236,7 @@ export default function ItemDetailScreen({ route, navigation }) {
 
     try {
       setIsPostingReview(true);
-      const response = await fetch(POST_REVIEW_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await postReview(payload);
       const postedReview = result?.review || {
         _id: Date.now().toString(),
         user: payload.user,
@@ -427,27 +294,13 @@ export default function ItemDetailScreen({ route, navigation }) {
           onPress: async () => {
             const reviewId = getReviewId(review);
             
-            if (!DELETE_REVIEW_URL || !reviewId) {
-              console.error('Delete URL or review ID missing');
+            if (!reviewId) {
+              console.error('Review ID missing');
               return;
             }
 
             try {
-              const response = await fetch(DELETE_REVIEW_URL, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  review_id: reviewId,
-                  uid: CURRENT_UID,
-                }),
-              });
-
-              if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-              }
-
+              await deleteReview(reviewId, CURRENT_UID);
               // Remove from local state
               setReviews((prev) => prev.filter((_, i) => i !== index));
             } catch (error) {
@@ -467,7 +320,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     const reviewToUpdate = reviews[index];
     const reviewId = getReviewId(reviewToUpdate);
 
-    if (UPDATE_REVIEW_URL && reviewId) {
+    if (reviewId) {
       try {
         const payload = {
           review_id: reviewId,
@@ -477,19 +330,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           time: new Date().toTimeString().slice(0, 8),
         };
 
-        const response = await fetch(UPDATE_REVIEW_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
+        const result = await updateReview(payload);
         const updatedReview = result?.review;
 
         setReviews((prev) =>
