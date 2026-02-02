@@ -100,7 +100,7 @@ export const useReviewManagement = (itemId) => {
     setEditingReviewText('');
   };
 
-  const saveEditingReview = async (index) => {
+  const saveEditingReview = async (index, currentUid) => {
     const updatedText = editingReviewText.trim();
     if (!updatedText) return;
 
@@ -111,7 +111,7 @@ export const useReviewManagement = (itemId) => {
       try {
         const payload = {
           review_id: reviewId,
-          uid: 'current_uid',
+          uid: currentUid,
           content: updatedText,
           date: new Date().toISOString().slice(0, 10),
           time: new Date().toTimeString().slice(0, 8),
@@ -142,7 +142,7 @@ export const useReviewManagement = (itemId) => {
     setEditingReviewText('');
   };
 
-  const confirmDeleteReview = (review, index) => {
+  const confirmDeleteReview = (review, index, currentUid) => {
     Alert.alert(
       'Delete Review',
       'Are you sure you want to delete your review? This action cannot be undone.',
@@ -163,7 +163,7 @@ export const useReviewManagement = (itemId) => {
             }
 
             try {
-              await deleteReview(reviewId, 'current_uid');
+              await deleteReview(reviewId);
               setReviews((prev) => prev.filter((_, i) => i !== index));
             } catch (error) {
               console.error('Failed to delete review', error);

@@ -15,6 +15,8 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
     timerId: null,
     inFlight: false,
     lastSentTarget: null,
+    uid: null,
+    itemId: null,
   });
 
   const likeStateRef = useRef({ likeCount, userLiked });
@@ -23,7 +25,7 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
     likeStateRef.current = { likeCount, userLiked };
   }, [likeCount, userLiked]);
 
-  const schedulePendingLikeRequest = (itemId) => {
+  const schedulePendingLikeRequest = (itemId, uid) => {
     const throttle = likeThrottleRef.current;
     if (throttle.timerId) return;
 
@@ -32,29 +34,29 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
 
     throttle.timerId = setTimeout(() => {
       throttle.timerId = null;
-      void flushPendingLikeRequest(itemId);
+      void flushPendingLikeRequest(itemId, uid);
     }, delay);
   };
 
-  const sendLikeRequest = async (targetLiked, itemId) => {
+  const sendLikeRequest = async (targetLiked, itemId, uid) => {
     const throttle = likeThrottleRef.current;
     throttle.inFlight = true;
     setIsLiking(true);
 
     try {
       if (targetLiked) {
-        console.log('📌 Making like API call', { itemId, uid: 'current_uid' });
-        await likeItem(itemId, 'current_uid');
-        console.log('✅ Like API call succeeded', { itemId, uid: 'current_uid' });
+        console.log('📌 Making like API call', { itemId, uid });
+        await likeItem(itemId, uid);
+        console.log('✅ Like API call succeeded', { itemId, uid });
       } else {
-        console.log('📌 Making unlike API call', { itemId, uid: 'current_uid' });
-        await unlikeItem(itemId, 'current_uid');
-        console.log('✅ Unlike API call succeeded', { itemId, uid: 'current_uid' });
+        console.log('📌 Making unlike API call', { itemId, uid });
+        await unlikeItem(itemId, uid);
+        console.log('✅ Unlike API call succeeded', { itemId, uid });
       }
     } catch (error) {
       console.error(
         targetLiked ? '❌ Failed to add like' : '❌ Failed to remove like',
-        { itemId, uid: 'current_uid', error }
+        { itemId, uid, error }
       );
       Alert.alert(
         'Error',
@@ -79,12 +81,12 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
       setIsLiking(false);
 
       if (throttle.pendingTarget !== null && throttle.pendingTarget !== throttle.lastSentTarget) {
-        schedulePendingLikeRequest(itemId);
+        schedulePendingLikeRequest(itemId, uid);
       }
     }
   };
 
-  const flushPendingLikeRequest = async (itemId) => {
+  const flushPendingLikeRequest = async (itemId, uid) => {
     const throttle = likeThrottleRef.current;
     if (throttle.inFlight) return;
 
@@ -95,36 +97,36 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
     }
 
     throttle.pendingTarget = null;
-    await sendLikeRequest(target, itemId);
+    await sendLikeRequest(target, itemId, uid);
   };
 
-  const enqueueLikeRequest = (targetLiked, itemId) => {
+  const enqueueLikeRequest = (targetLiked, itemId, uid) => {
     const throttle = likeThrottleRef.current;
     throttle.pendingTarget = targetLiked;
 
     if (throttle.inFlight) {
-      schedulePendingLikeRequest(itemId);
+      schedulePendingLikeRequest(itemId, uid);
       return;
     }
 
     const elapsed = Date.now() - throttle.lastSentAt;
     if (elapsed >= LIKE_THROTTLE_MS) {
       throttle.pendingTarget = null;
-      void sendLikeRequest(targetLiked, itemId);
+      void sendLikeRequest(targetLiked, itemId, uid);
       return;
     }
 
-    schedulePendingLikeRequest(itemId);
+    schedulePendingLikeRequest(itemId, uid);
   };
 
-  const handleLike = (itemId) => {
+  const handleLike = (itemId, uid) => {
     const targetLiked = !userLiked;
     const nextCount = targetLiked ? likeCount + 1 : Math.max(likeCount - 1, 0);
 
     setUserLiked(targetLiked);
     setLikeCount(nextCount);
     syncLikeCount(nextCount);
-    enqueueLikeRequest(targetLiked, itemId);
+    enqueueLikeRequest(targetLiked, itemId, uid);
   };
 
   return {

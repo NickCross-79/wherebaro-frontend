@@ -147,7 +147,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           likeCount={likeCount}
           userLiked={userLiked}
           isLiking={isLiking}
-          handleLike={() => handleLikeClick(String(item.id || item._id))}
+          handleLike={() => handleLikeClick(String(item.id || item._id), CURRENT_UID)}
           hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
           newReview={newReview}
           setNewReview={setNewReview}
@@ -160,10 +160,10 @@ export default function ItemDetailScreen({ route, navigation }) {
           getReviewKey={getReviewKey}
           editingReviewText={editingReviewText}
           setEditingReviewText={setEditingReviewText}
-          saveEditingReview={saveEditingReview}
+          saveEditingReview={(index) => saveEditingReview(index, CURRENT_UID)}
           cancelEditingReview={cancelEditingReview}
           startEditingReview={startEditingReview}
-          confirmDeleteReview={confirmDeleteReview}
+          confirmDeleteReview={(review, index) => confirmDeleteReview(review, index, CURRENT_UID)}
           styles={styles}
         />
       )}
