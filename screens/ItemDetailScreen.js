@@ -43,15 +43,35 @@ const buildDeleteReviewUrl = () => {
   return `${normalizedBase.replace(/\/$/, '')}/deleteReview`;
 };
 
+const buildLikeUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/likeItem`;
+};
+
+const buildUnlikeUrl = () => {
+  if (!API_BASE_URL) return '';
+  const normalizedBase = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `https://${API_BASE_URL}`;
+  return `${normalizedBase.replace(/\/$/, '')}/unlikeItem`;
+};
+
 const POST_REVIEW_URL = buildPostReviewUrl();
 const GET_REVIEWS_URL = buildGetReviewsUrl();
 const UPDATE_REVIEW_URL = buildUpdateReviewUrl();
 const DELETE_REVIEW_URL = buildDeleteReviewUrl();
+const LIKE_URL = buildLikeUrl();
+const UNLIKE_URL = buildUnlikeUrl();
 const CURRENT_UID = '123456789';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
   const [userLiked, setUserLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(item?.likes?.length || 0);
+  const [isLiking, setIsLiking] = useState(false);
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [newReview, setNewReview] = useState('');
@@ -89,6 +109,9 @@ export default function ItemDetailScreen({ route, navigation }) {
 
           const result = await response.json();
           const fetchedReviews = result.reviews || [];
+          setLikeCount(result.itemLikesCount || item?.likes?.length || 0);
+          const userHasLiked = result.userHasLiked || false;
+          setUserLiked(userHasLiked);
           fetchedReviews.sort((a, b) => {
             if (a?.uid === CURRENT_UID && b?.uid !== CURRENT_UID) return -1;
             if (b?.uid === CURRENT_UID && a?.uid !== CURRENT_UID) return 1;
@@ -165,8 +188,60 @@ export default function ItemDetailScreen({ route, navigation }) {
     }
   };
 
-  const handleLike = () => {
-    setUserLiked(!userLiked);
+  const handleLike = async () => {
+    if (!userLiked) {
+      setUserLiked(true);
+      setLikeCount((prev) => prev + 1);
+
+      if (LIKE_URL) {
+        try {
+          const response = await fetch(LIKE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              item_oid: String(item.id || item._id),
+              uid: CURRENT_UID,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } catch (error) {
+          console.error('Failed to add like', error);
+          setUserLiked(false);
+          setLikeCount((prev) => prev - 1);
+        }
+      }
+    } else {
+      setUserLiked(false);
+      setLikeCount((prev) => Math.max(prev - 1, 0));
+
+      if (UNLIKE_URL) {
+        try {
+          const response = await fetch(UNLIKE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              item_oid: String(item.id || item._id),
+              uid: CURRENT_UID,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } catch (error) {
+          console.error('Failed to remove like', error);
+          setUserLiked(true);
+          setLikeCount((prev) => prev + 1);
+        }
+      }
+    }
   };
 
   const handleWishlist = () => {
@@ -524,7 +599,7 @@ export default function ItemDetailScreen({ route, navigation }) {
               color={userLiked ? "#D4A574" : "#8B9DC3"} 
             />
             <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
-              {(item.likes || 0) + (userLiked ? 1 : 0)} Likes
+              {likeCount} Likes
             </Text>
           </TouchableOpacity>
         </View>
