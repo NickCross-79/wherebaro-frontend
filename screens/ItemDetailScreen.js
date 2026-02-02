@@ -210,7 +210,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     const diffTime = today.getTime() - reviewDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) {
+    if (diffDays <= 0) {
       return 'Today';
     } else if (diffDays === 1) {
       return 'Yesterday';
