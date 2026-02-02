@@ -28,6 +28,10 @@ export default function HomeScreen({ navigation }) {
     finalItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
   } else if (filters.popularity === 'unpopular') {
     finalItems.sort((a, b) => (a.likes || 0) - (b.likes || 0));
+  } else if (filters.popularity === 'most-reviews') {
+    finalItems.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
+  } else if (filters.popularity === 'least-reviews') {
+    finalItems.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
   }
 
   // Get newest item (first in sorted list when Baro is here)

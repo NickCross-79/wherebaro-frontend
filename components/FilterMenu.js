@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function FilterMenu({ visible, onClose, filters, onApplyFilters }) {
   const [localFilters, setLocalFilters] = useState(filters);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
   
   // Sync local state when filters change from parent
   useEffect(() => {
@@ -15,6 +16,8 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     { label: 'Default', value: 'all' },
     { label: 'Most Popular', value: 'popular' },
     { label: 'Least Popular', value: 'unpopular' },
+    { label: 'Most Reviews', value: 'most-reviews' },
+    { label: 'Least Reviews', value: 'least-reviews' },
   ];
 
   const toggleCategory = (category) => {
@@ -26,6 +29,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
 
   const setPopularity = (value) => {
     setLocalFilters({ ...localFilters, popularity: value });
+    setShowSortDropdown(false);
   };
 
   const clearFilters = () => {
@@ -69,6 +73,48 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
           </View>
 
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Sort By */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Sort By</Text>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => setShowSortDropdown(!showSortDropdown)}
+              >
+                <Text style={styles.dropdownText}>
+                  {popularityOptions.find(opt => opt.value === localFilters.popularity)?.label || 'Default'}
+                </Text>
+                <Ionicons 
+                  name={showSortDropdown ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color="#8B9DC3" 
+                />
+              </TouchableOpacity>
+              {showSortDropdown && (
+                <View style={styles.dropdownMenu}>
+                  {popularityOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.dropdownItem,
+                        localFilters.popularity === option.value && styles.dropdownItemActive
+                      ]}
+                      onPress={() => setPopularity(option.value)}
+                    >
+                      <Text style={[
+                        styles.dropdownItemText,
+                        localFilters.popularity === option.value && styles.dropdownItemTextActive
+                      ]}>
+                        {option.label}
+                      </Text>
+                      {localFilters.popularity === option.value && (
+                        <Ionicons name="checkmark" size={20} color="#D4A574" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categories</Text>
@@ -91,25 +137,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
-
-            {/* Sort By */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sort By</Text>
-              {popularityOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.filterOption}
-                  onPress={() => setPopularity(option.value)}
-                >
-                  <View style={[styles.radio, localFilters.popularity === option.value && styles.radioActive]}>
-                    {localFilters.popularity === option.value && (
-                      <View style={styles.radioDot} />
-                    )}
-                  </View>
-                  <Text style={styles.optionLabel}>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
             </View>
           </ScrollView>
 
@@ -225,47 +252,50 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: '#0A0E1A',
   },
-  filterOption: {
+  dropdown: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    gap: 12,
+    backgroundColor: '#151B23',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1A2332',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#5A6B8C',
-    justifyContent: 'center',
+  dropdownText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  dropdownMenu: {
+    marginTop: 8,
+    backgroundColor: '#151B23',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1A2332',
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A2332',
   },
-  checkboxActive: {
-    backgroundColor: '#D4A574',
-    borderColor: '#D4A574',
+  dropdownItemActive: {
+    backgroundColor: 'rgba(212, 165, 116, 0.1)',
   },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: '#5A6B8C',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioActive: {
-    borderColor: '#D4A574',
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#D4A574',
-  },
-  optionLabel: {
+  dropdownItemText: {
     fontSize: 16,
     color: '#FFFFFF',
     fontWeight: '500',
+  },
+  dropdownItemTextActive: {
+    color: '#D4A574',
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
