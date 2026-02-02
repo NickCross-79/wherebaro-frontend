@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useInventory } from '../contexts/InventoryContext';
+import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 
 const API_BASE_URL =
@@ -90,10 +92,20 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [editingReviewKey, setEditingReviewKey] = useState(null);
   const [editingReviewText, setEditingReviewText] = useState('');
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist, updateWishlistLikes } = useWishlist();
+  const { updateItemLikes: updateInventoryLikes } = useInventory();
+  const { updateItemLikes: updateAllItemsLikes } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
+
+  const syncLikeCount = (newCount) => {
+    const itemId = item.id || item._id;
+    setLikeCount(newCount);
+    updateInventoryLikes(itemId, newCount);
+    updateAllItemsLikes(itemId, newCount);
+    updateWishlistLikes(itemId, newCount);
+  };
 
   // Get user UID on mount
   useEffect(() => {
@@ -151,7 +163,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           const fetchedLikes = likesResult.likes || [];
 
           // Update like state
-          setLikeCount(fetchedLikes.length || item?.likes?.length || 0);
+          syncLikeCount(fetchedLikes.length || item?.likes?.length || 0);
           const userHasLiked = fetchedLikes.some((like) => like?.uid === CURRENT_UID);
           setUserLiked(userHasLiked);
 
@@ -168,7 +180,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           console.error('Failed to fetch reviews/likes', error);
           setReviews([]);
           // Reset like state on error
-          setLikeCount(item?.likes?.length || 0);
+          syncLikeCount(item?.likes?.length || 0);
           setUserLiked(false);
         } finally {
           // Only mark as loaded after both requests are complete
@@ -240,8 +252,9 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   const handleLike = async () => {
     if (!userLiked) {
+      const nextCount = likeCount + 1;
       setUserLiked(true);
-      setLikeCount((prev) => prev + 1);
+      syncLikeCount(nextCount);
 
       if (LIKE_URL) {
         try {
@@ -262,12 +275,13 @@ export default function ItemDetailScreen({ route, navigation }) {
         } catch (error) {
           console.error('Failed to add like', error);
           setUserLiked(false);
-          setLikeCount((prev) => prev - 1);
+          syncLikeCount(Math.max(nextCount - 1, 0));
         }
       }
     } else {
+      const nextCount = Math.max(likeCount - 1, 0);
       setUserLiked(false);
-      setLikeCount((prev) => Math.max(prev - 1, 0));
+      syncLikeCount(nextCount);
 
       if (UNLIKE_URL) {
         try {
@@ -288,7 +302,7 @@ export default function ItemDetailScreen({ route, navigation }) {
         } catch (error) {
           console.error('Failed to remove like', error);
           setUserLiked(true);
-          setLikeCount((prev) => prev + 1);
+          syncLikeCount(nextCount + 1);
         }
       }
     }

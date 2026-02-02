@@ -206,6 +206,24 @@ export const InventoryProvider = ({ children }) => {
     fetchBaroInventory(true); // Force refresh
   };
 
+  const updateItemLikes = async (itemId, likeCount) => {
+    setItems((prevItems) =>
+      prevItems.map((current) => {
+        const currentId = current?.id || current?._id;
+        if (currentId === itemId) {
+          return { ...current, likes: likeCount };
+        }
+        return current;
+      })
+    );
+
+    try {
+      await dbHelpers.updateItemLikes(itemId, likeCount);
+    } catch (error) {
+      console.error('Failed to update cached likes:', error);
+    }
+  };
+
   return (
     <InventoryContext.Provider
       value={{
@@ -216,6 +234,7 @@ export const InventoryProvider = ({ children }) => {
         nextLocation,
         isHere,
         onRefresh,
+        updateItemLikes,
       }}
     >
       {children}

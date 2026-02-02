@@ -37,6 +37,13 @@ export const secureStorage = new SecureStorage();
 // SQLite database instance
 let db = null;
 
+const ensureDb = async () => {
+  if (db) return db;
+  db = await SQLite.openDatabaseAsync('wherebaro.db');
+  await createTables();
+  return db;
+};
+
 export const initializeDatabase = async () => {
   try {
     db = await SQLite.openDatabaseAsync('wherebaro.db');
@@ -183,6 +190,7 @@ export const dbHelpers = {
   // Wishlist operations
   addToWishlist: async (item) => {
     try {
+      await ensureDb();
       const itemId = item.id || item._id;
       await db.runAsync(
         `INSERT OR REPLACE INTO wishlist (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, createdAt)
@@ -208,6 +216,7 @@ export const dbHelpers = {
 
   removeFromWishlist: async (itemId) => {
     try {
+      await ensureDb();
       await db.runAsync(
         `DELETE FROM wishlist WHERE id = ? OR _id = ?`,
         [itemId, itemId]
@@ -220,6 +229,7 @@ export const dbHelpers = {
 
   getWishlistItems: async () => {
     try {
+      await ensureDb();
       const result = await db.getAllAsync(
         `SELECT * FROM wishlist ORDER BY createdAt DESC`
       );
@@ -236,6 +246,7 @@ export const dbHelpers = {
 
   getWishlistIds: async () => {
     try {
+      await ensureDb();
       const result = await db.getAllAsync(`SELECT id, _id FROM wishlist`);
       return result.map((row) => row.id || row._id);
     } catch (error) {
@@ -246,6 +257,7 @@ export const dbHelpers = {
 
   isInWishlist: async (itemId) => {
     try {
+      await ensureDb();
       const result = await db.getFirstAsync(
         `SELECT id FROM wishlist WHERE id = ? OR _id = ? LIMIT 1`,
         [itemId, itemId]
@@ -260,6 +272,7 @@ export const dbHelpers = {
   // Items cache operations
   cacheItems: async (items) => {
     try {
+      await ensureDb();
       const now = Date.now();
       for (const item of items) {
         const itemId = item.id || item._id;
@@ -288,6 +301,7 @@ export const dbHelpers = {
 
   getCachedItems: async () => {
     try {
+      await ensureDb();
       const result = await db.getAllAsync(
         `SELECT * FROM items_cache ORDER BY cachedAt DESC`
       );
@@ -304,6 +318,7 @@ export const dbHelpers = {
 
   clearItemsCache: async () => {
     try {
+      await ensureDb();
       await db.runAsync(`DELETE FROM items_cache`);
     } catch (error) {
       console.error('Error clearing cache:', error);
@@ -312,6 +327,7 @@ export const dbHelpers = {
 
   updateItemInCache: async (itemId, updates) => {
     try {
+      await ensureDb();
       const setClause = Object.keys(updates)
         .map((key) => `${key} = ?`)
         .join(', ');
@@ -323,6 +339,24 @@ export const dbHelpers = {
       );
     } catch (error) {
       console.error('Error updating item in cache:', error);
+      throw error;
+    }
+  },
+
+  updateItemLikes: async (itemId, likeCount) => {
+    try {
+      await ensureDb();
+      const likesValue = JSON.stringify(likeCount);
+      await db.runAsync(
+        `UPDATE items_cache SET likes = ? WHERE id = ? OR _id = ?`,
+        [likesValue, itemId, itemId]
+      );
+      await db.runAsync(
+        `UPDATE wishlist SET likes = ? WHERE id = ? OR _id = ?`,
+        [likesValue, itemId, itemId]
+      );
+    } catch (error) {
+      console.error('Error updating item likes:', error);
       throw error;
     }
   },

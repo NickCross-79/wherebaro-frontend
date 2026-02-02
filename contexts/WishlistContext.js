@@ -72,6 +72,24 @@ export const WishlistProvider = ({ children }) => {
     return currentInventory.filter(item => wishlistIds.includes(item.id || item._id)).length;
   };
 
+  const updateWishlistLikes = async (itemId, likeCount) => {
+    setWishlistItems((prevItems) =>
+      prevItems.map((current) => {
+        const currentId = current?.id || current?._id;
+        if (currentId === itemId) {
+          return { ...current, likes: likeCount };
+        }
+        return current;
+      })
+    );
+
+    try {
+      await dbHelpers.updateItemLikes(itemId, likeCount);
+    } catch (error) {
+      console.error('Failed to update wishlist likes:', error);
+    }
+  };
+
   return (
     <WishlistContext.Provider
       value={{
@@ -81,6 +99,7 @@ export const WishlistProvider = ({ children }) => {
         toggleWishlist,
         isInWishlist,
         getWishlistCount,
+        updateWishlistLikes,
       }}
     >
       {children}
