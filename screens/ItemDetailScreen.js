@@ -7,7 +7,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { fetchReviews, fetchLikes } from '../services/api';
+import { fetchReviews, fetchLikes, fetchMarketData } from '../services/api';
 import ItemDetailsTab from '../components/items/ItemDetailsTab';
 import ItemReviewsTab from '../components/items/ItemReviewsTab';
 import ItemMarketTab from '../components/items/ItemMarketTab';
@@ -24,6 +24,8 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [CURRENT_UID, setCURRENT_UID] = useState(null);
   const [showOfferings, setShowOfferings] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+  const [marketData, setMarketData] = useState(null);
+  const [isLoadingMarket, setIsLoadingMarket] = useState(false);
 
   // Disable default swipe gesture to prevent navigating away
   useEffect(() => {
@@ -157,6 +159,26 @@ export default function ItemDetailScreen({ route, navigation }) {
 
     void loadLikes();
   }, [itemId, CURRENT_UID, setLikeCount, setUserLiked]);
+
+  useEffect(() => {
+    const loadMarketData = async () => {
+      if (!hasMarketTab || !itemId) return;
+
+      try {
+        setIsLoadingMarket(true);
+        const data = await fetchMarketData(itemId);
+        setMarketData(data?.market || null);
+      } catch (error) {
+        console.error('❌ Failed to load market data', { itemId, error });
+        setMarketData(null);
+      } finally {
+        setIsLoadingMarket(false);
+      }
+    };
+
+    void loadMarketData();
+  }, [itemId, hasMarketTab]);
+
   return (
     <GestureDetector gesture={swipeGesture}>
       <View style={styles.container}>
@@ -194,6 +216,8 @@ export default function ItemDetailScreen({ route, navigation }) {
           item={displayItem}
           bottomSpacer={bottomSpacer}
           styles={styles}
+          marketData={marketData}
+          isLoadingMarket={isLoadingMarket}
         />
       ) : (
         <ItemReviewsTab

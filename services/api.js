@@ -7,14 +7,17 @@
 export * from './itemService';
 export * from './reviewService';
 export * from './likeService';
+export * from './marketService';
 
 // For backward compatibility, also export as default
 import itemService from './itemService';
 import reviewService from './reviewService';
 import likeService from './likeService';
+import marketService from './marketService';
 
 export default {
   ...itemService,
   ...reviewService,
   ...likeService,
+  ...marketService,
 };
