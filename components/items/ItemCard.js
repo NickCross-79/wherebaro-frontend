@@ -88,9 +88,15 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.categoryText}>{item.type}</Text>
             </View>
-            <View style={styles.likesContainer}>
-              <Ionicons name="thumbs-up" size={16} color="#D4A574" />
-              <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
+            <View style={styles.statsContainer}>
+              <View style={styles.likesContainer}>
+                <Ionicons name="thumbs-up" size={20} color="#D4A574" />
+                <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
+              </View>
+              <View style={styles.reviewsContainer}>
+                <Ionicons name="chatbubbles" size={18} color="#D4A574" />
+                <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
+              </View>
             </View>
           </View>
           
@@ -126,6 +132,7 @@ export default memo(ItemCard, (prevProps, nextProps) => {
     prevProps.item?.id === nextProps.item?.id &&
     prevProps.item?._id === nextProps.item?._id &&
     prevProps.item?.likes?.length === nextProps.item?.likes?.length &&
+    prevProps.item?.reviews?.length === nextProps.item?.reviews?.length &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.isNew === nextProps.isNew &&
     prevProps.hideWishlistBadge === nextProps.hideWishlistBadge &&

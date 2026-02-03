@@ -90,6 +90,10 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  statsContainer: {
+    gap: 10,
+    alignItems: 'flex-end',
+  },
   likesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -97,7 +101,17 @@ const styles = StyleSheet.create({
   },
   likesText: {
     color: '#D4A574',
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reviewsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reviewsText: {
+    color: '#D4A574',
+    fontSize: 15,
     fontWeight: '600',
   },
   cardContent: {
