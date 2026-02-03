@@ -22,7 +22,7 @@ export default function ItemDetailsTab({
     >
       {/* Item Image with Background */}
       <ImageBackground
-        source={require('../../assets/background_newItem.png')}
+        source={require('../../assets/imgs/background_newItem.png')}
         style={styles.imageBackgroundContainer}
         imageStyle={styles.imageBackgroundImage}
         resizeMode="cover"
@@ -55,7 +55,7 @@ export default function ItemDetailsTab({
         <View style={styles.priceBox}>
           <View style={styles.priceLabelRow}>
             <Image
-              source={require('../../assets/imgs/icons/img_credit.png')}
+              source={require('../../assets/imgs/img_credit.png')}
               style={styles.creditIcon}
             />
             <Text style={styles.priceLabel}>Credits</Text>
@@ -67,7 +67,7 @@ export default function ItemDetailsTab({
         <View style={styles.priceBox}>
           <View style={styles.priceLabelRow}>
             <Image
-              source={require('../../assets/imgs/icons/img_ducat.png')}
+              source={require('../../assets/imgs/img_ducat.png')}
               style={styles.ducatIcon}
             />
             <Text style={styles.priceLabel}>Ducats</Text>

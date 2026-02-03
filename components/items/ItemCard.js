@@ -98,7 +98,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
             <View style={styles.priceRow}>
               <View style={styles.priceLabelRow}>
                 <Image
-                  source={require('../../assets/imgs/icons/img_credit.png')}
+                  source={require('../../assets/imgs/img_credit.png')}
                   style={styles.creditIcon}
                 />
                 <Text style={styles.priceLabel}>Credits</Text>
@@ -110,7 +110,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
             <View style={styles.priceRow}>
               <View style={styles.priceLabelRow}>
                 <Image
-                  source={require('../../assets/icons/icon_ducats.png')}
+                  source={require('../../assets/imgs/img_ducat.png')}
                   style={styles.ducatIcon}
                 />
                 <Text style={styles.priceLabel}>Ducats</Text>
