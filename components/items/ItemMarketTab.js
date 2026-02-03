@@ -13,6 +13,8 @@ export default function ItemMarketTab({
   const screenWidth = Dimensions.get('window').width;
   const [selectedModRank, setSelectedModRank] = useState(0);
   const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
+  const [selectedSubtype, setSelectedSubtype] = useState('');
+  const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
   const sectionStyle = { marginBottom: 20 };
 
   // Get unique mod ranks from data
@@ -31,6 +33,23 @@ export default function ItemMarketTab({
     ? 'Max'
     : `Rank ${selectedModRank}`;
 
+  // Get unique subtypes from data (for Void Relics)
+  const getAvailableSubtypes = () => {
+    if (!marketData || !marketData.data) return [];
+    const subtypes = new Set(marketData.data.map(d => d.subtype).filter(s => s !== undefined && s !== ''));
+    return Array.from(subtypes).sort();
+  };
+
+  const isVoidRelic = item?.type && item.type.toLowerCase().includes('void relic');
+  const availableSubtypes = isVoidRelic ? getAvailableSubtypes() : [];
+  
+  // Set default subtype to first available if not set
+  React.useEffect(() => {
+    if (isVoidRelic && availableSubtypes.length > 0 && !selectedSubtype) {
+      setSelectedSubtype(availableSubtypes[0]);
+    }
+  }, [isVoidRelic, availableSubtypes.length]);
+
   // Process market data for the chart
   const getChartData = () => {
     if (!marketData || !marketData.data || marketData.data.length === 0) {
@@ -45,6 +64,11 @@ export default function ItemMarketTab({
     // If item is a mod, filter by selected mod_rank
     if (isMod) {
       sortedData = sortedData.filter(d => d.mod_rank === selectedModRank);
+    }
+
+    // If item is a void relic, filter by selected subtype
+    if (isVoidRelic && selectedSubtype) {
+      sortedData = sortedData.filter(d => d.subtype === selectedSubtype);
     }
 
     if (sortedData.length === 0) {
@@ -87,6 +111,10 @@ export default function ItemMarketTab({
 
     if (isMod) {
       filteredData = filteredData.filter(d => d.mod_rank === selectedModRank);
+    }
+
+    if (isVoidRelic && selectedSubtype) {
+      filteredData = filteredData.filter(d => d.subtype === selectedSubtype);
     }
 
     if (filteredData.length === 0) return null;
@@ -214,6 +242,83 @@ export default function ItemMarketTab({
                 )}
               </View>
             )}
+
+            {/* Subtype Selector for Void Relics */}
+            {isVoidRelic && availableSubtypes.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <TouchableOpacity
+                  onPress={() => setIsSubtypeDropdownOpen(!isSubtypeDropdownOpen)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#2C3545',
+                    backgroundColor: '#10151C',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#D4A574',
+                      fontWeight: '600',
+                      fontSize: 16,
+                      marginRight: 8,
+                    }}
+                  >
+                    {selectedSubtype}
+                  </Text>
+                  <Ionicons
+                    name={isSubtypeDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color="#D4A574"
+                  />
+                </TouchableOpacity>
+
+                {isSubtypeDropdownOpen && (
+                  <View
+                    style={{
+                      marginTop: 8,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#2C3545',
+                      overflow: 'hidden',
+                      backgroundColor: '#10151C',
+                    }}
+                  >
+                    {availableSubtypes.map((subtype, index) => (
+                      <TouchableOpacity
+                        key={subtype}
+                        onPress={() => {
+                          setSelectedSubtype(subtype);
+                          setIsSubtypeDropdownOpen(false);
+                        }}
+                        style={{
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          borderTopWidth: index === 0 ? 0 : 1,
+                          borderTopColor: '#1C2430',
+                          backgroundColor: selectedSubtype === subtype ? '#D4A574' : 'transparent',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: selectedSubtype === subtype ? '#1a1a1a' : '#D4A574',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            fontSize: 16,
+                          }}
+                        >
+                          {subtype}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
           </View>
         ) : (
           <Text style={styles.noDataText}>No market data available for this item</Text>
@@ -224,14 +329,35 @@ export default function ItemMarketTab({
         <Text style={styles.sectionTitle}>Market Information</Text>
 
         {latestPrice && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, marginBottom: 12 }}>
-            <Text style={[styles.noDataText, { marginTop: 0, marginBottom: 0, textAlign: 'center', fontSize: 16 }]}>
-              Latest Average Price: <Text style={{ fontWeight: '700', color: '#D4A574' }}>{Math.round(latestPrice)}</Text>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            marginTop: 12,
+            marginBottom: 12,
+          }}>
+            <Text style={{
+              color: '#8B9CB6',
+              fontSize: 16,
+            }}>
+              Average Price
             </Text>
-            <Image
-              source={require('../../assets/imgs/img_platinum.png')}
-              style={{ width: 16, height: 16, marginLeft: 4 }}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{
+                color: '#E8E8E8',
+                fontSize: 18,
+                fontWeight: '600',
+                marginRight: 6,
+              }}>
+                {Math.round(latestPrice)}
+              </Text>
+              <Image
+                source={require('../../assets/imgs/img_platinum.png')}
+                style={{ width: 18, height: 18 }}
+              />
+            </View>
           </View>
         )}
         
