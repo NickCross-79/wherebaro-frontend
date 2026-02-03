@@ -12,7 +12,7 @@ export const filterBySearch = (items, searchQuery) => {
 };
 
 /**
- * Filters items by category - matches first word of item type
+ * Filters items by category - matches first word of item type or full category
  * @param {Array} items - Items to filter
  * @param {Array} categories - Category filters
  * @returns {Array} Filtered items
@@ -21,8 +21,14 @@ export const filterByCategories = (items, categories) => {
   if (!categories || categories.length === 0) return items;
   
   return items.filter(item => {
-    const firstWord = item.type.toLowerCase().split(/\s+/)[0];
-    return categories.some(category => firstWord === category.toLowerCase());
+    const itemType = item.type.toLowerCase();
+    const firstWord = itemType.split(/\s+/)[0];
+    
+    return categories.some(category => {
+      const categoryLower = category.toLowerCase();
+      // Match either the full type or just the first word
+      return itemType === categoryLower || firstWord === categoryLower;
+    });
   });
 };
 
