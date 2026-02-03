@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Linking, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Linking, TouchableOpacity, Dimensions, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -224,9 +224,15 @@ export default function ItemMarketTab({
         <Text style={styles.sectionTitle}>Market Information</Text>
 
         {latestPrice && (
-          <Text style={[styles.noDataText, { marginTop: 8, marginBottom: 12, textAlign: 'center', fontSize: 16 }]}>
-            Latest Average Price: <Text style={{ fontWeight: '700', color: '#D4A574' }}>{Math.round(latestPrice)}</Text>
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, marginBottom: 12 }}>
+            <Text style={[styles.noDataText, { marginTop: 0, marginBottom: 0, textAlign: 'center', fontSize: 16 }]}>
+              Latest Average Price: <Text style={{ fontWeight: '700', color: '#D4A574' }}>{Math.round(latestPrice)}</Text>
+            </Text>
+            <Image
+              source={require('../../assets/imgs/img_platinum.png')}
+              style={{ width: 16, height: 16, marginLeft: 4 }}
+            />
+          </View>
         )}
         
         {item?.link ? (
