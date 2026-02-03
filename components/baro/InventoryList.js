@@ -34,5 +34,7 @@ const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress },
   );
 });
 
+InventoryList.displayName = 'InventoryList';
+
 export default InventoryList;
 
