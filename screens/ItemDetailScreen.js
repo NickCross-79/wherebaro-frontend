@@ -71,6 +71,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     setEditingReviewText,
     getReviewKey,
     getReviewId,
+    fetchReviewsAndLikes,
     handlePostReview,
     startEditingReview,
     cancelEditingReview,
@@ -159,6 +160,12 @@ export default function ItemDetailScreen({ route, navigation }) {
 
     void loadLikes();
   }, [itemId, CURRENT_UID, setLikeCount, setUserLiked]);
+
+  useEffect(() => {
+    if (CURRENT_UID && itemId) {
+      void fetchReviewsAndLikes(CURRENT_UID, syncLikeCount, item?.likes?.length || 0);
+    }
+  }, [CURRENT_UID, itemId]);
 
   useEffect(() => {
     const loadMarketData = async () => {
