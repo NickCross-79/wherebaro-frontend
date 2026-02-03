@@ -150,18 +150,23 @@ export default function ItemMarketTab({
             <Text style={[styles.noDataText, { marginTop: 12 }]}>Loading market data...</Text>
           </View>
         ) : chartData ? (
-          <View>
+          <View style={{ alignItems: 'center' }}>
             <LineChart
               data={chartData}
-              width={screenWidth - 32}
+              width={screenWidth}
               height={220}
+              withHorizontalLines={false}
+              withVerticalLines={false}
               chartConfig={{
-                backgroundColor: 'transparent',
-                backgroundGradientFrom: 'transparent',
-                backgroundGradientTo: 'transparent',
+                backgroundGradientFrom: '#0A0E1A',
+                backgroundGradientTo: '#0A0E1A',
                 decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(90, 107, 140, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(90, 107, 140, ${opacity})`,
+                color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+                fillShadowGradientFrom: '#D4A574',
+                fillShadowGradientTo: '#D4A574',
+                fillShadowGradientFromOpacity: 0.3,
+                fillShadowGradientToOpacity: 0.05,
                 paddingLeft: 0,
                 style: {
                   borderRadius: 16,
@@ -177,10 +182,11 @@ export default function ItemMarketTab({
                 marginTop: 8,
                 marginBottom: 4,
                 borderRadius: 16,
+                backgroundColor: 'transparent',
               }}
             />
             {isMod && availableModRanks.length > 0 && (
-              <View style={{ marginTop: 16 }}>
+              <View style={{ marginTop: 16, width: '100%' }}>
                 <TouchableOpacity
                   style={{
                     paddingVertical: 10,
@@ -250,7 +256,7 @@ export default function ItemMarketTab({
 
             {/* Subtype Selector for Void Relics */}
             {isVoidRelic && availableSubtypes.length > 0 && (
-              <View style={{ marginTop: 12 }}>
+              <View style={{ marginTop: 12, width: '100%' }}>
                 <TouchableOpacity
                   onPress={() => setIsSubtypeDropdownOpen(!isSubtypeDropdownOpen)}
                   style={{
