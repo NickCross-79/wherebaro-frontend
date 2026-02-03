@@ -12,6 +12,8 @@ export default function ItemMarketTab({
 }) {
   const screenWidth = Dimensions.get('window').width;
   const [selectedModRank, setSelectedModRank] = useState(0);
+  const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
+  const sectionStyle = { marginBottom: 20 };
 
   // Get unique mod ranks from data
   const getAvailableModRanks = () => {
@@ -22,6 +24,12 @@ export default function ItemMarketTab({
 
   const isMod = item?.type && item.type.toLowerCase().includes('mod');
   const availableModRanks = isMod ? getAvailableModRanks() : [];
+  const maxModRank = availableModRanks.length > 0
+    ? availableModRanks[availableModRanks.length - 1]
+    : null;
+  const selectedRankLabel = selectedModRank === maxModRank
+    ? 'Max'
+    : `Rank ${selectedModRank}`;
 
   // Process market data for the chart
   const getChartData = () => {
@@ -86,6 +94,7 @@ export default function ItemMarketTab({
   };
 
   const latestPrice = getLatestPrice();
+  const hasRecentMarketData = Boolean(chartData);
 
   const handleOpenLink = () => {
     if (item?.link) {
@@ -96,44 +105,11 @@ export default function ItemMarketTab({
   return (
     <ScrollView
       style={styles.scrollContent}
-      contentContainerStyle={[styles.tabContent, { paddingBottom: bottomSpacer, paddingHorizontal: 16 }]}
+      contentContainerStyle={[styles.tabContent, { paddingBottom: bottomSpacer, paddingHorizontal: 16, paddingTop: 16 }]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.section}>
+      <View style={sectionStyle}>
         <Text style={styles.sectionTitle}>Price History (30 Days)</Text>
-        
-        {isMod && availableModRanks.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={[styles.sectionTitle, { fontSize: 14, marginBottom: 8 }]}>Mod Rank</Text>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-              {availableModRanks.map((rank) => (
-                <TouchableOpacity
-                  key={rank}
-                  style={[
-                    {
-                      paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: '#D4A574',
-                    },
-                    selectedModRank === rank && { backgroundColor: '#D4A574' }
-                  ]}
-                  onPress={() => setSelectedModRank(rank)}
-                >
-                  <Text
-                    style={[
-                      { color: '#D4A574', fontWeight: '600' },
-                      selectedModRank === rank && { color: '#1a1a1a' }
-                    ]}
-                  >
-                    Rank {rank}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
         
         {isLoadingMarket ? (
           <View style={{ paddingVertical: 40, alignItems: 'center' }}>
@@ -165,14 +141,78 @@ export default function ItemMarketTab({
               }}
               bezier
               style={{
-                marginVertical: 12,
+                marginTop: 8,
+                marginBottom: 4,
                 borderRadius: 16,
               }}
             />
-            {latestPrice && (
-              <Text style={[styles.noDataText, { marginTop: 12, textAlign: 'center', fontSize: 16 }]}>
-                Latest Average Price: <Text style={{ fontWeight: '700', color: '#D4A574' }}>{Math.round(latestPrice)}</Text>
-              </Text>
+            {isMod && availableModRanks.length > 0 && (
+              <View style={{ marginTop: 16 }}>
+                <TouchableOpacity
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#D4A574',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setIsRankDropdownOpen(!isRankDropdownOpen)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color: '#D4A574', fontWeight: '600', flex: 1, textAlign: 'center', fontSize: 16 }}>
+                    {selectedRankLabel}
+                  </Text>
+                  <Ionicons
+                    name={isRankDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color="#D4A574"
+                  />
+                </TouchableOpacity>
+
+                {isRankDropdownOpen && (
+                  <View
+                    style={{
+                      marginTop: 8,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#2C3545',
+                      overflow: 'hidden',
+                      backgroundColor: '#10151C',
+                    }}
+                  >
+                    {availableModRanks.map((rank, index) => (
+                      <TouchableOpacity
+                        key={rank}
+                        onPress={() => {
+                          setSelectedModRank(rank);
+                          setIsRankDropdownOpen(false);
+                        }}
+                        style={{
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          borderTopWidth: index === 0 ? 0 : 1,
+                          borderTopColor: '#1C2430',
+                          backgroundColor: selectedModRank === rank ? '#D4A574' : 'transparent',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: selectedModRank === rank ? '#1a1a1a' : '#D4A574',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            fontSize: 16,
+                          }}
+                        >
+                          {rank === maxModRank ? 'Max' : `Rank ${rank}`}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
             )}
           </View>
         ) : (
@@ -180,8 +220,14 @@ export default function ItemMarketTab({
         )}
       </View>
 
-      <View style={styles.section}>
+      <View style={sectionStyle}>
         <Text style={styles.sectionTitle}>Market Information</Text>
+
+        {latestPrice && (
+          <Text style={[styles.noDataText, { marginTop: 8, marginBottom: 12, textAlign: 'center', fontSize: 16 }]}>
+            Latest Average Price: <Text style={{ fontWeight: '700', color: '#D4A574' }}>{Math.round(latestPrice)}</Text>
+          </Text>
+        )}
         
         {item?.link ? (
           <TouchableOpacity 
@@ -192,9 +238,9 @@ export default function ItemMarketTab({
             <Text style={styles.marketLinkText}>View on Warframe Wiki</Text>
             <Ionicons name="chevron-forward" size={20} color="#D4A574" />
           </TouchableOpacity>
-        ) : (
+        ) : !hasRecentMarketData ? (
           <Text style={styles.noDataText}>No market information available</Text>
-        )}
+        ) : null}
       </View>
     </ScrollView>
   );

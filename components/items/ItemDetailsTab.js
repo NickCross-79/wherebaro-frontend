@@ -55,7 +55,7 @@ export default function ItemDetailsTab({
         <View style={styles.priceBox}>
           <View style={styles.priceLabelRow}>
             <Image
-              source={require('../../assets/icons/icon_credits.png')}
+              source={require('../../assets/imgs/icons/img_credit.png')}
               style={styles.creditIcon}
             />
             <Text style={styles.priceLabel}>Credits</Text>
@@ -67,7 +67,7 @@ export default function ItemDetailsTab({
         <View style={styles.priceBox}>
           <View style={styles.priceLabelRow}>
             <Image
-              source={require('../../assets/icons/icon_ducats.png')}
+              source={require('../../assets/imgs/icons/img_ducat.png')}
               style={styles.ducatIcon}
             />
             <Text style={styles.priceLabel}>Ducats</Text>

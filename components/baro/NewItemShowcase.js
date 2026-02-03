@@ -42,14 +42,14 @@ export default function NewItemShowcase({ item, onPress }) {
           <View style={styles.priceStack}>
             <View style={styles.priceItem}>
               <Image
-                source={require('../../assets/icons/icon_credits.png')}
+                source={require('../../assets/imgs/icons/img_credit.png')}
                 style={styles.priceIcon}
               />
               <Text style={styles.creditPrice}>{item.creditPrice?.toLocaleString()}</Text>
             </View>
             <View style={styles.priceItem}>
               <Image
-                source={require('../../assets/icons/icon_ducats.png')}
+                source={require('../../assets/imgs/icons/img_ducat.png')}
                 style={styles.priceIcon}
               />
               <Text style={styles.ducatPrice}>{item.ducatPrice}</Text>
