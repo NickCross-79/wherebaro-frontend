@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   locationText: {
-    fontSize: 12,
+    fontSize: 18,
     color: '#D4A574',
     fontWeight: '700',
     marginTop: 4,
