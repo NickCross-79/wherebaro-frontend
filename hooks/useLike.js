@@ -38,6 +38,17 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
     }, delay);
   };
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      const throttle = likeThrottleRef.current;
+      if (throttle.timerId) {
+        clearTimeout(throttle.timerId);
+        throttle.timerId = null;
+      }
+    };
+  }, []);
+
   const sendLikeRequest = async (targetLiked, itemId, uid) => {
     const throttle = likeThrottleRef.current;
     throttle.inFlight = true;
