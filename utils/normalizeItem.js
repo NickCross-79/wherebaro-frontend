@@ -1,8 +1,10 @@
 const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images';
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150';
+const PRIMED_DISSAPOINTMENT_IMAGE = 'https://i.imgur.com/ZYakUku.png';
 
 const buildImageUrl = (image) => {
   if (!image) return PLACEHOLDER_IMAGE;
+  if (image === 'Primed Dissapointment') return PRIMED_DISSAPOINTMENT_IMAGE;
   const trimmed = String(image).replace(/^\/+/, '');
   return `${WARFRAME_IMAGE_BASE}/${trimmed}`;
 };

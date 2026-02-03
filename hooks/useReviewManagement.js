@@ -161,9 +161,14 @@ export const useReviewManagement = (itemId) => {
               console.error('Review ID missing');
               return;
             }
+            if (!currentUid) {
+              console.error('User ID missing');
+              Alert.alert('Error', 'User not authenticated.');
+              return;
+            }
 
             try {
-              await deleteReview(reviewId);
+              await deleteReview(reviewId, currentUid);
               setReviews((prev) => prev.filter((_, i) => i !== index));
             } catch (error) {
               console.error('Failed to delete review', error);
