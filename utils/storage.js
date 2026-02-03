@@ -144,6 +144,26 @@ export const storageHelpers = {
     return value !== 'false';
   },
 
+  // Market data cache
+  setMarketData: async (itemId, marketData) => {
+    const cacheEntry = {
+      data: marketData,
+      lastFetched: new Date().toISOString()
+    };
+    await secureStorage.setItem(`marketData_${itemId}`, JSON.stringify(cacheEntry));
+  },
+
+  getMarketData: async (itemId) => {
+    const value = await secureStorage.getItem(`marketData_${itemId}`);
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error('Error parsing cached market data:', error);
+      return null;
+    }
+  },
+
   // Filter settings
   setFilters: async (filters) => {
     await secureStorage.setItem('filters', JSON.stringify(filters));
