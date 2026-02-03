@@ -33,6 +33,11 @@ export default function ItemMarketTab({
     ? 'Max'
     : `Rank ${selectedModRank}`;
 
+  const formatSubtypeLabel = (subtype) => {
+    if (!subtype) return '';
+    return subtype.charAt(0).toUpperCase() + subtype.slice(1);
+  };
+
   // Get unique subtypes from data (for Void Relics)
   const getAvailableSubtypes = () => {
     if (!marketData || !marketData.data) return [];
@@ -268,7 +273,7 @@ export default function ItemMarketTab({
                       marginRight: 8,
                     }}
                   >
-                    {selectedSubtype}
+                    {formatSubtypeLabel(selectedSubtype)}
                   </Text>
                   <Ionicons
                     name={isSubtypeDropdownOpen ? 'chevron-up' : 'chevron-down'}
@@ -311,7 +316,7 @@ export default function ItemMarketTab({
                             fontSize: 16,
                           }}
                         >
-                          {subtype}
+                          {formatSubtypeLabel(subtype)}
                         </Text>
                       </TouchableOpacity>
                     ))}
