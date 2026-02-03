@@ -80,7 +80,7 @@ export default function AllItemsScreen({ navigation }) {
         <FlatList
           ref={listRef}
           data={finalItems}
-          keyExtractor={(item, index) => item.id || `item-${index}`}
+          keyExtractor={(item, index) => item.id || item._id || `item-${index}`}
           renderItem={({ item }) => (
             <ItemCard
               item={item}
