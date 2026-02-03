@@ -38,3 +38,28 @@ export const getRelativeTime = (dateString) => {
     return `${years} year${years > 1 ? 's' : ''} ago`;
   }
 };
+
+/**
+ * Parse location string into name and planet components
+ * Handles formats: "Name (Planet)" or "Name, Planet"
+ */
+export const parseLocation = (location) => {
+  if (!location) return null;
+  const trimmed = String(location).trim();
+  if (!trimmed) return null;
+
+  // Try parentheses format: "Name (Planet)"
+  const parenMatch = trimmed.match(/^(.*?)\s*\((.*?)\)\s*$/);
+  if (parenMatch) {
+    return { name: parenMatch[1].trim(), planet: parenMatch[2].trim() };
+  }
+
+  // Try comma format: "Name, Planet"
+  const commaParts = trimmed.split(',').map((part) => part.trim()).filter(Boolean);
+  if (commaParts.length >= 2) {
+    return { name: commaParts[0], planet: commaParts[1] };
+  }
+
+  // Default: just the name
+  return { name: trimmed, planet: '' };
+};

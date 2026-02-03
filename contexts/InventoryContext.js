@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
+import { parseLocation } from '../utils/dateUtils';
 
 const InventoryContext = createContext();
 
@@ -22,24 +23,6 @@ export const InventoryProvider = ({ children }) => {
   const [nextArrival, setNextArrival] = useState(null);
   const [nextLocation, setNextLocation] = useState(null);
   const [isHere, setIsHere] = useState(false);
-
-  const parseLocation = (location) => {
-    if (!location) return null;
-    const trimmed = String(location).trim();
-    if (!trimmed) return null;
-
-    const parenMatch = trimmed.match(/^(.*?)\s*\((.*?)\)\s*$/);
-    if (parenMatch) {
-      return { name: parenMatch[1].trim(), planet: parenMatch[2].trim() };
-    }
-
-    const commaParts = trimmed.split(',').map((part) => part.trim()).filter(Boolean);
-    if (commaParts.length >= 2) {
-      return { name: commaParts[0], planet: commaParts[1] };
-    }
-
-    return { name: trimmed, planet: '' };
-  };
 
   const fetchBaroInventory = async (forceRefresh = false) => {
     try {
