@@ -1,4 +1,4 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet, StatusBar, View, Text, TouchableOpacity } from 'react-native';
@@ -94,11 +94,14 @@ function SettingsStackNavigator() {
   );
 }
 
-function TabNavigatorWithSafeArea() {
+
+import { useNavigationState } from '@react-navigation/native';
+
+function TabNavigatorWithSafeArea({ isItemDetailActive }) {
   const insets = useSafeAreaInsets();
   const { getWishlistCount, wishlistIds, wishlistLoaded } = useWishlist();
   const { items, isHere } = useInventory();
-  
+
   // Calculate badge count - only show wishlist items in current inventory
   const badgeCount = wishlistLoaded && wishlistIds.length > 0 && isHere
     ? getWishlistCount(items)
@@ -182,51 +185,53 @@ function TabNavigatorWithSafeArea() {
       </View>
     );
   };
-  
+
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
       screenOptions={({ route }) => ({
         headerShown: false,
-        swipeEnabled: false,
+        swipeEnabled: !isItemDetailActive,
         animationEnabled: false,
       })}
       tabBar={renderTabBar}
     >
-        <Tab.Screen
-          name="Baro"
-          component={BaroStackNavigator}
-          options={{
-            unmountOnBlur: true,
-          }}
-        />
-        <Tab.Screen
-          name="Wishlist"
-          component={WishlistStackNavigator}
-          options={{
-            unmountOnBlur: true,
-          }}
-        />
-        <Tab.Screen
-          name="All Items"
-          component={AllItemsStackNavigator}
-          options={{
-            unmountOnBlur: true,
-          }}
-        />
-        <Tab.Screen
-          name="Settings"
-          component={SettingsStackNavigator}
-          options={{
-          }}
-        />
-      </Tab.Navigator>
+      <Tab.Screen
+        name="Baro"
+        component={BaroStackNavigator}
+        options={{
+          unmountOnBlur: true,
+        }}
+      />
+      <Tab.Screen
+        name="Wishlist"
+        component={WishlistStackNavigator}
+        options={{
+          unmountOnBlur: true,
+        }}
+      />
+      <Tab.Screen
+        name="All Items"
+        component={AllItemsStackNavigator}
+        options={{
+          unmountOnBlur: true,
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsStackNavigator}
+        options={{
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [uid, setUid] = useState(null);
+  const [isItemDetailActive, setIsItemDetailActive] = useState(false);
+  const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync('#0F1419');
@@ -239,7 +244,6 @@ export default function App() {
       try {
         // Initialize database
         await initializeDatabase();
-        
         // Initialize app state on first launch
         const isFirstLaunch = await storageHelpers.getIsFirstLaunch();
         if (isFirstLaunch) {
@@ -249,21 +253,38 @@ export default function App() {
           await storageHelpers.setIsFirstLaunch(false);
           console.log('App initialized for first time');
         }
-
         // Get and display UID
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         console.log('Device UID:', deviceUID);
-
         setDbInitialized(true);
       } catch (error) {
         console.error('Error initializing app:', error);
         setDbInitialized(true); // Allow app to continue even if initialization fails
       }
     };
-
     initializeApp();
   }, []);
+
+  // Helper to check if any stack is currently showing ItemDetail
+  const getIsItemDetailActive = (state) => {
+    if (!state) return false;
+    if (!state.routes) return false;
+    for (const route of state.routes) {
+      if (route.state && route.state.routes) {
+        const nested = route.state;
+        const currentNested = nested.routes[nested.index];
+        if (currentNested && currentNested.name === 'ItemDetail') {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const handleStateChange = (state) => {
+    setIsItemDetailActive(getIsItemDetailActive(state));
+  };
 
   if (!dbInitialized) {
     return (
@@ -290,8 +311,11 @@ export default function App() {
                 backgroundColor="#0F1419" 
                 translucent={false}
               />
-              <NavigationContainer>
-                <TabNavigatorWithSafeArea />
+              <NavigationContainer
+                ref={navigationRef}
+                onStateChange={handleStateChange}
+              >
+                <TabNavigatorWithSafeArea isItemDetailActive={isItemDetailActive} />
               </NavigationContainer>
             </AllItemsProvider>
           </InventoryProvider>
