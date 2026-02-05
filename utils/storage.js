@@ -192,6 +192,30 @@ export const storageHelpers = {
   setBoolean: async (key, value) => {
     await secureStorage.setItem(key, value.toString());
   },
+
+  remove: async (key) => {
+    await secureStorage.deleteItem(key);
+  },
+
+  // Baro response cache (lightweight)
+  setBaroResponse: async (response) => {
+    await secureStorage.setItem('baroResponse', JSON.stringify(response));
+  },
+
+  getBaroResponse: async () => {
+    const value = await secureStorage.getItem('baroResponse');
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error('Error parsing Baro response:', error);
+      return null;
+    }
+  },
+
+  clearBaroResponse: async () => {
+    await secureStorage.deleteItem('baroResponse');
+  },
 };
 
 // SQLite Helper functions

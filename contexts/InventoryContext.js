@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
-import { normalizeItem } from '../utils/normalizeItem';
 import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
+
+const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 
 const InventoryContext = createContext();
 
@@ -30,107 +30,157 @@ export const InventoryProvider = ({ children }) => {
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
         const now = Date.now();
-        const cachedItems = await dbHelpers.getCachedItems();
-        const cachedExpiry = await storageHelpers.get('baroExpiry');
-        const cachedActivation = await storageHelpers.get('baroActivation');
+        const cachedBaroResponse = await storageHelpers.getBaroResponse();
         
-        // Only use cache if we have both items AND Baro state
-        if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
-          const hasOfferingDates = cachedItems.some(
-            (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
-          );
-
-          if (!hasOfferingDates) {
-            console.log('Cached inventory missing offering dates, fetching from API');
+        if (cachedBaroResponse) {
+          const cachedBaroIsHere = cachedBaroResponse.isActive;
+          const nextDate = cachedBaroIsHere ? cachedBaroResponse.expiry : cachedBaroResponse.activation;
+          const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
+          
+          // If the next event date has passed, invalidate cache
+          if (nextDateTime && now >= nextDateTime) {
+            console.log('Cached Baro dates have passed, fetching fresh data');
           } else {
-            // Check if cached dates are still valid
-            const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
-            const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
-            const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
+            console.log('Using cached Baro response');
             
-            // If the next event date has passed, invalidate cache
-            if (nextDateTime && now >= nextDateTime) {
-              console.log('Cached Baro dates have passed, fetching fresh data');
-            } else {
-              console.log('Using cached inventory items');
-              setItems(cachedItems);
-              
-              // Restore Baro state from cache
-              const cachedLocation = await storageHelpers.get('baroLocation');
-              
-              setIsHere(cachedBaroIsHere);
-              setNextArrival(nextDate ? new Date(nextDate) : null);
-              setNextLocation(parseLocation(cachedLocation));
-              
-              console.log('Restored Baro state from cache:', { 
-                isHere: cachedBaroIsHere, 
-                nextDate, 
-                location: cachedLocation 
-              });
-              
-              setLoading(false);
-              return;
-            }
+            // Match Baro inventory with cached all items
+            const allCachedItems = await dbHelpers.getCachedItems();
+            const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
+            
+            const matchedItems = cachedBaroResponse.inventory.map(invItem => {
+              const fullItem = itemsByName.get(invItem.item.toLowerCase());
+              if (!fullItem) {
+                return {
+                  name: invItem.item,
+                  image: '',
+                  creditPrice: invItem.credits,
+                  ducatPrice: invItem.ducats,
+                  type: 'Unknown',
+                  offeringDates: [],
+                  likes: [],
+                  reviews: []
+                };
+              }
+              return {
+                ...fullItem,
+                creditPrice: invItem.credits,
+                ducatPrice: invItem.ducats
+              };
+            });
+            
+            setItems(matchedItems);
+            setIsHere(cachedBaroResponse.isActive);
+            setNextArrival(nextDate ? new Date(nextDate) : null);
+            setNextLocation(parseLocation(cachedBaroResponse.location));
+            
+            console.log('Restored Baro state from cache:', { 
+              isHere: cachedBaroResponse.isActive, 
+              nextDate, 
+              location: cachedBaroResponse.location 
+            });
+            
+            setLoading(false);
+            return;
           }
         } else {
-          console.log('No complete cache found, fetching from API');
+          console.log('No cached Baro response found, fetching from API');
         }
       }
 
-      const data = await fetchCurrentBaro();
-      const baroIsHere = Boolean(data?.isActive);
+      // Fetch Baro data from Warframestat API
+      const baroResponse = await fetch(BARO_API_URL);
+      if (!baroResponse.ok) {
+        throw new Error(`Failed to fetch Baro data: ${baroResponse.status}`);
+      }
+      const baroData = await baroResponse.json();
 
-      const normalizedItems = Array.isArray(data?.items)
-        ? data.items.map((current) => normalizeItem(current, { includeDateAdded: true }))
-        : [];
+      const now = new Date();
+      const activation = new Date(baroData.activation);
+      const expiry = new Date(baroData.expiry);
+      const isBaroActive = now >= activation && now < expiry;
 
-      const sortedItems = normalizedItems.sort((a, b) => {
-        if (!a.dateAdded) return 1;
-        if (!b.dateAdded) return -1;
-        return b.dateAdded - a.dateAdded;
+      // Cache the raw Baro API response
+      await storageHelpers.setBaroResponse({
+        inventory: baroData.inventory,
+        activation: baroData.activation,
+        expiry: baroData.expiry,
+        location: baroData.location,
+        isActive: isBaroActive
       });
 
-      // Cache the items
-      await dbHelpers.clearItemsCache();
-      await dbHelpers.cacheItems(sortedItems);
+      // Match Baro inventory with cached all items
+      const allCachedItems = await dbHelpers.getCachedItems();
+      const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
       
-      // Cache Baro state
-      await storageHelpers.setBoolean('baroIsHere', baroIsHere);
-      if (data?.expiry) await storageHelpers.set('baroExpiry', data.expiry);
-      if (data?.activation) await storageHelpers.set('baroActivation', data.activation);
-      if (data?.location) await storageHelpers.set('baroLocation', data.location);
+      const matchedItems = baroData.inventory.map(invItem => {
+        const fullItem = itemsByName.get(invItem.item.toLowerCase());
+        if (!fullItem) {
+          return {
+            name: invItem.item,
+            image: '',
+            creditPrice: invItem.credits,
+            ducatPrice: invItem.ducats,
+            type: 'Unknown',
+            offeringDates: [],
+            likes: [],
+            reviews: []
+          };
+        }
+        return {
+          ...fullItem,
+          creditPrice: invItem.credits,
+          ducatPrice: invItem.ducats
+        };
+      });
 
-      setItems(sortedItems);
-      
-      setIsHere(baroIsHere);
+      setItems(matchedItems);
+      setIsHere(isBaroActive);
 
-      const nextDate = baroIsHere ? data?.expiry : data?.activation;
-      console.log('Setting nextArrival:', { nextDate, baroIsHere });
+      const nextDate = isBaroActive ? baroData.expiry : baroData.activation;
+      console.log('Setting nextArrival:', { nextDate, isBaroActive });
       setNextArrival(nextDate ? new Date(nextDate) : null);
-      setNextLocation(parseLocation(data?.location));
+      setNextLocation(parseLocation(baroData.location));
     } catch (error) {
       console.error('Error fetching Baro inventory:', error);
       
-      // Fall back to cache on error
+      // Fall back to cached Baro response on error
       try {
-        const cachedItems = await dbHelpers.getCachedItems();
-        if (cachedItems.length > 0) {
-          console.log('Using cached inventory on error');
-          setItems(cachedItems);
+        const cachedBaroResponse = await storageHelpers.getBaroResponse();
+        if (cachedBaroResponse) {
+          console.log('Using cached Baro response on error');
           
-          // Restore Baro state from cache
-          const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
-          const cachedExpiry = await storageHelpers.get('baroExpiry');
-          const cachedActivation = await storageHelpers.get('baroActivation');
-          const cachedLocation = await storageHelpers.get('baroLocation');
+          const allCachedItems = await dbHelpers.getCachedItems();
+          const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
           
-          setIsHere(cachedBaroIsHere);
-          const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
+          const matchedItems = cachedBaroResponse.inventory.map(invItem => {
+            const fullItem = itemsByName.get(invItem.item.toLowerCase());
+            if (!fullItem) {
+              return {
+                name: invItem.item,
+                image: '',
+                creditPrice: invItem.credits,
+                ducatPrice: invItem.ducats,
+                type: 'Unknown',
+                offeringDates: [],
+                likes: [],
+                reviews: []
+              };
+            }
+            return {
+              ...fullItem,
+              creditPrice: invItem.credits,
+              ducatPrice: invItem.ducats
+            };
+          });
+          
+          setItems(matchedItems);
+          setIsHere(cachedBaroResponse.isActive);
+          const nextDate = cachedBaroResponse.isActive ? cachedBaroResponse.expiry : cachedBaroResponse.activation;
           setNextArrival(nextDate ? new Date(nextDate) : null);
-          setNextLocation(parseLocation(cachedLocation));
+          setNextLocation(parseLocation(cachedBaroResponse.location));
         }
       } catch (cacheError) {
-        console.error('Error loading cache:', cacheError);
+        console.error('Error loading cached Baro response:', cacheError);
       }
     } finally {
       setLoading(false);
