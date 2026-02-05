@@ -225,7 +225,7 @@ export default function ItemMarketTab({
             <Text style={[styles.noDataText, { marginTop: 12 }]}>Loading market data...</Text>
           </View>
         ) : chartData ? (
-          <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ width: '100%', alignItems: 'flex-end' }}>
             <View
               ref={chartContainerRef}
               style={{ position: 'relative', width: chartWidth }}
@@ -235,8 +235,7 @@ export default function ItemMarketTab({
                 <View style={{
                   position: 'absolute',
                   top: 10,
-                  left: '50%',
-                  transform: [{ translateX: -80 }],
+                  right: 0,
                   backgroundColor: '#1C2430',
                   paddingVertical: 10,
                   paddingHorizontal: 16,
