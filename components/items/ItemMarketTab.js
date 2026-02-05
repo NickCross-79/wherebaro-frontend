@@ -13,14 +13,6 @@ export default function ItemMarketTab({
   const screenWidth = Dimensions.get('window').width;
   const maxChartWidth = 420;
   const chartWidth = Math.min(screenWidth, maxChartWidth);
-  const [selectedModRank, setSelectedModRank] = useState(null);
-  const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
-  const [selectedSubtype, setSelectedSubtype] = useState('');
-  const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
-  const [selectedPointIndex, setSelectedPointIndex] = useState(null);
-  const chartContainerRef = useRef(null);
-  const sectionStyle = { marginBottom: 20 };
-
   // Get unique mod ranks from statistics_closed 90days
   const getAvailableModRanks = () => {
     const arr = marketData?.statistics_closed?.['90days'] || [];
@@ -32,7 +24,16 @@ export default function ItemMarketTab({
   const availableModRanks = isMod ? getAvailableModRanks() : [];
   const maxModRank = availableModRanks.length > 0
     ? availableModRanks[availableModRanks.length - 1]
-    : null;
+    : 0;
+  
+  const [selectedModRank, setSelectedModRank] = useState(maxModRank);
+  const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
+  const [selectedSubtype, setSelectedSubtype] = useState('');
+  const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
+  const [selectedPointIndex, setSelectedPointIndex] = useState(null);
+  const chartContainerRef = useRef(null);
+  const sectionStyle = { marginBottom: 20 };
+  
   const selectedRankLabel = selectedModRank === maxModRank
     ? 'Max'
     : `Rank ${selectedModRank}`;
@@ -54,14 +55,12 @@ export default function ItemMarketTab({
     }
   }, [isVoidRelic, availableSubtypes, selectedSubtype]);
 
-  // Set default mod rank to max rank if not already set
+  // Update selected rank when max rank changes (new data loaded)
   React.useEffect(() => {
-    if (isMod && availableModRanks.length > 0) {
-      if (selectedModRank === null || !availableModRanks.includes(selectedModRank)) {
-        setSelectedModRank(availableModRanks[availableModRanks.length - 1]);
-      }
+    if (isMod && maxModRank !== null && maxModRank !== selectedModRank) {
+      setSelectedModRank(maxModRank);
     }
-  }, [isMod, availableModRanks, selectedModRank]);
+  }, [maxModRank, isMod]);
 
   // Format subtype label for display
   const formatSubtypeLabel = (subtype) => {
@@ -81,7 +80,7 @@ export default function ItemMarketTab({
     });
 
     // If item is a mod, filter by selected mod_rank
-    if (isMod && selectedModRank !== null) {
+    if (isMod) {
       filtered = filtered.filter(d => d.mod_rank === selectedModRank);
     }
     // If item is a void relic, filter by selected subtype
