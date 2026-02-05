@@ -165,7 +165,35 @@ export default function ItemMarketTab({
     filtered = filtered.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
     return filtered[0]?.avg_price ?? null;
   };
+
+  // Get market stats for the full 90 days
+  const getMarketStats = () => {
+    const arr = marketData?.statistics_closed?.['90days'] || [];
+    if (!arr.length) return null;
+    let filtered = arr.filter(d => {
+      const date = new Date(d.datetime);
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+    });
+    if (isMod) {
+      filtered = filtered.filter(d => d.mod_rank === selectedModRank);
+    }
+    if (isVoidRelic && selectedSubtype) {
+      filtered = filtered.filter(d => d.subtype === selectedSubtype);
+    }
+    if (!filtered.length) return null;
+    
+    const prices = filtered.map(d => d.avg_price);
+    const volumes = filtered.map(d => d.volume || 0);
+    
+    return {
+      maxPrice: Math.max(...prices),
+      minPrice: Math.min(...prices),
+      totalVolume: volumes.reduce((sum, v) => sum + v, 0),
+    };
+  };
+
   const latestPrice = getLatestPrice();
+  const marketStats = getMarketStats();
   const hasRecentMarketData = Boolean(chartData);
 
   const handleOpenLink = () => {
@@ -181,7 +209,7 @@ export default function ItemMarketTab({
       showsVerticalScrollIndicator={false}
     >
       <View style={sectionStyle}>
-        <Text style={styles.sectionTitle}>Price History (30 Days)</Text>
+        <Text style={styles.sectionTitle}>Price History (90 Days)</Text>
         
         {isLoadingMarket ? (
           <View style={{ paddingVertical: 40, alignItems: 'center' }}>
@@ -428,7 +456,6 @@ export default function ItemMarketTab({
             paddingVertical: 12,
             paddingHorizontal: 16,
             marginTop: 12,
-            marginBottom: 12,
           }}>
             <Text style={{
               color: '#8B9CB6',
@@ -451,6 +478,91 @@ export default function ItemMarketTab({
               />
             </View>
           </View>
+        )}
+
+        {marketStats && (
+          <>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+            }}>
+              <Text style={{
+                color: '#8B9CB6',
+                fontSize: 16,
+              }}>
+                Max Price (90d)
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{
+                  color: '#E8E8E8',
+                  fontSize: 18,
+                  fontWeight: '600',
+                  marginRight: 6,
+                }}>
+                  {Math.round(marketStats.maxPrice)}
+                </Text>
+                <Image
+                  source={require('../../assets/imgs/img_platinum.png')}
+                  style={{ width: 18, height: 18 }}
+                />
+              </View>
+            </View>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+            }}>
+              <Text style={{
+                color: '#8B9CB6',
+                fontSize: 16,
+              }}>
+                Min Price (90d)
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{
+                  color: '#E8E8E8',
+                  fontSize: 18,
+                  fontWeight: '600',
+                  marginRight: 6,
+                }}>
+                  {Math.round(marketStats.minPrice)}
+                </Text>
+                <Image
+                  source={require('../../assets/imgs/img_platinum.png')}
+                  style={{ width: 18, height: 18 }}
+                />
+              </View>
+            </View>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              marginBottom: 12,
+            }}>
+              <Text style={{
+                color: '#8B9CB6',
+                fontSize: 16,
+              }}>
+                Total Volume (90d)
+              </Text>
+              <Text style={{
+                color: '#E8E8E8',
+                fontSize: 18,
+                fontWeight: '600',
+              }}>
+                {marketStats.totalVolume.toLocaleString()}
+              </Text>
+            </View>
+          </>
         )}
         
         {item?.link ? (
