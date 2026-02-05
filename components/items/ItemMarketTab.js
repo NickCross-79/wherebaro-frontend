@@ -579,7 +579,7 @@ export default function ItemMarketTab({
                     color: '#8B9CB6',
                     fontSize: 15,
                   }}>
-                    Total Volume (90d)
+                    Total Sold (90d)
                   </Text>
                   <Text style={{
                     color: '#E8E8E8',
