@@ -84,7 +84,7 @@ export default function ItemDetailScreen({ route, navigation }) {
   // Check if market tab should be shown
   const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
     category => item.type.toLowerCase().startsWith(category.toLowerCase())
-  );
+  ) && item.name !== 'Ignis Wraith';
 
   const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation, hasMarketTab);
 
