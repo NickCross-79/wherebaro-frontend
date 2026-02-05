@@ -25,7 +25,14 @@
     },
     "plugins": [
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/imgs/logo_baro.png",
+          "color": "#D4A574"
+        }
+      ]
     ]
   }
 }

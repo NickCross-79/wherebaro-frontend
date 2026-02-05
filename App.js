@@ -19,6 +19,7 @@ import { AllItemsProvider } from './contexts/AllItemsContext';
 import BaroIcon from './assets/icons/icon_baro.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { initializeDatabase, storageHelpers } from './utils/storage';
+import { registerForPushNotifications } from './services/pushNotificationService';
 
 const Tab = createMaterialTopTabNavigator();
 const BaroStack = createNativeStackNavigator();
@@ -253,6 +254,9 @@ export default function App() {
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         console.log('Device UID:', deviceUID);
+        
+        // Register for push notifications
+        await registerForPushNotifications();
         
         setDbInitialized(true);
       } catch (error) {
