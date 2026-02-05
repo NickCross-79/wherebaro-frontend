@@ -7,7 +7,8 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { fetchReviews, fetchLikes, fetchMarketData } from '../services/api';
+import { fetchReviews, fetchLikes } from '../services/api';
+import { fetchMarketData } from '../services/marketService';
 import ItemDetailsTab from '../components/items/ItemDetailsTab';
 import ItemReviewsTab from '../components/items/ItemReviewsTab';
 import ItemMarketTab from '../components/items/ItemMarketTab';
@@ -169,11 +170,11 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   useEffect(() => {
     const loadMarketData = async () => {
-      if (!hasMarketTab || !itemId) return;
+      if (!hasMarketTab || !item?.name) return;
 
       try {
         setIsLoadingMarket(true);
-        const data = await fetchMarketData(itemId);
+        const data = await fetchMarketData(item.name);
         setMarketData(data?.market || null);
       } catch (error) {
         console.error('❌ Failed to load market data', { itemId, error });

@@ -1,12 +1,8 @@
 /**
  * Market API service
  */
-import { buildUrl, apiFetch } from './apiConfig';
-import { storageHelpers } from '../utils/storage';
 
-const ENDPOINTS = {
-  GET_MARKET_DATA: buildUrl('getMarketData'),
-};
+import { toMarketSlug } from '../utils/marketSlug';
 
 /**
  * Check if cached market data is still valid
@@ -40,30 +36,34 @@ const isCacheValid = (lastFetched) => {
   return false;
 };
 
+
 /**
- * Fetch market data for an item (with caching)
- * @param {string} itemId - Item ID
- * @returns {Promise<Object>} Market data with price history
+ * Fetch market data for an item directly from warframe.market
+ * @param {string} itemName - Item name (e.g., 'Primed Flow')
+ * @returns {Promise<Object>} Market data from warframe.market
  */
-export const fetchMarketData = async (itemId) => {
-  // Check cache first
-  const cachedEntry = await storageHelpers.getMarketData(itemId);
-  
-  if (cachedEntry && isCacheValid(cachedEntry.lastFetched)) {
-    console.log(`📦 Using cached market data for item ${itemId}`);
-    return { market: cachedEntry.data };
+export const fetchMarketData = async (itemName) => {
+  const slug = toMarketSlug(itemName);
+  const url = `https://api.warframe.market/v1/items/${slug}/statistics`;
+  console.log('[Market] Fetching:', url);
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (err) {
+    console.error('[Market] Network error:', err);
+    throw new Error('Network error fetching market data');
   }
-  
-  // Fetch fresh data
-  console.log(`🌐 Fetching fresh market data for item ${itemId}`);
-  const response = await apiFetch(`${ENDPOINTS.GET_MARKET_DATA}?item_id=${itemId}`);
-  
-  // Cache the fresh data
-  if (response?.market) {
-    await storageHelpers.setMarketData(itemId, response.market);
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`[Market] API error ${response.status}:`, text);
+    throw new Error(`Failed to fetch market data: ${response.status}`);
   }
-  
-  return response;
+  const data = await response.json();
+  console.log('[Market] Full API response:', data);
+  if (!data.payload) {
+    console.error('[Market] Unexpected response:', data);
+  }
+  return { market: data.payload || data };
 };
 
 export default {

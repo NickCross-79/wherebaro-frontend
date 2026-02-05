@@ -11,16 +11,18 @@ export default function ItemMarketTab({
   isLoadingMarket,
 }) {
   const screenWidth = Dimensions.get('window').width;
+  const maxChartWidth = 420;
+  const chartWidth = Math.min(screenWidth, maxChartWidth);
   const [selectedModRank, setSelectedModRank] = useState(0);
   const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
   const [selectedSubtype, setSelectedSubtype] = useState('');
   const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
   const sectionStyle = { marginBottom: 20 };
 
-  // Get unique mod ranks from data
+  // Get unique mod ranks from statistics_closed 90days
   const getAvailableModRanks = () => {
-    if (!marketData || !marketData.data) return [];
-    const ranks = new Set(marketData.data.map(d => d.mod_rank).filter(r => r !== undefined));
+    const arr = marketData?.statistics_closed?.['90days'] || [];
+    const ranks = new Set(arr.map(d => d.mod_rank).filter(r => r !== undefined));
     return Array.from(ranks).sort((a, b) => a - b);
   };
 
@@ -33,15 +35,10 @@ export default function ItemMarketTab({
     ? 'Max'
     : `Rank ${selectedModRank}`;
 
-  const formatSubtypeLabel = (subtype) => {
-    if (!subtype) return '';
-    return subtype.charAt(0).toUpperCase() + subtype.slice(1);
-  };
-
-  // Get unique subtypes from data (for Void Relics)
+  // Get unique subtypes from statistics_closed 90days (for Void Relics)
   const getAvailableSubtypes = () => {
-    if (!marketData || !marketData.data) return [];
-    const subtypes = new Set(marketData.data.map(d => d.subtype).filter(s => s !== undefined && s !== ''));
+    const arr = marketData?.statistics_closed?.['90days'] || [];
+    const subtypes = new Set(arr.map(d => d.subtype).filter(s => s !== undefined && s !== ''));
     return Array.from(subtypes).sort();
   };
 
@@ -53,45 +50,47 @@ export default function ItemMarketTab({
     if (isVoidRelic && availableSubtypes.length > 0 && !selectedSubtype) {
       setSelectedSubtype(availableSubtypes[0]);
     }
-  }, [isVoidRelic, availableSubtypes.length]);
+  }, [isVoidRelic, availableSubtypes, selectedSubtype]);
 
-  // Process market data for the chart
+  // Chart data from statistics_closed 90days
   const getChartData = () => {
-    if (!marketData || !marketData.data || marketData.data.length === 0) {
-      return null;
-    }
+    const arr = marketData?.statistics_closed?.['90days'] || [];
+    if (!arr.length) return null;
 
-    // Sort by datetime and take last 30 days
-    let sortedData = [...marketData.data].sort((a, b) => 
-      new Date(a.datetime) - new Date(b.datetime)
-    ).slice(-30);
+    // Only keep points at 00:00 (midnight UTC) each day, for the full 90 days
+    let filtered = arr.filter(d => {
+      const date = new Date(d.datetime);
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+    });
 
     // If item is a mod, filter by selected mod_rank
     if (isMod) {
-      sortedData = sortedData.filter(d => d.mod_rank === selectedModRank);
+      filtered = filtered.filter(d => d.mod_rank === selectedModRank);
     }
-
     // If item is a void relic, filter by selected subtype
     if (isVoidRelic && selectedSubtype) {
-      sortedData = sortedData.filter(d => d.subtype === selectedSubtype);
+      filtered = filtered.filter(d => d.subtype === selectedSubtype);
     }
+    if (!filtered.length) return null;
 
-    if (sortedData.length === 0) {
-      return null;
-    }
+    // Sort by datetime ascending
+    filtered = filtered.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
-    // Extract prices and dates
-    const prices = sortedData.map(d => d.avg_price);
-    const dates = sortedData.map(d => {
+    // Use every data point
+    const prices = filtered.map(d => d.avg_price);
+    const dates = filtered.map(d => {
       const date = new Date(d.datetime);
       return `${date.getMonth() + 1}/${date.getDate()}`;
     });
-
-    // Show labels for every 6th day to avoid clutter (spread across 30 days)
-    const labels = dates.map((date, index) => 
-      index % 6 === 0 ? date : ''
-    );
-
+    // Show labels for every 5th day to avoid clutter
+    const labels = dates.map((date, index) => index % 5 === 0 ? date : '');
+    // Log the latest and second latest data points if available
+    if (filtered.length > 0) {
+      console.log('[MarketTab] Latest data point:', filtered[filtered.length - 1]);
+    }
+    if (filtered.length > 1) {
+      console.log('[MarketTab] Second latest data point:', filtered[filtered.length - 2]);
+    }
     return {
       labels,
       datasets: [
@@ -106,26 +105,25 @@ export default function ItemMarketTab({
 
   const chartData = getChartData();
 
-  // Get latest average price
+  // Get latest average price (from statistics_closed 90days)
   const getLatestPrice = () => {
-    if (!marketData || !marketData.data) return null;
-    
-    let filteredData = [...marketData.data].sort((a, b) => 
-      new Date(a.datetime) - new Date(b.datetime)
-    );
-
+    const arr = marketData?.statistics_closed?.['90days'] || [];
+    if (!arr.length) return null;
+    let filtered = arr.filter(d => {
+      const date = new Date(d.datetime);
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+    });
     if (isMod) {
-      filteredData = filteredData.filter(d => d.mod_rank === selectedModRank);
+      filtered = filtered.filter(d => d.mod_rank === selectedModRank);
     }
-
     if (isVoidRelic && selectedSubtype) {
-      filteredData = filteredData.filter(d => d.subtype === selectedSubtype);
+      filtered = filtered.filter(d => d.subtype === selectedSubtype);
     }
-
-    if (filteredData.length === 0) return null;
-    return filteredData[filteredData.length - 1].avg_price;
+    if (!filtered.length) return null;
+    // Sort by datetime descending to get the latest
+    filtered = filtered.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+    return filtered[0]?.avg_price ?? null;
   };
-
   const latestPrice = getLatestPrice();
   const hasRecentMarketData = Boolean(chartData);
 
@@ -150,13 +148,14 @@ export default function ItemMarketTab({
             <Text style={[styles.noDataText, { marginTop: 12 }]}>Loading market data...</Text>
           </View>
         ) : chartData ? (
-          <View style={{ alignItems: 'center' }}>
+          <View style={{ width: '100%', alignItems: 'center' }}>
             <LineChart
               data={chartData}
-              width={screenWidth}
+              width={chartWidth}
               height={220}
               withHorizontalLines={false}
               withVerticalLines={false}
+              withDots={false}
               chartConfig={{
                 backgroundGradientFrom: '#0A0E1A',
                 backgroundGradientTo: '#0A0E1A',
