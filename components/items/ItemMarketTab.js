@@ -18,7 +18,6 @@ export default function ItemMarketTab({
   const [selectedSubtype, setSelectedSubtype] = useState('');
   const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
   const [selectedPointIndex, setSelectedPointIndex] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState(null);
   const chartContainerRef = useRef(null);
   const sectionStyle = { marginBottom: 20 };
 
@@ -121,7 +120,6 @@ export default function ItemMarketTab({
         handleTouch(evt.nativeEvent);
       },
       onPanResponderRelease: () => {
-        setTooltipPosition(null);
         setSelectedPointIndex(null);
       },
     })
@@ -131,7 +129,6 @@ export default function ItemMarketTab({
     if (!rawChartData.length || !chartContainerRef.current) return;
 
     const locationX = event.locationX;
-    const locationY = event.locationY;
 
     // Chart has padding - adjust for the actual chart area
     const chartPaddingLeft = 16;
@@ -146,7 +143,6 @@ export default function ItemMarketTab({
 
     if (index >= 0 && index < dataPointCount) {
       setSelectedPointIndex(index);
-      setTooltipPosition({ x: locationX, y: locationY });
     }
   };
 
@@ -199,6 +195,44 @@ export default function ItemMarketTab({
               style={{ position: 'relative', width: chartWidth }}
               {...panResponder.panHandlers}
             >
+              {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (
+                <View style={{
+                  position: 'absolute',
+                  top: 10,
+                  left: '50%',
+                  transform: [{ translateX: -80 }],
+                  backgroundColor: '#1C2430',
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: '#D4A574',
+                  zIndex: 10,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.5,
+                  shadowRadius: 4,
+                  elevation: 5,
+                  pointerEvents: 'none',
+                }}>
+                  <Text style={{ color: '#8B9CB6', fontSize: 14, marginBottom: 4 }}>
+                    {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ color: '#E8E8E8', fontSize: 20, fontWeight: '600', marginRight: 6 }}>
+                      {Math.round(rawChartData[selectedPointIndex].avg_price)}
+                    </Text>
+                    <Image
+                      source={require('../../assets/imgs/img_platinum.png')}
+                      style={{ width: 20, height: 20 }}
+                    />
+                  </View>
+                </View>
+              )}
               <LineChart
                 data={chartData}
                 width={chartWidth}
@@ -229,44 +263,6 @@ export default function ItemMarketTab({
                   backgroundColor: 'transparent',
                 }}
               />
-              {tooltipPosition !== null && selectedPointIndex !== null && rawChartData[selectedPointIndex] && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: tooltipPosition.x - 80,
-                    top: tooltipPosition.y - 80,
-                    backgroundColor: '#1C2430',
-                    paddingVertical: 8,
-                    paddingHorizontal: 12,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: '#D4A574',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.5,
-                    shadowRadius: 4,
-                    elevation: 5,
-                  }}
-                  pointerEvents="none"
-                >
-                  <Text style={{ color: '#8B9CB6', fontSize: 12, marginBottom: 4 }}>
-                    {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ color: '#E8E8E8', fontSize: 16, fontWeight: '600', marginRight: 4 }}>
-                      {Math.round(rawChartData[selectedPointIndex].avg_price)}
-                    </Text>
-                    <Image
-                      source={require('../../assets/imgs/img_platinum.png')}
-                      style={{ width: 16, height: 16 }}
-                    />
-                  </View>
-                </View>
-              )}
             </View>
             {isMod && availableModRanks.length > 0 && (
               <View style={{ marginTop: 16, width: '100%' }}>
@@ -311,7 +307,6 @@ export default function ItemMarketTab({
                         onPress={() => {
                           setSelectedModRank(rank);
                           setSelectedPointIndex(null);
-                          setTooltipPosition(null);
                           setIsRankDropdownOpen(false);
                         }}
                         style={{
@@ -390,7 +385,6 @@ export default function ItemMarketTab({
                         onPress={() => {
                           setSelectedSubtype(subtype);
                           setSelectedPointIndex(null);
-                          setTooltipPosition(null);
                           setIsSubtypeDropdownOpen(false);
                         }}
                         style={{
