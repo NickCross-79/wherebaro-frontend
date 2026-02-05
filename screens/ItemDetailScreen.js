@@ -82,9 +82,10 @@ export default function ItemDetailScreen({ route, navigation }) {
   } = useReviewManagement(item.id || item._id);
 
   // Check if market tab should be shown
+  const doNotShowMarketDataFor = ['ignis wraith', 'primed dissapointment']; //Market data not available for these items
   const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
     category => item.type.toLowerCase().startsWith(category.toLowerCase())
-  ) && item.name !== 'Ignis Wraith';
+  ) && !doNotShowMarketDataFor.includes(item.name.toLowerCase());
 
   const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation, hasMarketTab);
 
