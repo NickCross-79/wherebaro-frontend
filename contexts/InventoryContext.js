@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchCurrentBaro } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 import { parseLocation } from '../utils/dateUtils';
-import { sendBaroArrivalNotification, sendWishlistNotification } from '../services/notificationService';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
 
 const InventoryContext = createContext();
@@ -23,7 +22,6 @@ export const InventoryProvider = ({ children }) => {
   const [nextArrival, setNextArrival] = useState(null);
   const [nextLocation, setNextLocation] = useState(null);
   const [isHere, setIsHere] = useState(false);
-  const previousIsHere = useRef(null);
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
@@ -60,7 +58,6 @@ export const InventoryProvider = ({ children }) => {
               // Restore Baro state from cache
               const cachedLocation = await storageHelpers.get('baroLocation');
               
-              previousIsHere.current = cachedBaroIsHere;
               setIsHere(cachedBaroIsHere);
               setNextArrival(nextDate ? new Date(nextDate) : null);
               setNextLocation(parseLocation(cachedLocation));
@@ -105,23 +102,6 @@ export const InventoryProvider = ({ children }) => {
 
       setItems(sortedItems);
       
-      // Check if Baro just arrived and send notification
-      if (baroIsHere && previousIsHere.current === false) {
-        console.log('Baro has arrived! Sending notification...');
-        await sendBaroArrivalNotification();
-        
-        // Check for wishlist items
-        const wishlistIds = await dbHelpers.getWishlistIds();
-        const wishlistCount = sortedItems.filter(item => 
-          wishlistIds.includes(item.id || item._id)
-        ).length;
-        
-        if (wishlistCount > 0) {
-          await sendWishlistNotification(wishlistCount);
-        }
-      }
-      
-      previousIsHere.current = baroIsHere;
       setIsHere(baroIsHere);
 
       const nextDate = baroIsHere ? data?.expiry : data?.activation;
@@ -144,7 +124,6 @@ export const InventoryProvider = ({ children }) => {
           const cachedActivation = await storageHelpers.get('baroActivation');
           const cachedLocation = await storageHelpers.get('baroLocation');
           
-          previousIsHere.current = cachedBaroIsHere;
           setIsHere(cachedBaroIsHere);
           const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
           setNextArrival(nextDate ? new Date(nextDate) : null);
