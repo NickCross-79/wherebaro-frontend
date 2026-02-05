@@ -15,6 +15,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.wherebaro.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/imgs/logo_baro.png",
         "backgroundColor": "#0A0E1A"
@@ -33,6 +34,11 @@
           "color": "#D4A574"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5e09dccb-e16d-44a4-8373-696c19716db3"
+      }
+    }
   }
 }
