@@ -13,7 +13,7 @@ export default function ItemMarketTab({
   const screenWidth = Dimensions.get('window').width;
   const maxChartWidth = 420;
   const chartWidth = Math.min(screenWidth, maxChartWidth);
-  const [selectedModRank, setSelectedModRank] = useState(0);
+  const [selectedModRank, setSelectedModRank] = useState(null);
   const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
   const [selectedSubtype, setSelectedSubtype] = useState('');
   const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
@@ -54,6 +54,15 @@ export default function ItemMarketTab({
     }
   }, [isVoidRelic, availableSubtypes, selectedSubtype]);
 
+  // Set default mod rank to max rank if not already set
+  React.useEffect(() => {
+    if (isMod && availableModRanks.length > 0) {
+      if (selectedModRank === null || !availableModRanks.includes(selectedModRank)) {
+        setSelectedModRank(availableModRanks[availableModRanks.length - 1]);
+      }
+    }
+  }, [isMod, availableModRanks, selectedModRank]);
+
   // Format subtype label for display
   const formatSubtypeLabel = (subtype) => {
     if (!subtype) return '';
@@ -72,7 +81,7 @@ export default function ItemMarketTab({
     });
 
     // If item is a mod, filter by selected mod_rank
-    if (isMod) {
+    if (isMod && selectedModRank !== null) {
       filtered = filtered.filter(d => d.mod_rank === selectedModRank);
     }
     // If item is a void relic, filter by selected subtype
