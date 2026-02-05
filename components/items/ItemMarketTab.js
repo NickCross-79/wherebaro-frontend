@@ -57,7 +57,7 @@ export default function ItemMarketTab({
 
   // Update selected rank when max rank changes (new data loaded)
   React.useEffect(() => {
-    if (isMod && maxModRank !== null && maxModRank !== selectedModRank) {
+    if (isMod && maxModRank !== selectedModRank) {
       setSelectedModRank(maxModRank);
     }
   }, [maxModRank, isMod]);
