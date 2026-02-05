@@ -30,33 +30,36 @@ export const InventoryProvider = ({ children }) => {
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
-        const lastRefresh = await storageHelpers.getLastDataRefresh();
         const now = Date.now();
+        const cachedItems = await dbHelpers.getCachedItems();
+        const cachedExpiry = await storageHelpers.get('baroExpiry');
+        const cachedActivation = await storageHelpers.get('baroActivation');
         
-        if (now - lastRefresh < CACHE_DURATION) {
-          // Use cached data
-          const cachedItems = await dbHelpers.getCachedItems();
-          const cachedExpiry = await storageHelpers.get('baroExpiry');
-          const cachedActivation = await storageHelpers.get('baroActivation');
-          
-          // Only use cache if we have both items AND Baro state
-          if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
-            const hasOfferingDates = cachedItems.some(
-              (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
-            );
+        // Only use cache if we have both items AND Baro state
+        if (cachedItems.length > 0 && (cachedExpiry || cachedActivation)) {
+          const hasOfferingDates = cachedItems.some(
+            (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
+          );
 
-            if (!hasOfferingDates) {
-              console.log('Cached inventory missing offering dates, fetching from API');
+          if (!hasOfferingDates) {
+            console.log('Cached inventory missing offering dates, fetching from API');
+          } else {
+            // Check if cached dates are still valid
+            const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
+            const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
+            const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
+            
+            // If the next event date has passed, invalidate cache
+            if (nextDateTime && now >= nextDateTime) {
+              console.log('Cached Baro dates have passed, fetching fresh data');
             } else {
               console.log('Using cached inventory items');
               setItems(cachedItems);
               
               // Restore Baro state from cache
-              const cachedBaroIsHere = await storageHelpers.getBoolean('baroIsHere', false);
               const cachedLocation = await storageHelpers.get('baroLocation');
               
               setIsHere(cachedBaroIsHere);
-              const nextDate = cachedBaroIsHere ? cachedExpiry : cachedActivation;
               setNextArrival(nextDate ? new Date(nextDate) : null);
               setNextLocation(parseLocation(cachedLocation));
               
@@ -69,21 +72,14 @@ export const InventoryProvider = ({ children }) => {
               setLoading(false);
               return;
             }
-          } else {
-            console.log('No complete cache found, fetching from API');
           }
+        } else {
+          console.log('No complete cache found, fetching from API');
         }
       }
 
       const data = await fetchCurrentBaro();
       const baroIsHere = Boolean(data?.isActive);
-
-      console.log('API Response:', { 
-        isActive: data?.isActive, 
-        expiry: data?.expiry, 
-        activation: data?.activation,
-        location: data?.location 
-      });
 
       const normalizedItems = Array.isArray(data?.items)
         ? data.items.map((current) => normalizeItem(current, { includeDateAdded: true }))
@@ -147,6 +143,26 @@ export const InventoryProvider = ({ children }) => {
   useEffect(() => {
     fetchBaroInventory();
   }, []);
+
+  // Auto-refresh when timer expires
+  useEffect(() => {
+    if (!nextArrival) return;
+
+    const now = Date.now();
+    const timeUntilExpiry = nextArrival.getTime() - now;
+
+    // If the time has already passed, don't set a timeout
+    if (timeUntilExpiry <= 0) return;
+
+    console.log(`Setting auto-refresh timer for ${Math.round(timeUntilExpiry / 1000)}s`);
+
+    const timeoutId = setTimeout(() => {
+      console.log('Timer expired, auto-refreshing Baro data...');
+      fetchBaroInventory(true);
+    }, timeUntilExpiry);
+
+    return () => clearTimeout(timeoutId);
+  }, [nextArrival]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
