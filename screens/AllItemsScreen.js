@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
@@ -31,6 +31,15 @@ export default function AllItemsScreen({ navigation }) {
   }, [filters]);
 
   const finalItems = applyAllFilters(items, searchQuery, filters);
+
+  const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
+  
+  const renderItem = useCallback(({ item }) => (
+    <ItemCard
+      item={item}
+      onPress={() => navigation.navigate('ItemDetail', { item })}
+    />
+  ), [navigation]);
 
   return (
     <View style={styles.container}>
@@ -80,13 +89,8 @@ export default function AllItemsScreen({ navigation }) {
         <FlatList
           ref={listRef}
           data={finalItems}
-          keyExtractor={(item, index) => item.id || item._id || `item-${index}`}
-          renderItem={({ item }) => (
-            <ItemCard
-              item={item}
-              onPress={() => navigation.navigate('ItemDetail', { item })}
-            />
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl

@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import Header from '../components/ui/Header';
 import InventoryList from '../components/baro/InventoryList';
@@ -23,9 +23,9 @@ export default function BaroScreen({ navigation }) {
   // Get newest item (first in sorted list when Baro is here)
   const newestItem = isHere && items.length > 0 ? items[0] : null;
 
-  const handleItemPress = (item) => {
+  const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });
-  };
+  }, [navigation]);
 
   if (loading && !refreshing) {
     return <LoadingScreen />;

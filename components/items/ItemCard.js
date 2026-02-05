@@ -128,11 +128,20 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
 }
 
 export default memo(ItemCard, (prevProps, nextProps) => {
+  // Only re-render if item data actually changed
+  const prevItem = prevProps.item;
+  const nextItem = nextProps.item;
+  
   return (
-    prevProps.item?.id === nextProps.item?.id &&
-    prevProps.item?._id === nextProps.item?._id &&
-    prevProps.item?.likes?.length === nextProps.item?.likes?.length &&
-    prevProps.item?.reviews?.length === nextProps.item?.reviews?.length &&
+    prevItem?.id === nextItem?.id &&
+    prevItem?._id === nextItem?._id &&
+    prevItem?.name === nextItem?.name &&
+    prevItem?.type === nextItem?.type &&
+    prevItem?.image === nextItem?.image &&
+    prevItem?.creditPrice === nextItem?.creditPrice &&
+    prevItem?.ducatPrice === nextItem?.ducatPrice &&
+    (prevItem?.likes?.length || prevItem?.likes || 0) === (nextItem?.likes?.length || nextItem?.likes || 0) &&
+    (prevItem?.reviews?.length || 0) === (nextItem?.reviews?.length || 0) &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.isNew === nextProps.isNew &&
     prevProps.hideWishlistBadge === nextProps.hideWishlistBadge &&

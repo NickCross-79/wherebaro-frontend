@@ -23,7 +23,7 @@ const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress },
       ) : (
         items.map((item, index) => (
           <ItemCard
-            key={index}
+            key={item.id || item._id || `item-${index}`}
             item={item}
             onPress={() => onItemPress && onItemPress(item)}
             isNew={index === 0}

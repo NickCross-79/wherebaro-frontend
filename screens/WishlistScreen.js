@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, ScrollView } from 'react-native';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
@@ -19,6 +19,10 @@ export default function WishlistScreen({ navigation }) {
   const displayItems = wishlistItems;
 
   const finalItems = applyAllFilters(displayItems, searchQuery, filters);
+
+  const handleItemPress = useCallback((item) => {
+    navigation.navigate('ItemDetail', { item });
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -57,9 +61,9 @@ export default function WishlistScreen({ navigation }) {
         ) : (
           finalItems.map((item, index) => (
             <ItemCard
-              key={index}
+              key={item.id || item._id || `item-${index}`}
               item={item}
-              onPress={() => navigation.navigate('ItemDetail', { item })}
+              onPress={() => handleItemPress(item)}
               hideWishlistBadge={true}
               hideWishlistBorder={true}
             />
