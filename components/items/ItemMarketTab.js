@@ -293,14 +293,14 @@ export default function ItemMarketTab({
                 bezier
                 style={{
                   marginTop: 8,
-                  marginBottom: 4,
+                  marginBottom: -8,
                   borderRadius: 16,
                   backgroundColor: 'transparent',
                 }}
               />
             </View>
             {isMod && availableModRanks.length > 0 && (
-              <View style={{ marginTop: 16, width: '100%' }}>
+              <View style={{ marginTop: 0, width: '100%' }}>
                 <TouchableOpacity
                   style={{
                     paddingVertical: 10,
