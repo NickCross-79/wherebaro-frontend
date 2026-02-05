@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Linking, TouchableOpacity, Dimensions, ActivityIndicator, Image } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, ScrollView, Linking, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -17,6 +17,9 @@ export default function ItemMarketTab({
   const [isRankDropdownOpen, setIsRankDropdownOpen] = useState(false);
   const [selectedSubtype, setSelectedSubtype] = useState('');
   const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
+  const [selectedPointIndex, setSelectedPointIndex] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState(null);
+  const chartContainerRef = useRef(null);
   const sectionStyle = { marginBottom: 20 };
 
   // Get unique mod ranks from statistics_closed 90days
@@ -52,6 +55,12 @@ export default function ItemMarketTab({
     }
   }, [isVoidRelic, availableSubtypes, selectedSubtype]);
 
+  // Format subtype label for display
+  const formatSubtypeLabel = (subtype) => {
+    if (!subtype) return '';
+    return subtype.charAt(0).toUpperCase() + subtype.slice(1);
+  };
+
   // Chart data from statistics_closed 90days
   const getChartData = () => {
     const arr = marketData?.statistics_closed?.['90days'] || [];
@@ -78,32 +87,68 @@ export default function ItemMarketTab({
 
     // Use every data point
     const prices = filtered.map(d => d.avg_price);
-    const dates = filtered.map(d => {
-      const date = new Date(d.datetime);
-      return `${date.getMonth() + 1}/${date.getDate()}`;
-    });
-    // Show labels for every 5th day to avoid clutter
-    const labels = dates.map((date, index) => index % 5 === 0 ? date : '');
-    // Log the latest and second latest data points if available
-    if (filtered.length > 0) {
-      console.log('[MarketTab] Latest data point:', filtered[filtered.length - 1]);
-    }
-    if (filtered.length > 1) {
-      console.log('[MarketTab] Second latest data point:', filtered[filtered.length - 2]);
-    }
+    // Remove all x-axis labels (no dates)
+    const labels = filtered.map(() => '');
+    
     return {
-      labels,
-      datasets: [
-        {
-          data: prices,
-          color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
-          strokeWidth: 2,
-        },
-      ],
+      chartData: {
+        labels,
+        datasets: [
+          {
+            data: prices,
+            color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+            strokeWidth: 2,
+          },
+        ],
+      },
+      rawData: filtered,
     };
   };
 
-  const chartData = getChartData();
+  const chartResult = getChartData();
+  const chartData = chartResult?.chartData;
+  const rawChartData = chartResult?.rawData || [];
+
+  // Create pan responder for drag gesture
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        handleTouch(evt.nativeEvent);
+      },
+      onPanResponderMove: (evt) => {
+        handleTouch(evt.nativeEvent);
+      },
+      onPanResponderRelease: () => {
+        setTooltipPosition(null);
+        setSelectedPointIndex(null);
+      },
+    })
+  ).current;
+
+  const handleTouch = (event) => {
+    if (!rawChartData.length || !chartContainerRef.current) return;
+
+    const locationX = event.locationX;
+    const locationY = event.locationY;
+
+    // Chart has padding - adjust for the actual chart area
+    const chartPaddingLeft = 16;
+    const chartPaddingRight = 16;
+    const chartAreaWidth = chartWidth - chartPaddingLeft - chartPaddingRight;
+    const adjustedX = locationX - chartPaddingLeft;
+
+    // Calculate which data point is closest to the touch
+    const dataPointCount = rawChartData.length;
+    const pointSpacing = chartAreaWidth / (dataPointCount - 1);
+    const index = Math.round(adjustedX / pointSpacing);
+
+    if (index >= 0 && index < dataPointCount) {
+      setSelectedPointIndex(index);
+      setTooltipPosition({ x: locationX, y: locationY });
+    }
+  };
 
   // Get latest average price (from statistics_closed 90days)
   const getLatestPrice = () => {
@@ -149,41 +194,80 @@ export default function ItemMarketTab({
           </View>
         ) : chartData ? (
           <View style={{ width: '100%', alignItems: 'center' }}>
-            <LineChart
-              data={chartData}
-              width={chartWidth}
-              height={220}
-              withHorizontalLines={false}
-              withVerticalLines={false}
-              withDots={false}
-              chartConfig={{
-                backgroundGradientFrom: '#0A0E1A',
-                backgroundGradientTo: '#0A0E1A',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
-                fillShadowGradientFrom: '#D4A574',
-                fillShadowGradientTo: '#D4A574',
-                fillShadowGradientFromOpacity: 0.3,
-                fillShadowGradientToOpacity: 0.05,
-                paddingLeft: 0,
-                style: {
+            <View
+              ref={chartContainerRef}
+              style={{ position: 'relative', width: chartWidth }}
+              {...panResponder.panHandlers}
+            >
+              <LineChart
+                data={chartData}
+                width={chartWidth}
+                height={220}
+                withHorizontalLines={false}
+                withVerticalLines={false}
+                withDots={false}
+                chartConfig={{
+                  backgroundGradientFrom: '#0A0E1A',
+                  backgroundGradientTo: '#0A0E1A',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+                  fillShadowGradientFrom: '#D4A574',
+                  fillShadowGradientTo: '#D4A574',
+                  fillShadowGradientFromOpacity: 0.3,
+                  fillShadowGradientToOpacity: 0.05,
+                  paddingLeft: 0,
+                  style: {
+                    borderRadius: 16,
+                  },
+                }}
+                bezier
+                style={{
+                  marginTop: 8,
+                  marginBottom: 4,
                   borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '2',
-                  strokeWidth: '1',
-                  stroke: '#D4A574',
-                },
-              }}
-              bezier
-              style={{
-                marginTop: 8,
-                marginBottom: 4,
-                borderRadius: 16,
-                backgroundColor: 'transparent',
-              }}
-            />
+                  backgroundColor: 'transparent',
+                }}
+              />
+              {tooltipPosition !== null && selectedPointIndex !== null && rawChartData[selectedPointIndex] && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: tooltipPosition.x - 80,
+                    top: tooltipPosition.y - 80,
+                    backgroundColor: '#1C2430',
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#D4A574',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 4,
+                    elevation: 5,
+                  }}
+                  pointerEvents="none"
+                >
+                  <Text style={{ color: '#8B9CB6', fontSize: 12, marginBottom: 4 }}>
+                    {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ color: '#E8E8E8', fontSize: 16, fontWeight: '600', marginRight: 4 }}>
+                      {Math.round(rawChartData[selectedPointIndex].avg_price)}
+                    </Text>
+                    <Image
+                      source={require('../../assets/imgs/img_platinum.png')}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
             {isMod && availableModRanks.length > 0 && (
               <View style={{ marginTop: 16, width: '100%' }}>
                 <TouchableOpacity
@@ -226,6 +310,8 @@ export default function ItemMarketTab({
                         key={rank}
                         onPress={() => {
                           setSelectedModRank(rank);
+                          setSelectedPointIndex(null);
+                          setTooltipPosition(null);
                           setIsRankDropdownOpen(false);
                         }}
                         style={{
@@ -303,6 +389,8 @@ export default function ItemMarketTab({
                         key={subtype}
                         onPress={() => {
                           setSelectedSubtype(subtype);
+                          setSelectedPointIndex(null);
+                          setTooltipPosition(null);
                           setIsSubtypeDropdownOpen(false);
                         }}
                         style={{
