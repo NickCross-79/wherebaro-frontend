@@ -18,6 +18,7 @@ import { useLike } from '../hooks/useLike';
 import { useReviewManagement } from '../hooks/useReviewManagement';
 import { formatDate, getRelativeTime } from '../utils/dateUtils';
 import { createSwipeGesture } from '../utils/gestureHelpers';
+import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
 import styles from '../styles/screens/ItemDetailScreen.styles';
 
 export default function ItemDetailScreen({ route, navigation }) {
@@ -82,10 +83,9 @@ export default function ItemDetailScreen({ route, navigation }) {
   } = useReviewManagement(item.id || item._id);
 
   // Check if market tab should be shown
-  const doNotShowMarketDataFor = ['ignis wraith', 'primed dissapointment']; //Market data not available for these items
   const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
     category => item.type.toLowerCase().startsWith(category.toLowerCase())
-  ) && !doNotShowMarketDataFor.includes(item.name.toLowerCase());
+  ) && !MARKET_EXCLUDED_ITEMS.includes(item.name.toLowerCase());
 
   const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation, hasMarketTab);
 

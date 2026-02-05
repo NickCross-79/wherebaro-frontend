@@ -1,8 +1,9 @@
 import { View, Text, Image, ImageBackground, TouchableOpacity } from 'react-native';
+import { memo } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import styles from '../../styles/components/baro/NewItemShowcase.styles';
 
-export default function NewItemShowcase({ item, onPress }) {
+function NewItemShowcase({ item, onPress }) {
   if (!item) return null;
 
   return (
@@ -60,4 +61,6 @@ export default function NewItemShowcase({ item, onPress }) {
     </View>
   );
 }
+
+export default memo(NewItemShowcase);
 

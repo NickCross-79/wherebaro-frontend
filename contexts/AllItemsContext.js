@@ -2,10 +2,10 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { fetchAllItems } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
+import { CACHE_DURATION_MS } from '../constants/items';
+import { useItemLikesSync } from '../hooks/useItemLikesSync';
 
 const AllItemsContext = createContext();
-
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 export const useAllItems = () => {
   const context = useContext(AllItemsContext);
@@ -30,7 +30,7 @@ export const AllItemsProvider = ({ children }) => {
         const lastRefresh = await storageHelpers.getLastDataRefresh();
         const now = Date.now();
         
-        if (now - lastRefresh < CACHE_DURATION) {
+        if (now - lastRefresh < CACHE_DURATION_MS) {
           // Use cached data
           const cachedItems = await dbHelpers.getCachedItems();
           if (cachedItems.length > 0) {
@@ -86,23 +86,7 @@ export const AllItemsProvider = ({ children }) => {
     fetchItems(true); // Force refresh
   }, []);
 
-  const updateItemLikes = useCallback(async (itemId, likeCount) => {
-    setItems((prevItems) =>
-      prevItems.map((current) => {
-        const currentId = current?.id || current?._id;
-        if (currentId === itemId) {
-          return { ...current, likes: likeCount };
-        }
-        return current;
-      })
-    );
-
-    try {
-      await dbHelpers.updateItemLikes(itemId, likeCount);
-    } catch (error) {
-      console.error('Failed to update all items likes:', error);
-    }
-  }, []);
+  const updateItemLikes = useItemLikesSync(setItems);
 
   const value = useMemo(
     () => ({

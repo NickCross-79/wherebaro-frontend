@@ -1,9 +1,9 @@
 import { Text, View, Image } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import TimeIcon from '../../assets/icons/icon_time.svg';
 import styles from '../../styles/components/baro/BaroTimer.styles';
 
-export default function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
+function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
   const [timeRemaining, setTimeRemaining] = useState('');
 
   const formatTimeRemaining = (date) => {
@@ -55,4 +55,6 @@ export default function BaroTimer({ nextArrival, location, centered = false, lab
     </View>
   );
 }
+
+export default memo(BaroTimer);
 

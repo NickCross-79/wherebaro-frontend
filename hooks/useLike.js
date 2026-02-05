@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { likeItem, unlikeItem } from '../services/api';
-
-const LIKE_THROTTLE_MS = 3000;
+import { LIKE_THROTTLE_MS } from '../constants/items';
 
 export const useLike = (initialLiked, initialCount, syncLikeCount) => {
   const [userLiked, setUserLiked] = useState(initialLiked);

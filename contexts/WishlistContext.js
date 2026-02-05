@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { dbHelpers } from '../utils/storage';
+import { useItemLikesSync } from '../hooks/useItemLikesSync';
 
 const WishlistContext = createContext();
 
@@ -72,23 +73,7 @@ export const WishlistProvider = ({ children }) => {
     return currentInventory.filter(item => wishlistIds.includes(item.id || item._id)).length;
   }, [wishlistIds]);
 
-  const updateWishlistLikes = useCallback(async (itemId, likeCount) => {
-    setWishlistItems((prevItems) =>
-      prevItems.map((current) => {
-        const currentId = current?.id || current?._id;
-        if (currentId === itemId) {
-          return { ...current, likes: likeCount };
-        }
-        return current;
-      })
-    );
-
-    try {
-      await dbHelpers.updateItemLikes(itemId, likeCount);
-    } catch (error) {
-      console.error('Failed to update wishlist likes:', error);
-    }
-  }, []);
+  const updateWishlistLikes = useItemLikesSync(setWishlistItems);
 
   const contextValue = useMemo(
     () => ({

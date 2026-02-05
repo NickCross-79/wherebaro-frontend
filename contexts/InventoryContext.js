@@ -4,6 +4,7 @@ import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 import { parseLocation } from '../utils/dateUtils';
 import { sendBaroArrivalNotification, sendWishlistNotification } from '../services/notificationService';
+import { useItemLikesSync } from '../hooks/useItemLikesSync';
 
 const InventoryContext = createContext();
 
@@ -24,7 +25,7 @@ export const InventoryProvider = ({ children }) => {
   const [isHere, setIsHere] = useState(false);
   const previousIsHere = useRef(null);
 
-  const fetchBaroInventory = async (forceRefresh = false) => {
+  const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
 
@@ -156,11 +157,11 @@ export const InventoryProvider = ({ children }) => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBaroInventory();
-  }, []);
+  }, [fetchBaroInventory]);
 
   // Auto-refresh when timer expires
   useEffect(() => {
@@ -180,30 +181,14 @@ export const InventoryProvider = ({ children }) => {
     }, timeUntilExpiry);
 
     return () => clearTimeout(timeoutId);
-  }, [nextArrival]);
+  }, [nextArrival, fetchBaroInventory]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchBaroInventory(true); // Force refresh
-  }, []);
+  }, [fetchBaroInventory]);
 
-  const updateItemLikes = useCallback(async (itemId, likeCount) => {
-    setItems((prevItems) =>
-      prevItems.map((current) => {
-        const currentId = current?.id || current?._id;
-        if (currentId === itemId) {
-          return { ...current, likes: likeCount };
-        }
-        return current;
-      })
-    );
-
-    try {
-      await dbHelpers.updateItemLikes(itemId, likeCount);
-    } catch (error) {
-      console.error('Failed to update cached likes:', error);
-    }
-  }, []);
+  const updateItemLikes = useItemLikesSync(setItems);
 
   const contextValue = useMemo(
     () => ({

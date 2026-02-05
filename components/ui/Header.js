@@ -1,9 +1,10 @@
 import { Text, View } from 'react-native';
+import { memo } from 'react';
 import BaroTimer from '../baro/BaroTimer';
 import NewItemShowcase from '../baro/NewItemShowcase';
 import styles from '../../styles/components/ui/Header.styles';
 
-export default function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, newItem, onNewItemPress, children }) {
+function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, newItem, onNewItemPress, children }) {
   return (
     <View style={styles.header}>
       {showTitle && (
@@ -26,3 +27,4 @@ export default function Header({ nextArrival, nextLocation, isHere = false, show
   );
 }
 
+export default memo(Header);
