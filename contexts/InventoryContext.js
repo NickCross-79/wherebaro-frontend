@@ -7,8 +7,6 @@ import { sendBaroArrivalNotification, sendWishlistNotification } from '../servic
 
 const InventoryContext = createContext();
 
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
-
 export const useInventory = () => {
   const context = useContext(InventoryContext);
   if (!context) {
@@ -97,8 +95,6 @@ export const InventoryProvider = ({ children }) => {
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(sortedItems);
-      await storageHelpers.setLastDataRefresh(Date.now());
-      await storageHelpers.setLastBaroCheck(Date.now());
       
       // Cache Baro state
       await storageHelpers.setBoolean('baroIsHere', baroIsHere);

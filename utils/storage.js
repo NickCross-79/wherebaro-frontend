@@ -117,15 +117,6 @@ export const storageHelpers = {
   },
 
   // App state
-  setLastBaroCheck: async (timestamp) => {
-    await secureStorage.setItem('lastBaroCheck', timestamp.toString());
-  },
-
-  getLastBaroCheck: async () => {
-    const value = await secureStorage.getItem('lastBaroCheck');
-    return parseInt(value || '0', 10);
-  },
-
   setLastDataRefresh: async (timestamp) => {
     await secureStorage.setItem('lastDataRefresh', timestamp.toString());
   },

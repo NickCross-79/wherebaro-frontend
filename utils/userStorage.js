@@ -29,13 +29,6 @@ export const isFirstLaunch = async () => {
 };
 
 /**
- * Get the last time Baro was checked
- */
-export const getLastBaroCheck = async () => {
-  return await storageHelpers.getLastBaroCheck();
-};
-
-/**
  * Get the last data refresh time
  */
 export const getLastDataRefresh = async () => {
@@ -101,7 +94,6 @@ export default {
   getCurrentUsername,
   setCurrentUsername,
   isFirstLaunch,
-  getLastBaroCheck,
   getLastDataRefresh,
   getAppSettings,
   updateAppSettings,
