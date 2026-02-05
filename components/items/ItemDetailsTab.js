@@ -50,6 +50,12 @@ export default function ItemDetailsTab({
         <Text style={styles.categoryText}>{item.type}</Text>
       </View>
 
+      {/* Last Brought Date */}
+      <View style={styles.dateContainer}>
+        <Text style={styles.dateLabel}>Last Brought</Text>
+        <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
+      </View>
+
       {/* Prices */}
       <View style={styles.pricesContainer}>
         <View style={styles.priceBox}>
@@ -76,12 +82,6 @@ export default function ItemDetailsTab({
             {item.ducatPrice || 'N/A'}
           </Text>
         </View>
-      </View>
-
-      {/* Last Brought Date */}
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateLabel}>Last Brought</Text>
-        <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
       </View>
 
       {/* Offering Dates Dropdown */}

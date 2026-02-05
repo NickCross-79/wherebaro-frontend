@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, Linking, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -202,13 +202,6 @@ export default function ItemMarketTab({
 
   const latestPrice = getLatestPrice();
   const marketStats = getMarketStats();
-  const hasRecentMarketData = Boolean(chartData);
-
-  const handleOpenLink = () => {
-    if (item?.link) {
-      Linking.openURL(item.link);
-    }
-  };
 
   return (
     <ScrollView
@@ -600,19 +593,6 @@ export default function ItemMarketTab({
             )}
           </View>
         )}
-        
-        {item?.link ? (
-          <TouchableOpacity 
-            style={styles.marketLink}
-            onPress={handleOpenLink}
-          >
-            <Ionicons name="open-outline" size={20} color="#D4A574" />
-            <Text style={styles.marketLinkText}>View on Warframe Wiki</Text>
-            <Ionicons name="chevron-forward" size={20} color="#D4A574" />
-          </TouchableOpacity>
-        ) : !hasRecentMarketData ? (
-          <Text style={styles.noDataText}>No market information available</Text>
-        ) : null}
       </View>
     </ScrollView>
   );
