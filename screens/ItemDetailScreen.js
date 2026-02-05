@@ -207,6 +207,7 @@ export default function ItemDetailScreen({ route, navigation }) {
         setActiveTab={setActiveTab}
         styles={styles}
         item={item}
+        hasMarketTab={hasMarketTab}
       />
 
       {activeTab === 'details' ? (

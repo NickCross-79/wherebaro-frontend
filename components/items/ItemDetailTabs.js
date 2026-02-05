@@ -2,11 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ItemDetailTabs({ activeTab, setActiveTab, styles, item }) {
-  // Show market tab only for Mod, Weapon, and Void Relic items, excluding Ignis Wraith
-  const showMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
-    category => item.type.toLowerCase().startsWith(category.toLowerCase())
-  ) && item.name !== 'Ignis Wraith';
+export default function ItemDetailTabs({ activeTab, setActiveTab, styles, hasMarketTab }) {
+  const showMarketTab = hasMarketTab;
   return (
     <View style={styles.tabNav}>
       <TouchableOpacity
