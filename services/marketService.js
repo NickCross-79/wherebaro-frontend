@@ -2,7 +2,7 @@
  * Market API service
  */
 
-import { toMarketSlug } from '../utils/marketSlug';
+import { toSlug } from '../utils/slugify';
 
 /**
  * Fetch market data for an item directly from warframe.market
@@ -10,7 +10,7 @@ import { toMarketSlug } from '../utils/marketSlug';
  * @returns {Promise<Object>} Market data from warframe.market
  */
 export const fetchMarketData = async (itemName) => {
-  const slug = toMarketSlug(itemName);
+  const slug = toSlug(itemName);
   const url = `https://api.warframe.market/v1/items/${slug}/statistics`;
   console.log('[Market] Fetching:', url);
   let response;
