@@ -85,16 +85,6 @@ const createTables = async () => {
     `);
     console.log('Wishlist index created');
 
-    // Market data table for caching price history
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS market_data (
-        itemId TEXT PRIMARY KEY,
-        data TEXT NOT NULL,
-        lastFetched TEXT NOT NULL
-      );
-    `);
-    console.log('Market data table created');
-
     const columns = await db.getAllAsync('PRAGMA table_info(items)');
     const hasOfferingDates = columns.some((column) => column.name === 'offeringDates');
     if (!hasOfferingDates) {
@@ -152,43 +142,6 @@ export const storageHelpers = {
   getIsFirstLaunch: async () => {
     const value = await secureStorage.getItem('isFirstLaunch');
     return value !== 'false';
-  },
-
-  // Market data cache - moved to SQLite due to size limitations
-  setMarketData: async (itemId, marketData) => {
-    try {
-      await ensureDb();
-      const lastFetched = new Date().toISOString();
-      const dataJson = JSON.stringify(marketData);
-      
-      await db.runAsync(
-        `INSERT OR REPLACE INTO market_data (itemId, data, lastFetched) VALUES (?, ?, ?)`,
-        [itemId, dataJson, lastFetched]
-      );
-      console.log(`📦 Cached market data for item ${itemId} (${dataJson.length} bytes)`);
-    } catch (error) {
-      console.error('Error caching market data:', error);
-    }
-  },
-
-  getMarketData: async (itemId) => {
-    try {
-      await ensureDb();
-      const result = await db.getFirstAsync(
-        `SELECT data, lastFetched FROM market_data WHERE itemId = ?`,
-        [itemId]
-      );
-      
-      if (!result) return null;
-      
-      return {
-        data: JSON.parse(result.data),
-        lastFetched: result.lastFetched
-      };
-    } catch (error) {
-      console.error('Error reading cached market data:', error);
-      return null;
-    }
   },
 
   // Filter settings
