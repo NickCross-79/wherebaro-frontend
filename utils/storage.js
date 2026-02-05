@@ -210,6 +210,14 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const itemId = item.id || item._id;
+      const now = Date.now();
+      // Check if item already exists to preserve createdAt
+      const existingItem = await db.getFirstAsync(
+        `SELECT createdAt FROM items WHERE id = ? OR _id = ?`,
+        [itemId, itemId]
+      );
+      const createdAt = existingItem?.createdAt || now;
+
       await db.runAsync(
         `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -225,8 +233,8 @@ export const dbHelpers = {
           JSON.stringify(item.reviews || []),
           JSON.stringify(item.offeringDates || []),
           1, // inWishlist = true
-          Date.now(),
-          Date.now(),
+          createdAt, // Preserve original createdAt or set to now
+          now,
         ]
       );
     } catch (error) {
@@ -300,16 +308,17 @@ export const dbHelpers = {
       const now = Date.now();
       for (const item of items) {
         const itemId = item.id || item._id;
-        // Check if item is already in wishlist
+        // Check if item already exists to preserve inWishlist and createdAt
         const existingItem = await db.getFirstAsync(
-          `SELECT inWishlist FROM items WHERE id = ? OR _id = ?`,
+          `SELECT inWishlist, createdAt FROM items WHERE id = ? OR _id = ?`,
           [itemId, itemId]
         );
         const inWishlist = existingItem?.inWishlist || 0;
+        const createdAt = existingItem?.createdAt || now;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -322,6 +331,7 @@ export const dbHelpers = {
             JSON.stringify(item.reviews || []),
             JSON.stringify(item.offeringDates || []),
             inWishlist, // Preserve wishlist flag
+            createdAt, // Preserve original createdAt or set to now
             now,
           ]
         );
@@ -336,7 +346,7 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const result = await db.getAllAsync(
-        `SELECT * FROM items ORDER BY cachedAt DESC`
+        `SELECT * FROM items ORDER BY id ASC`
       );
       return result.map((row) => ({
         ...row,
