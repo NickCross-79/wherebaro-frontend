@@ -5,6 +5,71 @@ import { useItemLikesSync } from '../hooks/useItemLikesSync';
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 
+/**
+ * Extracts the last segment from a uniqueName path.
+ * e.g. "/Lotus/StoreItems/Types/Items/ShipDecos/Foo" -> "Foo"
+ */
+const getUniqueNameSuffix = (uniqueName) => {
+  if (!uniqueName) return '';
+  const parts = uniqueName.split('/');
+  return parts[parts.length - 1];
+};
+
+/**
+ * Build a Map of uniqueName suffix -> cached item for fast matching.
+ */
+const buildSuffixMap = (cachedItems) => {
+  const map = new Map();
+  for (const item of cachedItems) {
+    if (item.uniqueName) {
+      const suffix = getUniqueNameSuffix(item.uniqueName);
+      if (suffix) {
+        map.set(suffix.toLowerCase(), item);
+      }
+    }
+  }
+  return map;
+};
+
+/**
+ * Match Baro API inventory items to cached all-items using uniqueName suffix.
+ * Falls back to name matching if uniqueName is not available.
+ */
+const matchInventoryItems = (inventory, cachedItems) => {
+  const suffixMap = buildSuffixMap(cachedItems);
+  const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
+
+  return inventory.map(invItem => {
+    // Primary: match by uniqueName suffix
+    const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
+    let fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
+
+    // Fallback: match by name
+    if (!fullItem && invItem.item) {
+      fullItem = nameMap.get(invItem.item.toLowerCase());
+    }
+
+    if (!fullItem) {
+      return {
+        name: invItem.item,
+        image: '',
+        creditPrice: invItem.credits,
+        ducatPrice: invItem.ducats,
+        type: 'Unknown',
+        offeringDates: [],
+        likes: [],
+        reviews: []
+      };
+    }
+
+    return {
+      ...fullItem,
+      creditPrice: invItem.credits,
+      ducatPrice: invItem.ducats
+    };
+  });
+};
+
 const InventoryContext = createContext();
 
 export const useInventory = () => {
@@ -43,30 +108,9 @@ export const InventoryProvider = ({ children }) => {
           } else {
             console.log('Using cached Baro response');
             
-            // Match Baro inventory with cached all items
+            // Match Baro inventory with cached all items using uniqueName
             const allCachedItems = await dbHelpers.getCachedItems();
-            const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
-            
-            const matchedItems = cachedBaroResponse.inventory.map(invItem => {
-              const fullItem = itemsByName.get(invItem.item.toLowerCase());
-              if (!fullItem) {
-                return {
-                  name: invItem.item,
-                  image: '',
-                  creditPrice: invItem.credits,
-                  ducatPrice: invItem.ducats,
-                  type: 'Unknown',
-                  offeringDates: [],
-                  likes: [],
-                  reviews: []
-                };
-              }
-              return {
-                ...fullItem,
-                creditPrice: invItem.credits,
-                ducatPrice: invItem.ducats
-              };
-            });
+            const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, allCachedItems);
             
             setItems(matchedItems);
             setIsHere(cachedBaroResponse.isActive);
@@ -108,30 +152,9 @@ export const InventoryProvider = ({ children }) => {
         isActive: isBaroActive
       });
 
-      // Match Baro inventory with cached all items
+      // Match Baro inventory with cached all items using uniqueName
       const allCachedItems = await dbHelpers.getCachedItems();
-      const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
-      
-      const matchedItems = baroData.inventory.map(invItem => {
-        const fullItem = itemsByName.get(invItem.item.toLowerCase());
-        if (!fullItem) {
-          return {
-            name: invItem.item,
-            image: '',
-            creditPrice: invItem.credits,
-            ducatPrice: invItem.ducats,
-            type: 'Unknown',
-            offeringDates: [],
-            likes: [],
-            reviews: []
-          };
-        }
-        return {
-          ...fullItem,
-          creditPrice: invItem.credits,
-          ducatPrice: invItem.ducats
-        };
-      });
+      const matchedItems = matchInventoryItems(baroData.inventory, allCachedItems);
 
       setItems(matchedItems);
       setIsHere(isBaroActive);
@@ -150,28 +173,7 @@ export const InventoryProvider = ({ children }) => {
           console.log('Using cached Baro response on error');
           
           const allCachedItems = await dbHelpers.getCachedItems();
-          const itemsByName = new Map(allCachedItems.map(item => [item.name.toLowerCase(), item]));
-          
-          const matchedItems = cachedBaroResponse.inventory.map(invItem => {
-            const fullItem = itemsByName.get(invItem.item.toLowerCase());
-            if (!fullItem) {
-              return {
-                name: invItem.item,
-                image: '',
-                creditPrice: invItem.credits,
-                ducatPrice: invItem.ducats,
-                type: 'Unknown',
-                offeringDates: [],
-                likes: [],
-                reviews: []
-              };
-            }
-            return {
-              ...fullItem,
-              creditPrice: invItem.credits,
-              ducatPrice: invItem.ducats
-            };
-          });
+          const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, allCachedItems);
           
           setItems(matchedItems);
           setIsHere(cachedBaroResponse.isActive);

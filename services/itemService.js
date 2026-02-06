@@ -23,6 +23,15 @@ const isBaroActive = (activation, expiry) => {
 };
 
 /**
+ * Extracts the last segment from a uniqueName path.
+ */
+const getUniqueNameSuffix = (uniqueName) => {
+  if (!uniqueName) return '';
+  const parts = uniqueName.split('/');
+  return parts[parts.length - 1];
+};
+
+/**
  * Fetch current Baro inventory from warframestat.us API
  * @returns {Promise<Object>} Current Baro data
  */
@@ -38,14 +47,27 @@ export const fetchCurrentBaro = async () => {
     // Fetch all items from our backend to get full metadata
     const allItems = await fetchAllItems();
 
-    // Create a map of items by name for quick lookup
-    const itemsByName = new Map(allItems.map(item => [item.name, item]));
+    // Build uniqueName suffix map for matching
+    const itemsBySuffix = new Map();
+    for (const item of allItems) {
+      if (item.uniqueName) {
+        const suffix = getUniqueNameSuffix(item.uniqueName)?.toLowerCase();
+        if (suffix) itemsBySuffix.set(suffix, item);
+      }
+    }
+    // Fallback name map
+    const itemsByName = new Map(allItems.map(item => [item.name?.toLowerCase(), item]));
 
-    // Match inventory items to our database
+    // Match inventory items using uniqueName suffix, fallback to name
     const items = baroData.inventory.map(inventoryItem => {
-      const fullItem = itemsByName.get(inventoryItem.item);
+      const invSuffix = getUniqueNameSuffix(inventoryItem.uniqueName)?.toLowerCase();
+      let fullItem = invSuffix ? itemsBySuffix.get(invSuffix) : null;
+
+      if (!fullItem && inventoryItem.item) {
+        fullItem = itemsByName.get(inventoryItem.item.toLowerCase());
+      }
+
       if (!fullItem) {
-        // If item not found in database, create a minimal item
         return {
           name: inventoryItem.item,
           image: '',
@@ -58,7 +80,6 @@ export const fetchCurrentBaro = async () => {
           reviews: []
         };
       }
-      // Return full item with prices from Baro API
       return {
         ...fullItem,
         creditPrice: inventoryItem.credits,

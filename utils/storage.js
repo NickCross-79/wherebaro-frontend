@@ -72,6 +72,7 @@ const createTables = async () => {
         likes TEXT,
         reviews TEXT,
         offeringDates TEXT,
+        uniqueName TEXT,
         inWishlist INTEGER DEFAULT 0,
         createdAt INTEGER,
         cachedAt INTEGER
@@ -89,6 +90,10 @@ const createTables = async () => {
     const hasOfferingDates = columns.some((column) => column.name === 'offeringDates');
     if (!hasOfferingDates) {
       await db.execAsync('ALTER TABLE items ADD COLUMN offeringDates TEXT;');
+    }
+    const hasUniqueName = columns.some((column) => column.name === 'uniqueName');
+    if (!hasUniqueName) {
+      await db.execAsync('ALTER TABLE items ADD COLUMN uniqueName TEXT;');
     }
   } catch (error) {
     console.error('Error creating tables:', error);
@@ -332,8 +337,8 @@ export const dbHelpers = {
         const createdAt = existingItem?.createdAt || now;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, inWishlist, createdAt, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -345,6 +350,7 @@ export const dbHelpers = {
             JSON.stringify(item.likes || []),
             JSON.stringify(item.reviews || []),
             JSON.stringify(item.offeringDates || []),
+            item.uniqueName || null,
             inWishlist, // Preserve wishlist flag
             createdAt, // Preserve original createdAt or set to now
             now,

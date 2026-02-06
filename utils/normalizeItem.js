@@ -22,6 +22,7 @@ export const normalizeItem = (item, options = {}) => {
     ducatPrice: item?.ducatPrice,
     type: item?.type,
     offeringDates,
+    uniqueName: item?.uniqueName || null,
     likes: Array.isArray(item?.likes) ? item.likes.length : item?.likes || 0,
     reviews: item?.reviews || [],
   };
