@@ -45,6 +45,7 @@ export const registerForPushNotifications = async () => {
     // Get Expo push token
     const tokenData = await Notifications.getExpoPushTokenAsync();
     const token = tokenData.data;
+    console.log('Device push token:', token);
 
     // Check if token changed
     const storedToken = await storageHelpers.get('expoPushToken');
@@ -64,12 +65,22 @@ export const registerForPushNotifications = async () => {
     }
 
     // Send token to backend
-    await registerPushToken(token);
+    console.log('Registering push token with backend...');
+    try {
+      // Get device UID to associate with token
+      const deviceId = await storageHelpers.getOrCreateUID();
+      await registerPushToken(token, deviceId);
+      console.log('Push token registered successfully');
+    } catch (backendError) {
+      console.error('Failed to register token with backend:', backendError);
+      // Don't store token if backend registration failed
+      throw backendError;
+    }
     
-    // Store token locally
+    // Store token locally only after successful backend registration
     await storageHelpers.set('expoPushToken', token);
     
-    console.log('Push token registered:', token);
+    console.log('Push token stored locally');
     return token;
 
   } catch (error) {
