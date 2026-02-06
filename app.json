@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "com.wherebaro.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/imgs/logo_baro.png",
         "backgroundColor": "#0A0E1A"
