@@ -1,9 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
+import { storageHelpers } from '../utils/storage';
 import styles from '../styles/screens/SettingsScreen.styles';
 
 export default function SettingsScreen({ navigation }) {
@@ -13,6 +14,7 @@ export default function SettingsScreen({ navigation }) {
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [displayName, setDisplayName] = useState('Anonymous');
+  const [deviceId, setDeviceId] = useState('');
   const insets = useSafeAreaInsets();
 
   // Load username and settings on mount
@@ -27,8 +29,13 @@ export default function SettingsScreen({ navigation }) {
       setWishlistAlerts(settings.wishlistAlerts);
       setAutoRefresh(settings.autoRefresh);
     };
+    const loadDeviceId = async () => {
+      const uid = await storageHelpers.getOrCreateUID();
+      setDeviceId(uid);
+    };
     loadUsername();
     loadSettings();
+    loadDeviceId();
   }, []);
 
   // Save username when it changes
@@ -146,6 +153,20 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingLabel}>Version</Text>
             <Text style={styles.settingValue}>1.0.0</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => Alert.alert(
+              'Device ID',
+              deviceId,
+              [
+                { text: 'OK' }
+              ]
+            )}
+          >
+            <Text style={styles.settingLabel}>Device ID</Text>
+            <Text style={styles.settingValue}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

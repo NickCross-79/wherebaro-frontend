@@ -83,6 +83,13 @@ const styles = StyleSheet.create({
     color: '#9BA5B8',
     fontWeight: '600',
   },
+  deviceIdValue: {
+    fontSize: 11,
+    color: '#9BA5B8',
+    fontWeight: '500',
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
   textInput: {
     marginTop: 12,
     backgroundColor: '#151B23',
