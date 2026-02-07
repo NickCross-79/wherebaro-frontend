@@ -16,7 +16,7 @@ export default function BaroScreen({ navigation }) {
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
-  const { items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
+  const { items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
 
   const finalItems = applyAllFilters(items, searchQuery, filters);
 
@@ -29,6 +29,11 @@ export default function BaroScreen({ navigation }) {
 
   if (loading && !refreshing) {
     return <LoadingScreen />;
+  }
+
+  // Show syncing screen when transitioning to Baro active state
+  if (syncing) {
+    return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
   }
 
   // Show absent screen when Baro is not here

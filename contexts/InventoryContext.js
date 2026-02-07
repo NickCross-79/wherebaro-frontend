@@ -3,6 +3,7 @@ import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
 import { useAllItems } from './AllItemsContext';
+import { fetchBaroStatus } from '../services/itemService';
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 
@@ -52,6 +53,7 @@ const matchInventoryItems = (inventory, cachedItems) => {
 
     if (!fullItem) {
       return {
+        _unmatched: true,
         name: invItem.item,
         image: '',
         creditPrice: invItem.credits,
@@ -71,21 +73,6 @@ const matchInventoryItems = (inventory, cachedItems) => {
   });
 };
 
-/**
- * Calculate ms delay until the next 9:01 AM EST.
- * Returns 0 if we're already past 9:01 AM EST today.
- */
-const getDelayUntil901EST = () => {
-  const now = new Date();
-  // Build 9:01 AM EST (UTC-5) today → 14:01 UTC
-  const target = new Date(now);
-  target.setUTCHours(14, 1, 0, 0);
-
-  // If already past 9:01 AM EST, fire immediately
-  if (now >= target) return 0;
-  return target.getTime() - now.getTime();
-};
-
 const InventoryContext = createContext();
 
 export const useInventory = () => {
@@ -103,7 +90,11 @@ export const InventoryProvider = ({ children }) => {
   const [nextArrival, setNextArrival] = useState(null);
   const [nextLocation, setNextLocation] = useState(null);
   const [isHere, setIsHere] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const rawInventoryRef = useRef(null);
+  const unmatchedRetryRef = useRef(0);
+  const unmatchedTimerRef = useRef(null);
+  const pollTimerRef = useRef(null);
   const { items: allItems, loading: allItemsLoading, refreshInBackground } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
@@ -225,8 +216,23 @@ export const InventoryProvider = ({ children }) => {
       console.log('AllItems loaded, re-matching Baro inventory');
       const matchedItems = matchInventoryItems(rawInventoryRef.current, allItems);
       setItems(matchedItems);
+
+      // Check if unmatched items remain and retry if needed
+      const hasUnmatched = matchedItems.some(item => item._unmatched);
+      if (hasUnmatched && unmatchedRetryRef.current < 5) {
+        unmatchedRetryRef.current += 1;
+        const delay = unmatchedRetryRef.current * 30_000; // 30s, 60s, 90s, 120s, 150s
+        console.log(`${matchedItems.filter(i => i._unmatched).length} unmatched items remain, retrying allItems refresh in ${delay / 1000}s (attempt ${unmatchedRetryRef.current}/5)`);
+        unmatchedTimerRef.current = setTimeout(() => refreshInBackground(), delay);
+      } else if (!hasUnmatched) {
+        unmatchedRetryRef.current = 0; // Reset on full match
+        setSyncing(false);
+      }
     }
-  }, [allItems, allItemsLoading]);
+    return () => {
+      if (unmatchedTimerRef.current) clearTimeout(unmatchedTimerRef.current);
+    };
+  }, [allItems, allItemsLoading, refreshInBackground]);
 
   // Auto-refresh when timer expires
   useEffect(() => {
@@ -242,22 +248,63 @@ export const InventoryProvider = ({ children }) => {
 
     const timeoutId = setTimeout(() => {
       console.log('Timer expired, auto-refreshing Baro data...');
-      fetchBaroInventory(true);
 
-      // When Baro arrives (absent timer hit 0), schedule a background
-      // refresh of all items so offering dates and new item data are captured.
-      // Delay until 9:01 AM EST to give the backend time to process.
+      // When Baro is arriving (absent timer hit 0), show syncing state
+      // and poll our backend until it confirms Baro is active.
       if (!isHere) {
-        const msUntil901EST = getDelayUntil901EST();
-        console.log(`Scheduling background all-items refresh in ${Math.round(msUntil901EST / 1000)}s`);
-        setTimeout(() => {
-          refreshInBackground();
-        }, msUntil901EST);
+        setSyncing(true);
+        fetchBaroInventory(true);
+
+        let attempts = 0;
+        const maxAttempts = 20; // 20 * 20s = ~6.5 min max
+
+        const poll = async () => {
+          attempts++;
+          try {
+            console.log(`Polling backend for Baro status (attempt ${attempts}/${maxAttempts})`);
+            const status = await fetchBaroStatus();
+            if (status.isActive) {
+              console.log('Backend confirms Baro is active, refreshing allItems then Baro inventory');
+              await refreshInBackground();
+              await fetchBaroInventory(true);
+              setSyncing(false);
+              return; // Stop polling
+            }
+          } catch (err) {
+            console.warn('Baro status poll failed:', err.message);
+          }
+
+          if (attempts < maxAttempts) {
+            pollTimerRef.current = setTimeout(poll, 20_000);
+          } else {
+            console.log('Max poll attempts reached, falling back to direct refresh');
+            refreshInBackground();
+            setSyncing(false);
+          }
+        };
+
+        poll();
+      } else {
+        fetchBaroInventory(true);
       }
     }, timeUntilExpiry);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
   }, [nextArrival, fetchBaroInventory, isHere, refreshInBackground]);
+
+  // On cold start: if Baro is here and there are unmatched items, enter syncing state
+  useEffect(() => {
+    if (!loading && isHere && items.length > 0) {
+      const hasUnmatched = items.some(item => item._unmatched);
+      if (hasUnmatched) {
+        console.log('Cold start: Baro is here with unmatched items, entering syncing state');
+        setSyncing(true);
+      }
+    }
+  }, [loading, isHere]); // Only on initial load, not every items change
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -271,13 +318,14 @@ export const InventoryProvider = ({ children }) => {
       items,
       loading,
       refreshing,
+      syncing,
       nextArrival,
       nextLocation,
       isHere,
       onRefresh,
       updateItemLikes,
     }),
-    [items, loading, refreshing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes]
+    [items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes]
   );
 
   return (

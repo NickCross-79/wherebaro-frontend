@@ -5,6 +5,7 @@ import { buildUrl, apiFetch } from './apiConfig';
 
 const ENDPOINTS = {
   GET_ALL_ITEMS: buildUrl('getAllItems'),
+  GET_CURRENT: buildUrl('getCurrent'),
 };
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
@@ -101,6 +102,14 @@ export const fetchCurrentBaro = async () => {
 };
 
 /**
+ * Fetch Baro status from our backend (lightweight check).
+ * Returns { isActive, activation, expiry, location, items }
+ */
+export const fetchBaroStatus = async () => {
+  return apiFetch(ENDPOINTS.GET_CURRENT);
+};
+
+/**
  * Fetch all items
  * @returns {Promise<Array>} Array of all items
  */
@@ -111,4 +120,5 @@ export const fetchAllItems = async () => {
 export default {
   fetchCurrentBaro,
   fetchAllItems,
+  fetchBaroStatus,
 };
