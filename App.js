@@ -305,8 +305,8 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <WishlistProvider>
-          <InventoryProvider>
-            <AllItemsProvider>
+          <AllItemsProvider>
+            <InventoryProvider>
               <StatusBar 
                 barStyle="light-content" 
                 backgroundColor="#0F1419" 
@@ -318,8 +318,8 @@ export default function App() {
               >
                 <TabNavigatorWithSafeArea isItemDetailActive={isItemDetailActive} />
               </NavigationContainer>
-            </AllItemsProvider>
-          </InventoryProvider>
+            </InventoryProvider>
+          </AllItemsProvider>
         </WishlistProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

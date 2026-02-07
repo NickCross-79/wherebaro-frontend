@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import { useAllItems } from './AllItemsContext';
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 
@@ -87,6 +88,8 @@ export const InventoryProvider = ({ children }) => {
   const [nextArrival, setNextArrival] = useState(null);
   const [nextLocation, setNextLocation] = useState(null);
   const [isHere, setIsHere] = useState(false);
+  const rawInventoryRef = useRef(null);
+  const { items: allItems, loading: allItemsLoading } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
@@ -108,9 +111,12 @@ export const InventoryProvider = ({ children }) => {
           } else {
             console.log('Using cached Baro response');
             
-            // Match Baro inventory with cached all items using uniqueName
-            const allCachedItems = await dbHelpers.getCachedItems();
-            const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, allCachedItems);
+            // Store raw inventory for re-matching when allItems loads
+            rawInventoryRef.current = cachedBaroResponse.inventory;
+            
+            // Match Baro inventory with all items from context (or SQLite fallback)
+            const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+            const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
             
             setItems(matchedItems);
             setIsHere(cachedBaroResponse.isActive);
@@ -152,9 +158,12 @@ export const InventoryProvider = ({ children }) => {
         isActive: isBaroActive
       });
 
-      // Match Baro inventory with cached all items using uniqueName
-      const allCachedItems = await dbHelpers.getCachedItems();
-      const matchedItems = matchInventoryItems(baroData.inventory, allCachedItems);
+      // Store raw inventory for re-matching when allItems loads
+      rawInventoryRef.current = baroData.inventory;
+      
+      // Match Baro inventory with all items from context (or SQLite fallback)
+      const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+      const matchedItems = matchInventoryItems(baroData.inventory, itemsToMatch);
 
       setItems(matchedItems);
       setIsHere(isBaroActive);
@@ -172,8 +181,9 @@ export const InventoryProvider = ({ children }) => {
         if (cachedBaroResponse) {
           console.log('Using cached Baro response on error');
           
-          const allCachedItems = await dbHelpers.getCachedItems();
-          const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, allCachedItems);
+          rawInventoryRef.current = cachedBaroResponse.inventory;
+          const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+          const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
           
           setItems(matchedItems);
           setIsHere(cachedBaroResponse.isActive);
@@ -193,6 +203,15 @@ export const InventoryProvider = ({ children }) => {
   useEffect(() => {
     fetchBaroInventory();
   }, [fetchBaroInventory]);
+
+  // Re-match inventory items when allItems finishes loading
+  useEffect(() => {
+    if (!allItemsLoading && allItems.length > 0 && rawInventoryRef.current) {
+      console.log('AllItems loaded, re-matching Baro inventory');
+      const matchedItems = matchInventoryItems(rawInventoryRef.current, allItems);
+      setItems(matchedItems);
+    }
+  }, [allItems, allItemsLoading]);
 
   // Auto-refresh when timer expires
   useEffect(() => {
