@@ -106,7 +106,10 @@ export const fetchCurrentBaro = async () => {
  * Returns { isActive, activation, expiry, location, items }
  */
 export const fetchBaroStatus = async () => {
-  return apiFetch(ENDPOINTS.GET_CURRENT);
+  console.log(`[ItemService] Fetching Baro status from: ${ENDPOINTS.GET_CURRENT}`);
+  const result = await apiFetch(ENDPOINTS.GET_CURRENT);
+  console.log(`[ItemService] Baro status: isActive=${result.isActive}, items=${result.items?.length || 0}`);
+  return result;
 };
 
 /**

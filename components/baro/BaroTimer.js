@@ -16,13 +16,14 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`;
     } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
+      return `${hours}h ${minutes}m ${seconds}s`;
     } else {
-      return `${minutes}m`;
+      return `${minutes}m ${seconds}s`;
     }
   };
 
@@ -30,10 +31,10 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
     // Update timer immediately
     setTimeRemaining(formatTimeRemaining(nextArrival));
     
-    // Update every minute
+    // Update every second for accurate countdown
     const interval = setInterval(() => {
       setTimeRemaining(formatTimeRemaining(nextArrival));
-    }, 60000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [nextArrival]);

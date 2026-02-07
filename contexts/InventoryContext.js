@@ -4,8 +4,7 @@ import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
 import { useAllItems } from './AllItemsContext';
 import { fetchBaroStatus } from '../services/itemService';
-
-const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
+import { fetchBaroData, isBaroActive } from '../services/baroService';
 
 /**
  * Extracts the last segment from a uniqueName path.
@@ -41,17 +40,24 @@ const matchInventoryItems = (inventory, cachedItems) => {
   const suffixMap = buildSuffixMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
 
-  return inventory.map(invItem => {
+  let matchedBySuffix = 0, matchedByName = 0, unmatched = 0;
+
+  const results = inventory.map(invItem => {
     // Primary: match by uniqueName suffix
     const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
     let fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
 
-    // Fallback: match by name
-    if (!fullItem && invItem.item) {
+    if (fullItem) {
+      matchedBySuffix++;
+    } else if (invItem.item) {
+      // Fallback: match by name
       fullItem = nameMap.get(invItem.item.toLowerCase());
+      if (fullItem) matchedByName++;
     }
 
     if (!fullItem) {
+      unmatched++;
+      console.log(`[Baro] ❌ Unmatched item: "${invItem.item}" (suffix: ${invSuffix || 'none'})`);
       return {
         _unmatched: true,
         name: invItem.item,
@@ -71,6 +77,9 @@ const matchInventoryItems = (inventory, cachedItems) => {
       ducatPrice: invItem.ducats
     };
   });
+
+  console.log(`[Baro] Match results: ${matchedBySuffix} by suffix, ${matchedByName} by name, ${unmatched} unmatched (${inventory.length} total)`);
+  return results;
 };
 
 const InventoryContext = createContext();
@@ -95,11 +104,14 @@ export const InventoryProvider = ({ children }) => {
   const unmatchedRetryRef = useRef(0);
   const unmatchedTimerRef = useRef(null);
   const pollTimerRef = useRef(null);
+  const prevAllItemsCountRef = useRef(0);
   const { items: allItems, loading: allItemsLoading, refreshInBackground } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
+
+      console.log(`[Baro] fetchBaroInventory called (forceRefresh=${forceRefresh})`);
 
       // Check cache first if not forcing refresh
       if (!forceRefresh) {
@@ -121,7 +133,9 @@ export const InventoryProvider = ({ children }) => {
             rawInventoryRef.current = cachedBaroResponse.inventory;
             
             // Match Baro inventory with all items from context (or SQLite fallback)
+            const matchSource = allItems.length > 0 ? 'context' : 'SQLite';
             const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+            console.log(`[Baro] Matching ${cachedBaroResponse.inventory.length} cached inventory items against ${itemsToMatch.length} items (source: ${matchSource})`);
             const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
             
             setItems(matchedItems);
@@ -129,7 +143,7 @@ export const InventoryProvider = ({ children }) => {
             setNextArrival(nextDate ? new Date(nextDate) : null);
             setNextLocation(parseLocation(cachedBaroResponse.location));
             
-            console.log('Restored Baro state from cache:', { 
+            console.log('[Baro] Restored from cache:', { 
               isHere: cachedBaroResponse.isActive, 
               nextDate, 
               location: cachedBaroResponse.location 
@@ -143,17 +157,13 @@ export const InventoryProvider = ({ children }) => {
         }
       }
 
-      // Fetch Baro data from Warframestat API
-      const baroResponse = await fetch(BARO_API_URL);
-      if (!baroResponse.ok) {
-        throw new Error(`Failed to fetch Baro data: ${baroResponse.status}`);
-      }
-      const baroData = await baroResponse.json();
+      // Fetch Baro data from API (or mock in simulation mode)
+      console.log('[Baro] Fetching fresh Baro data from API...');
+      const baroData = await fetchBaroData();
 
       const now = new Date();
-      const activation = new Date(baroData.activation);
-      const expiry = new Date(baroData.expiry);
-      const isBaroActive = now >= activation && now < expiry;
+      const isBaroCurrentlyActive = isBaroActive(baroData.activation, baroData.expiry);
+      console.log(`[Baro] API response: isActive=${isBaroCurrentlyActive}, inventory=${baroData.inventory?.length || 0} items, activation=${baroData.activation}, expiry=${baroData.expiry}`);
 
       // Cache the raw Baro API response
       await storageHelpers.setBaroResponse({
@@ -161,21 +171,23 @@ export const InventoryProvider = ({ children }) => {
         activation: baroData.activation,
         expiry: baroData.expiry,
         location: baroData.location,
-        isActive: isBaroActive
+        isActive: isBaroCurrentlyActive
       });
 
       // Store raw inventory for re-matching when allItems loads
       rawInventoryRef.current = baroData.inventory;
       
       // Match Baro inventory with all items from context (or SQLite fallback)
+      const matchSource = allItems.length > 0 ? 'context' : 'SQLite';
       const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+      console.log(`[Baro] Matching ${baroData.inventory?.length || 0} inventory items against ${itemsToMatch.length} items (source: ${matchSource})`);
       const matchedItems = matchInventoryItems(baroData.inventory, itemsToMatch);
 
       setItems(matchedItems);
-      setIsHere(isBaroActive);
+      setIsHere(isBaroCurrentlyActive);
 
-      const nextDate = isBaroActive ? baroData.expiry : baroData.activation;
-      console.log('Setting nextArrival:', { nextDate, isBaroActive });
+      const nextDate = isBaroCurrentlyActive ? baroData.expiry : baroData.activation;
+      console.log(`[Baro] State set: isHere=${isBaroCurrentlyActive}, nextArrival=${nextDate}`);
       setNextArrival(nextDate ? new Date(nextDate) : null);
       setNextLocation(parseLocation(baroData.location));
     } catch (error) {
@@ -210,10 +222,14 @@ export const InventoryProvider = ({ children }) => {
     fetchBaroInventory();
   }, [fetchBaroInventory]);
 
-  // Re-match inventory items when allItems finishes loading
+  // Re-match inventory items when allItems count actually changes (not just reference)
   useEffect(() => {
-    if (!allItemsLoading && allItems.length > 0 && rawInventoryRef.current) {
-      console.log('AllItems loaded, re-matching Baro inventory');
+    if (!allItemsLoading && allItems.length > 0 && rawInventoryRef.current && rawInventoryRef.current.length > 0) {
+      // Only re-match if item count changed (new items added/removed, not just likes updated)
+      if (allItems.length === prevAllItemsCountRef.current) return;
+      prevAllItemsCountRef.current = allItems.length;
+
+      console.log(`[Baro] Re-match triggered: allItems=${allItems.length}, rawInventory=${rawInventoryRef.current.length}`);
       const matchedItems = matchInventoryItems(rawInventoryRef.current, allItems);
       setItems(matchedItems);
 
@@ -244,16 +260,16 @@ export const InventoryProvider = ({ children }) => {
     // If the time has already passed, don't set a timeout
     if (timeUntilExpiry <= 0) return;
 
-    console.log(`Setting auto-refresh timer for ${Math.round(timeUntilExpiry / 1000)}s`);
+    console.log(`[Baro] Auto-refresh timer set: ${Math.round(timeUntilExpiry / 1000)}s until ${nextArrival.toISOString()} (isHere=${isHere})`);
 
     const timeoutId = setTimeout(() => {
-      console.log('Timer expired, auto-refreshing Baro data...');
+      console.log(`[Baro] ⏰ Timer expired! isHere=${isHere}, starting ${isHere ? 'departure' : 'arrival'} flow`);
 
       // When Baro is arriving (absent timer hit 0), show syncing state
       // and poll our backend until it confirms Baro is active.
       if (!isHere) {
+        console.log('[Baro] Entering syncing state, beginning poll loop...');
         setSyncing(true);
-        fetchBaroInventory(true);
 
         let attempts = 0;
         const maxAttempts = 20; // 20 * 20s = ~6.5 min max
@@ -261,10 +277,11 @@ export const InventoryProvider = ({ children }) => {
         const poll = async () => {
           attempts++;
           try {
-            console.log(`Polling backend for Baro status (attempt ${attempts}/${maxAttempts})`);
+            console.log(`[Baro] 🔄 Polling backend (attempt ${attempts}/${maxAttempts})...`);
             const status = await fetchBaroStatus();
+            console.log(`[Baro] Poll response: isActive=${status.isActive}, items=${status.items?.length || 0}`);
             if (status.isActive) {
-              console.log('Backend confirms Baro is active, refreshing allItems then Baro inventory');
+              console.log('[Baro] ✅ Backend confirms Baro is active! Refreshing allItems then inventory...');
               await refreshInBackground();
               await fetchBaroInventory(true);
               setSyncing(false);
@@ -275,9 +292,10 @@ export const InventoryProvider = ({ children }) => {
           }
 
           if (attempts < maxAttempts) {
+            console.log(`[Baro] Backend not ready yet, next poll in 20s...`);
             pollTimerRef.current = setTimeout(poll, 20_000);
           } else {
-            console.log('Max poll attempts reached, falling back to direct refresh');
+            console.log('[Baro] ⚠️ Max poll attempts reached, falling back to direct refresh');
             refreshInBackground();
             setSyncing(false);
           }
@@ -285,6 +303,7 @@ export const InventoryProvider = ({ children }) => {
 
         poll();
       } else {
+        console.log('[Baro] Baro departure timer expired, refreshing...');
         fetchBaroInventory(true);
       }
     }, timeUntilExpiry);

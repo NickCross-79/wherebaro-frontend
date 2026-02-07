@@ -23,6 +23,7 @@ export const AllItemsProvider = ({ children }) => {
 
   const fetchItems = async (forceRefresh = false) => {
     try {
+      console.log(`[AllItems] fetchItems called (forceRefresh=${forceRefresh})`);
       setError(null);
 
       // Check cache first if not forcing refresh
@@ -38,7 +39,7 @@ export const AllItemsProvider = ({ children }) => {
               (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
             );
             if (hasOfferingDates) {
-              console.log('Using cached all items');
+              console.log(`[AllItems] Using cached items (${cachedItems.length} items)`);
               setItems(cachedItems);
               setLoading(false);
               setRefreshing(false);
@@ -48,14 +49,17 @@ export const AllItemsProvider = ({ children }) => {
         }
       }
 
+      console.log('[AllItems] Fetching from backend API...');
       const data = await fetchAllItems();
       const normalized = data.map(normalizeItem);
+      console.log(`[AllItems] Received ${normalized.length} items from API, caching...`);
       
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(normalized);
       await storageHelpers.setLastDataRefresh(Date.now());
       
+      console.log(`[AllItems] Cache updated with ${normalized.length} items`);
       setItems(normalized);
     } catch (err) {
       console.error('Error fetching items:', err);
@@ -87,9 +91,14 @@ export const AllItemsProvider = ({ children }) => {
   }, []);
 
   // Silent background refresh — no loading/refreshing UI state changes
-  const refreshInBackground = useCallback(() => {
-    console.log('Starting background refresh of all items');
-    fetchItems(true).catch(err => console.error('Background refresh failed:', err));
+  const refreshInBackground = useCallback(async () => {
+    console.log('[AllItems] 🔄 Starting background refresh...');
+    try {
+      await fetchItems(true);
+      console.log('[AllItems] ✅ Background refresh complete');
+    } catch (err) {
+      console.error('[AllItems] ❌ Background refresh failed:', err);
+    }
   }, []);
 
   const updateItemLikes = useItemLikesSync(setItems);

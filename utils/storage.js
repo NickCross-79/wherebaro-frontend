@@ -36,6 +36,13 @@ export const secureStorage = new SecureStorage();
 
 // SQLite database instance
 let db = null;
+let dbQueue = Promise.resolve();
+
+// Serialize DB write operations to prevent concurrent access crashes
+const withDbQueue = (fn) => {
+  dbQueue = dbQueue.then(fn, fn);
+  return dbQueue;
+};
 
 const ensureDb = async () => {
   if (db) return db;
@@ -326,37 +333,39 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const now = Date.now();
-      for (const item of items) {
-        const itemId = item.id || item._id;
-        // Check if item already exists to preserve inWishlist and createdAt
-        const existingItem = await db.getFirstAsync(
-          `SELECT inWishlist, createdAt FROM items WHERE id = ? OR _id = ?`,
-          [itemId, itemId]
-        );
-        const inWishlist = existingItem?.inWishlist || 0;
-        const createdAt = existingItem?.createdAt || now;
+      await db.withTransactionAsync(async () => {
+        for (const item of items) {
+          const itemId = item.id || item._id;
+          // Check if item already exists to preserve inWishlist and createdAt
+          const existingItem = await db.getFirstAsync(
+            `SELECT inWishlist, createdAt FROM items WHERE id = ? OR _id = ?`,
+            [itemId, itemId]
+          );
+          const inWishlist = existingItem?.inWishlist || 0;
+          const createdAt = existingItem?.createdAt || now;
 
-        await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, inWishlist, createdAt, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            itemId,
-            item._id || itemId,
-            item.name,
-            item.type,
-            item.image,
-            item.creditPrice || 0,
-            item.ducatPrice || 0,
-            JSON.stringify(item.likes || []),
-            JSON.stringify(item.reviews || []),
-            JSON.stringify(item.offeringDates || []),
-            item.uniqueName || null,
-            inWishlist, // Preserve wishlist flag
-            createdAt, // Preserve original createdAt or set to now
-            now,
-          ]
-        );
-      }
+          await db.runAsync(
+            `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, inWishlist, createdAt, cachedAt)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              itemId,
+              item._id || itemId,
+              item.name,
+              item.type,
+              item.image,
+              item.creditPrice || 0,
+              item.ducatPrice || 0,
+              JSON.stringify(item.likes || []),
+              JSON.stringify(item.reviews || []),
+              JSON.stringify(item.offeringDates || []),
+              item.uniqueName || null,
+              inWishlist, // Preserve wishlist flag
+              createdAt, // Preserve original createdAt or set to now
+              now,
+            ]
+          );
+        }
+      });
     } catch (error) {
       console.error('Error caching items:', error);
       throw error;
@@ -410,17 +419,19 @@ export const dbHelpers = {
   },
 
   updateItemLikes: async (itemId, likeCount) => {
-    try {
-      await ensureDb();
-      const likesValue = JSON.stringify(likeCount);
-      await db.runAsync(
-        `UPDATE items SET likes = ? WHERE id = ? OR _id = ?`,
-        [likesValue, itemId, itemId]
-      );
-    } catch (error) {
-      console.error('Error updating item likes:', error);
-      throw error;
-    }
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        if (!db) return;
+        const likesValue = JSON.stringify(likeCount);
+        await db.runAsync(
+          `UPDATE items SET likes = ? WHERE id = ? OR _id = ?`,
+          [likesValue, itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error updating item likes:', error);
+      }
+    });
   },
 };
 

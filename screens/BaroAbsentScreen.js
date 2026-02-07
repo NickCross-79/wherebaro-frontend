@@ -1,6 +1,6 @@
 import { Text, View, Animated, Easing } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import EarthIcon from '../assets/icons/icon_earth.svg';
 import TimeIcon from '../assets/icons/icon_time.svg';
 import BaroIcon from '../assets/icons/icon_baro.svg';
@@ -25,13 +25,14 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`;
     } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
+      return `${hours}h ${minutes}m ${seconds}s`;
     } else {
-      return `${minutes}m`;
+      return `${minutes}m ${seconds}s`;
     }
   };
 
@@ -39,10 +40,10 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
     // Update timer immediately
     setTimeRemaining(formatTimeRemaining(nextArrival));
     
-    // Update every minute
+    // Update every second
     const interval = setInterval(() => {
       setTimeRemaining(formatTimeRemaining(nextArrival));
-    }, 60000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [nextArrival]);
@@ -64,8 +65,8 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
     };
   }, [cycleAnim]);
 
-  // Create interpolations for each dot based on the cycle animation
-  const dotAnimations = Array.from({ length: NUM_DOTS }).map((_, index) => {
+  // Memoize interpolations so they aren't recreated on every timer re-render
+  const dotAnimations = useMemo(() => Array.from({ length: NUM_DOTS }).map((_, index) => {
     const startTime = (index * STAGGER_DELAY) / TOTAL_CYCLE;
     const endTime = (index * STAGGER_DELAY + ANIMATION_DURATION) / TOTAL_CYCLE;
 
@@ -75,7 +76,7 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
         outputRange: [0, 0, -20, 0, 0],
       }),
     };
-  });
+  }), [cycleAnim]);
   return (
     <View style={styles.container}>
       <StatusBar style="light" />

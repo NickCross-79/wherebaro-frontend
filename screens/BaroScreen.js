@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import Header from '../components/ui/Header';
 import InventoryList from '../components/baro/InventoryList';
@@ -18,7 +18,7 @@ export default function BaroScreen({ navigation }) {
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
 
-  const finalItems = applyAllFilters(items, searchQuery, filters);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
 
   // Get newest item (first in sorted list when Baro is here)
   const newestItem = isHere && items.length > 0 ? items[0] : null;
@@ -27,17 +27,22 @@ export default function BaroScreen({ navigation }) {
     navigation.navigate('ItemDetail', { item });
   }, [navigation]);
 
-  if (loading && !refreshing) {
-    return <LoadingScreen />;
+  console.log(`[BaroScreen] Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}, refreshing=${refreshing}`);
+
+  // Show syncing screen when transitioning to Baro active state (check first — takes priority)
+  if (syncing) {
+    console.log('[BaroScreen] → Showing syncing screen');
+    return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
   }
 
-  // Show syncing screen when transitioning to Baro active state
-  if (syncing) {
-    return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
+  if (loading && !refreshing) {
+    console.log('[BaroScreen] → Showing LoadingScreen (initial load)');
+    return <LoadingScreen />;
   }
 
   // Show absent screen when Baro is not here
   if (!isHere) {
+    console.log(`[BaroScreen] → Showing BaroAbsentScreen (nextArrival=${nextArrival})`);
     return <BaroAbsentScreen nextArrival={nextArrival} nextLocation={nextLocation} />;
   }
 
