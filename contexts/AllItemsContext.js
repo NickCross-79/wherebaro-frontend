@@ -86,6 +86,12 @@ export const AllItemsProvider = ({ children }) => {
     fetchItems(true); // Force refresh
   }, []);
 
+  // Silent background refresh — no loading/refreshing UI state changes
+  const refreshInBackground = useCallback(() => {
+    console.log('Starting background refresh of all items');
+    fetchItems(true).catch(err => console.error('Background refresh failed:', err));
+  }, []);
+
   const updateItemLikes = useItemLikesSync(setItems);
 
   const value = useMemo(
@@ -95,9 +101,10 @@ export const AllItemsProvider = ({ children }) => {
       refreshing,
       error,
       onRefresh,
+      refreshInBackground,
       updateItemLikes,
     }),
-    [items, loading, refreshing, error, onRefresh, updateItemLikes]
+    [items, loading, refreshing, error, onRefresh, refreshInBackground, updateItemLikes]
   );
 
   return <AllItemsContext.Provider value={value}>{children}</AllItemsContext.Provider>;

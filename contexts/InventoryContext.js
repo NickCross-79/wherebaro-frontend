@@ -71,6 +71,21 @@ const matchInventoryItems = (inventory, cachedItems) => {
   });
 };
 
+/**
+ * Calculate ms delay until the next 9:01 AM EST.
+ * Returns 0 if we're already past 9:01 AM EST today.
+ */
+const getDelayUntil901EST = () => {
+  const now = new Date();
+  // Build 9:01 AM EST (UTC-5) today → 14:01 UTC
+  const target = new Date(now);
+  target.setUTCHours(14, 1, 0, 0);
+
+  // If already past 9:01 AM EST, fire immediately
+  if (now >= target) return 0;
+  return target.getTime() - now.getTime();
+};
+
 const InventoryContext = createContext();
 
 export const useInventory = () => {
@@ -89,7 +104,7 @@ export const InventoryProvider = ({ children }) => {
   const [nextLocation, setNextLocation] = useState(null);
   const [isHere, setIsHere] = useState(false);
   const rawInventoryRef = useRef(null);
-  const { items: allItems, loading: allItemsLoading } = useAllItems();
+  const { items: allItems, loading: allItemsLoading, refreshInBackground } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
@@ -228,10 +243,21 @@ export const InventoryProvider = ({ children }) => {
     const timeoutId = setTimeout(() => {
       console.log('Timer expired, auto-refreshing Baro data...');
       fetchBaroInventory(true);
+
+      // When Baro arrives (absent timer hit 0), schedule a background
+      // refresh of all items so offering dates and new item data are captured.
+      // Delay until 9:01 AM EST to give the backend time to process.
+      if (!isHere) {
+        const msUntil901EST = getDelayUntil901EST();
+        console.log(`Scheduling background all-items refresh in ${Math.round(msUntil901EST / 1000)}s`);
+        setTimeout(() => {
+          refreshInBackground();
+        }, msUntil901EST);
+      }
     }, timeUntilExpiry);
 
     return () => clearTimeout(timeoutId);
-  }, [nextArrival, fetchBaroInventory]);
+  }, [nextArrival, fetchBaroInventory, isHere, refreshInBackground]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
