@@ -13,6 +13,7 @@ export default function ItemDetailsTab({
   styles,
 }) {
   const offeringDates = item.offeringDates || [];
+  const isVoidSurplus = item.name?.toLowerCase() === 'void surplus';
 
   return (
     <ScrollView
@@ -51,10 +52,12 @@ export default function ItemDetailsTab({
       </View>
 
       {/* Last Brought Date */}
+      {!isVoidSurplus && (
       <View style={styles.dateContainer}>
         <Text style={styles.dateLabel}>Last Brought</Text>
         <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
       </View>
+      )}
 
       {/* Prices */}
       <View style={styles.pricesContainer}>
@@ -67,7 +70,7 @@ export default function ItemDetailsTab({
             <Text style={styles.priceLabel}>Credits</Text>
           </View>
           <Text style={styles.creditValue}>
-            {item.creditPrice?.toLocaleString() || 'N/A'}
+            {item.creditPrice != null ? item.creditPrice.toLocaleString() : 'N/A'}
           </Text>
         </View>
         <View style={styles.priceBox}>
@@ -79,12 +82,13 @@ export default function ItemDetailsTab({
             <Text style={styles.priceLabel}>Ducats</Text>
           </View>
           <Text style={styles.ducatValue}>
-            {item.ducatPrice || 'N/A'}
+            {item.ducatPrice != null ? item.ducatPrice.toLocaleString() : 'N/A'}
           </Text>
         </View>
       </View>
 
       {/* Offering Dates Dropdown */}
+      {!isVoidSurplus && (
       <View style={styles.dropdownContainer}>
         <TouchableOpacity
           style={styles.dropdownHeader}
@@ -115,6 +119,7 @@ export default function ItemDetailsTab({
           </View>
         )}
       </View>
+      )}
     </ScrollView>
   );
 }
