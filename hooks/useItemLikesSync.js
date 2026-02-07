@@ -3,17 +3,15 @@
  * Eliminates duplication of updateItemLikes logic
  */
 import { useCallback } from 'react';
-import { dbHelpers } from '../utils/storage';
-import logger from '../utils/logger';
 
 /**
- * Create an updateItemLikes function that updates state and syncs to database
+ * Create an updateItemLikes function that updates item state in-memory.
+ * DB sync is handled once centrally in ItemDetailScreen.syncLikeCount.
  * @param {Function} setItems - State setter function for items array
  * @returns {Function} updateItemLikes function
  */
 export const useItemLikesSync = (setItems) => {
-  const updateItemLikes = useCallback(async (itemId, likeCount) => {
-    // Update state
+  const updateItemLikes = useCallback((itemId, likeCount) => {
     setItems((prevItems) =>
       prevItems.map((current) => {
         const currentId = current?.id || current?._id;
@@ -23,13 +21,6 @@ export const useItemLikesSync = (setItems) => {
         return current;
       })
     );
-
-    // Sync to database
-    try {
-      await dbHelpers.updateItemLikes(itemId, likeCount);
-    } catch (error) {
-      logger.error('Failed to update cached likes:', error);
-    }
   }, [setItems]);
 
   return updateItemLikes;

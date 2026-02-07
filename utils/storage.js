@@ -333,14 +333,21 @@ export const dbHelpers = {
     try {
       await ensureDb();
       const now = Date.now();
+
+      // Batch-read existing items to preserve wishlist/createdAt without N+1 queries
+      const existingRows = await db.getAllAsync(
+        `SELECT id, _id, inWishlist, createdAt FROM items`
+      );
+      const existingMap = new Map();
+      for (const row of existingRows) {
+        if (row.id) existingMap.set(row.id, row);
+        if (row._id && row._id !== row.id) existingMap.set(row._id, row);
+      }
+
       await db.withTransactionAsync(async () => {
         for (const item of items) {
           const itemId = item.id || item._id;
-          // Check if item already exists to preserve inWishlist and createdAt
-          const existingItem = await db.getFirstAsync(
-            `SELECT inWishlist, createdAt FROM items WHERE id = ? OR _id = ?`,
-            [itemId, itemId]
-          );
+          const existingItem = existingMap.get(itemId);
           const inWishlist = existingItem?.inWishlist || 0;
           const createdAt = existingItem?.createdAt || now;
 

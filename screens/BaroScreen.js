@@ -9,6 +9,7 @@ import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 import { applyAllFilters } from '../utils/filterUtils';
+import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
 
 export default function BaroScreen({ navigation }) {
@@ -27,22 +28,22 @@ export default function BaroScreen({ navigation }) {
     navigation.navigate('ItemDetail', { item });
   }, [navigation]);
 
-  console.log(`[BaroScreen] Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}, refreshing=${refreshing}`);
+  logger.debug('BaroScreen', `Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}, refreshing=${refreshing}`);
 
   // Show syncing screen when transitioning to Baro active state (check first — takes priority)
   if (syncing) {
-    console.log('[BaroScreen] → Showing syncing screen');
+    logger.debug('BaroScreen', '→ Showing syncing screen');
     return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
   }
 
   if (loading && !refreshing) {
-    console.log('[BaroScreen] → Showing LoadingScreen (initial load)');
+    logger.debug('BaroScreen', '→ Showing LoadingScreen (initial load)');
     return <LoadingScreen />;
   }
 
   // Show absent screen when Baro is not here
   if (!isHere) {
-    console.log(`[BaroScreen] → Showing BaroAbsentScreen (nextArrival=${nextArrival})`);
+    logger.debug('BaroScreen', `→ Showing BaroAbsentScreen (nextArrival=${nextArrival})`);
     return <BaroAbsentScreen nextArrival={nextArrival} nextLocation={nextLocation} />;
   }
 

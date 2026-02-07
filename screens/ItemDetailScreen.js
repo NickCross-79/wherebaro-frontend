@@ -8,6 +8,7 @@ import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { fetchReviews, fetchLikes } from '../services/api';
+import { dbHelpers } from '../utils/storage';
 import { fetchMarketData } from '../services/marketService';
 import ItemDetailsTab from '../components/items/ItemDetailsTab';
 import ItemReviewsTab from '../components/items/ItemReviewsTab';
@@ -47,6 +48,8 @@ export default function ItemDetailScreen({ route, navigation }) {
     updateInventoryLikes(itemId, newCount);
     updateAllItemsLikes(itemId, newCount);
     updateWishlistLikes(itemId, newCount);
+    // Single DB write (hooks only update in-memory state)
+    dbHelpers.updateItemLikes(itemId, newCount);
   };
 
   const {
@@ -165,7 +168,7 @@ export default function ItemDetailScreen({ route, navigation }) {
 
   useEffect(() => {
     if (CURRENT_UID && itemId) {
-      void fetchReviewsAndLikes(CURRENT_UID, syncLikeCount, item?.likes?.length || 0);
+      void fetchReviewsAndLikes(CURRENT_UID);
     }
   }, [CURRENT_UID, itemId]);
 

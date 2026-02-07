@@ -92,8 +92,6 @@ function SettingsStackNavigator() {
 }
 
 
-import { useNavigationState } from '@react-navigation/native';
-
 function TabNavigatorWithSafeArea({ isItemDetailActive }) {
   const insets = useSafeAreaInsets();
   const { getWishlistCount, wishlistIds, wishlistLoaded } = useWishlist();

@@ -23,7 +23,7 @@ export const useReviewManagement = (itemId) => {
     return null;
   };
 
-  const fetchReviewsAndLikes = async (currentUid, syncLikeCount, initialLikesLength) => {
+  const fetchReviewsAndLikes = async (currentUid) => {
     try {
       setIsLoadingReviews(true);
       

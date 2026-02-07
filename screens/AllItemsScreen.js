@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
@@ -30,7 +30,7 @@ export default function AllItemsScreen({ navigation }) {
     storageHelpers.setFilters(filters);
   }, [filters]);
 
-  const finalItems = applyAllFilters(items, searchQuery, filters);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
 
   const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
   

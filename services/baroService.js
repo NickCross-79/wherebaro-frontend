@@ -4,6 +4,7 @@
  * with optional simulation mode for testing arrivals.
  */
 import { buildUrl } from './apiConfig';
+import logger from '../utils/logger';
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 
@@ -11,7 +12,7 @@ const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 // Set to true to simulate a Baro arrival. The first fetch uses the mock
 // endpoint (Baro absent). When the timer expires, subsequent fetches
 // use the real warframestat.us API (where Baro is currently active).
-const SIMULATE_BARO_ARRIVAL = true; // Set to false to disable simulation and always use real API data.
+const SIMULATE_BARO_ARRIVAL = false;
 const SIMULATE_MOCK_URL = buildUrl('mockBaroAbsent');
 // ────────────────────────────────────────────────────────────────────
 
@@ -29,16 +30,16 @@ export const fetchBaroData = async () => {
   if (SIMULATE_BARO_ARRIVAL && !simulationUsed) {
     fetchUrl = SIMULATE_MOCK_URL;
     simulationUsed = true;
-    console.log('[BaroService] 🧪 Simulation mode: using mock endpoint');
+    logger.debug('BaroService', '🧪 Simulation mode: using mock endpoint');
   }
 
-  console.log(`[BaroService] Fetching: ${fetchUrl}`);
+  logger.debug('BaroService', `Fetching: ${fetchUrl}`);
   const response = await fetch(fetchUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch Baro data: ${response.status}`);
   }
   const data = await response.json();
-  console.log(`[BaroService] Response: active=${isBaroActive(data.activation, data.expiry)}, inventory=${data.inventory?.length || 0}, location=${data.location}`);
+  logger.debug('BaroService', `Response: active=${isBaroActive(data.activation, data.expiry)}, inventory=${data.inventory?.length || 0}, location=${data.location}`);
   return data;
 };
 

@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView } from 'react-native';
-import { useRef, useState, useCallback } from 'react';
+import { View, Text, FlatList } from 'react-native';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
@@ -15,14 +15,18 @@ export default function WishlistScreen({ navigation }) {
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { wishlistItems } = useWishlist();
 
-  // Use cached wishlist items directly (likes are already stored locally)
-  const displayItems = wishlistItems;
+  const finalItems = useMemo(() => applyAllFilters(wishlistItems, searchQuery, filters), [wishlistItems, searchQuery, filters]);
 
-  const finalItems = applyAllFilters(displayItems, searchQuery, filters);
+  const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
 
-  const handleItemPress = useCallback((item) => {
-    navigation.navigate('ItemDetail', { item });
-  }, [navigation]);
+  const renderItem = useCallback(({ item }) => (
+    <ItemCard
+      item={item}
+      onPress={() => navigation.navigate('ItemDetail', { item })}
+      hideWishlistBadge={true}
+      hideWishlistBorder={true}
+    />
+  ), [navigation]);
 
   return (
     <View style={styles.container}>
@@ -42,15 +46,16 @@ export default function WishlistScreen({ navigation }) {
         />
       </View>
 
-      <ScrollView
+      <FlatList
         ref={scrollRef}
-        style={styles.scrollView}
+        data={finalItems}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         contentContainerStyle={styles.scrollContent}
-      >
-        {finalItems.length === 0 ? (
+        ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {displayItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
+              {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
             </Text>
             <Text style={styles.emptySubtext}>
               {wishlistItems.length === 0
@@ -58,18 +63,12 @@ export default function WishlistScreen({ navigation }) {
                 : 'Try a different search term'}
             </Text>
           </View>
-        ) : (
-          finalItems.map((item, index) => (
-            <ItemCard
-              key={item.id || item._id || `item-${index}`}
-              item={item}
-              onPress={() => handleItemPress(item)}
-              hideWishlistBadge={true}
-              hideWishlistBorder={true}
-            />
-          ))
         )}
-      </ScrollView>
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+      />
     </View>
   );
 }

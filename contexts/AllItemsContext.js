@@ -4,6 +4,7 @@ import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 import { CACHE_DURATION_MS } from '../constants/items';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import logger from '../utils/logger';
 
 const AllItemsContext = createContext();
 
@@ -23,7 +24,7 @@ export const AllItemsProvider = ({ children }) => {
 
   const fetchItems = async (forceRefresh = false) => {
     try {
-      console.log(`[AllItems] fetchItems called (forceRefresh=${forceRefresh})`);
+      logger.debug('AllItems', `fetchItems called (forceRefresh=${forceRefresh})`);
       setError(null);
 
       // Check cache first if not forcing refresh
@@ -39,7 +40,7 @@ export const AllItemsProvider = ({ children }) => {
               (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
             );
             if (hasOfferingDates) {
-              console.log(`[AllItems] Using cached items (${cachedItems.length} items)`);
+              logger.debug('AllItems', `Using cached items (${cachedItems.length} items)`);
               setItems(cachedItems);
               setLoading(false);
               setRefreshing(false);
@@ -49,31 +50,31 @@ export const AllItemsProvider = ({ children }) => {
         }
       }
 
-      console.log('[AllItems] Fetching from backend API...');
+      logger.debug('AllItems', 'Fetching from backend API...');
       const data = await fetchAllItems();
       const normalized = data.map(normalizeItem);
-      console.log(`[AllItems] Received ${normalized.length} items from API, caching...`);
+      logger.debug('AllItems', `Received ${normalized.length} items from API, caching...`);
       
       // Cache the items
       await dbHelpers.clearItemsCache();
       await dbHelpers.cacheItems(normalized);
       await storageHelpers.setLastDataRefresh(Date.now());
       
-      console.log(`[AllItems] Cache updated with ${normalized.length} items`);
+      logger.debug('AllItems', `Cache updated with ${normalized.length} items`);
       setItems(normalized);
     } catch (err) {
-      console.error('Error fetching items:', err);
+      logger.error('Error fetching items:', err);
       setError(err.message);
       
       // Fall back to cache on error
       try {
         const cachedItems = await dbHelpers.getCachedItems();
         if (cachedItems.length > 0) {
-          console.log('Using cached all items on error');
+          logger.log('Using cached all items on error');
           setItems(cachedItems);
         }
       } catch (cacheError) {
-        console.error('Error loading cache:', cacheError);
+        logger.error('Error loading cache:', cacheError);
       }
     } finally {
       setLoading(false);
@@ -92,12 +93,12 @@ export const AllItemsProvider = ({ children }) => {
 
   // Silent background refresh — no loading/refreshing UI state changes
   const refreshInBackground = useCallback(async () => {
-    console.log('[AllItems] 🔄 Starting background refresh...');
+    logger.debug('AllItems', '🔄 Starting background refresh...');
     try {
       await fetchItems(true);
-      console.log('[AllItems] ✅ Background refresh complete');
+      logger.debug('AllItems', '✅ Background refresh complete');
     } catch (err) {
-      console.error('[AllItems] ❌ Background refresh failed:', err);
+      logger.error('[AllItems] ❌ Background refresh failed:', err);
     }
   }, []);
 
