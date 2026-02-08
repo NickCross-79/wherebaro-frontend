@@ -75,10 +75,12 @@ export default function ItemMarketTab({
     const arr = marketData?.statistics_closed?.['90days'] || [];
     if (!arr.length) return null;
 
-    // Only keep points at 00:00 (midnight UTC) each day, for the full 90 days
+    // Only keep points at 00:00 (midnight UTC) each day, limited to last 60 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 60);
     let filtered = arr.filter(d => {
       const date = new Date(d.datetime);
-      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
     });
 
     // If item is a mod, filter by selected mod_rank
@@ -118,12 +120,10 @@ export default function ItemMarketTab({
   const chartData = chartResult?.chartData;
   const rawChartData = chartResult?.rawData || [];
 
-  // react-native-chart-kit internal padding:
-  // - Left: 64px for y-axis labels (default yAxisLabel width)
-  // - Right: ~16px internal padding
-  const CHART_PADDING_LEFT = 64;
-  const CHART_PADDING_RIGHT = 16;
-  const CHART_AREA_WIDTH = chartWidth - CHART_PADDING_LEFT - CHART_PADDING_RIGHT;
+  // react-native-chart-kit positions data points as:
+  //   x_i = paddingRight + (i * (width - paddingRight)) / dataLength
+  // where paddingRight (the LEFT offset for y-axis labels) defaults to 64
+  const CHART_LEFT_OFFSET = 64;
 
   // Throttled touch handler — batches via rAF to avoid re-rendering every move event
   const handleTouch = useCallback((event) => {
@@ -132,15 +132,16 @@ export default function ItemMarketTab({
     rafRef.current = requestAnimationFrame(() => {
       const dataPointCount = selectedPointRef.current?.dataLength;
       if (!dataPointCount) return;
-      const adjustedX = locationX - CHART_PADDING_LEFT;
+      const chartArea = chartWidth - CHART_LEFT_OFFSET;
+      const pointSpacing = chartArea / dataPointCount;
+      const adjustedX = locationX - CHART_LEFT_OFFSET;
       // If touch is outside the chart data area, clear selection
-      if (adjustedX < -10 || adjustedX > CHART_AREA_WIDTH + 10) {
+      if (adjustedX < -10 || adjustedX > chartArea + 10) {
         setSelectedPointIndex(null);
         return;
       }
-      const pointSpacing = CHART_AREA_WIDTH / (dataPointCount - 1);
       const index = Math.round(adjustedX / pointSpacing);
-      const clampedIndex = Math.max(0, Math.min(index, dataPointCount - 1));
+      const clampedIndex = Math.max(0, Math.min(index,  dataPointCount - 1));
       setSelectedPointIndex(clampedIndex);
     });
   }, [chartWidth]);
@@ -168,13 +169,15 @@ export default function ItemMarketTab({
     selectedPointRef.current = { dataLength: rawChartData.length };
   }, [rawChartData.length]);
 
-  // Get latest average price (from statistics_closed 90days)
+  // Get latest average price (from statistics_closed 90days, limited to last 60)
   const getLatestPrice = () => {
     const arr = marketData?.statistics_closed?.['90days'] || [];
     if (!arr.length) return null;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 60);
     let filtered = arr.filter(d => {
       const date = new Date(d.datetime);
-      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
     });
     if (isMod) {
       filtered = filtered.filter(d => d.mod_rank === selectedModRank);
@@ -188,13 +191,15 @@ export default function ItemMarketTab({
     return filtered[0]?.avg_price ?? null;
   };
 
-  // Get market stats for the full 90 days
+  // Get market stats for the last 60 days
   const getMarketStats = () => {
     const arr = marketData?.statistics_closed?.['90days'] || [];
     if (!arr.length) return null;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 60);
     let filtered = arr.filter(d => {
       const date = new Date(d.datetime);
-      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0;
+      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
     });
     if (isMod) {
       filtered = filtered.filter(d => d.mod_rank === selectedModRank);
@@ -224,7 +229,7 @@ export default function ItemMarketTab({
       showsVerticalScrollIndicator={false}
     >
       <View style={sectionStyle}>
-        <Text style={styles.sectionTitle}>Price History (90 Days)</Text>
+        <Text style={styles.sectionTitle}>Price History (60 Days)</Text>
         
         {isLoadingMarket ? (
           <View style={{ paddingVertical: 40, alignItems: 'center' }}>
@@ -239,8 +244,9 @@ export default function ItemMarketTab({
               {...panResponder.panHandlers}
             >
               {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (() => {
-                const pointSpacing = CHART_AREA_WIDTH / (rawChartData.length - 1);
-                const cursorX = CHART_PADDING_LEFT + (selectedPointIndex * pointSpacing);
+                const chartArea = chartWidth - CHART_LEFT_OFFSET;
+                const pointSpacing = chartArea / rawChartData.length;
+                const cursorX = CHART_LEFT_OFFSET + (selectedPointIndex * pointSpacing);
                 // Position tooltip on opposite side of the line from center
                 const tooltipWidth = 130;
                 const tooltipGap = 8;
@@ -559,7 +565,7 @@ export default function ItemMarketTab({
                     color: '#8B9CB6',
                     fontSize: 15,
                   }}>
-                    Max Price (90d)
+                    Max Price (60d)
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={{
@@ -594,7 +600,7 @@ export default function ItemMarketTab({
                     color: '#8B9CB6',
                     fontSize: 15,
                   }}>
-                    Min Price (90d)
+                    Min Price (60d)
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={{
@@ -629,7 +635,7 @@ export default function ItemMarketTab({
                     color: '#8B9CB6',
                     fontSize: 15,
                   }}>
-                    Total Sold (90d)
+                    Total Sold (60d)
                   </Text>
                   <Text style={{
                     color: '#E8E8E8',
