@@ -234,53 +234,56 @@ export const storageHelpers = {
 export const dbHelpers = {
   // Wishlist operations
   addToWishlist: async (item) => {
-    try {
-      await ensureDb();
-      const itemId = item.id || item._id;
-      const now = Date.now();
-      // Check if item already exists to preserve createdAt
-      const existingItem = await db.getFirstAsync(
-        `SELECT createdAt FROM items WHERE id = ? OR _id = ?`,
-        [itemId, itemId]
-      );
-      const createdAt = existingItem?.createdAt || now;
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        const itemId = item.id || item._id;
+        const now = Date.now();
+        const existingItem = await db.getFirstAsync(
+          `SELECT createdAt FROM items WHERE id = ? OR _id = ?`,
+          [itemId, itemId]
+        );
+        const createdAt = existingItem?.createdAt || now;
 
-      await db.runAsync(
-        `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          itemId,
-          item._id || itemId,
-          item.name,
-          item.type,
-          item.image,
-          item.creditPrice || 0,
-          item.ducatPrice || 0,
-          JSON.stringify(item.likes || []),
-          JSON.stringify(item.reviews || []),
-          JSON.stringify(item.offeringDates || []),
-          1, // inWishlist = true
-          createdAt, // Preserve original createdAt or set to now
-          now,
-        ]
-      );
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      throw error;
-    }
+        await db.runAsync(
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, inWishlist, createdAt, cachedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            itemId,
+            item._id || itemId,
+            item.name,
+            item.type,
+            item.image,
+            item.creditPrice || 0,
+            item.ducatPrice || 0,
+            JSON.stringify(item.likes || []),
+            JSON.stringify(item.reviews || []),
+            JSON.stringify(item.offeringDates || []),
+            1,
+            createdAt,
+            now,
+          ]
+        );
+      } catch (error) {
+        console.error('Error adding to wishlist:', error);
+        throw error;
+      }
+    });
   },
 
   removeFromWishlist: async (itemId) => {
-    try {
-      await ensureDb();
-      await db.runAsync(
-        `UPDATE items SET inWishlist = 0 WHERE id = ? OR _id = ?`,
-        [itemId, itemId]
-      );
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-      throw error;
-    }
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        await db.runAsync(
+          `UPDATE items SET inWishlist = 0 WHERE id = ? OR _id = ?`,
+          [itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        throw error;
+      }
+    });
   },
 
   getWishlistItems: async () => {
@@ -330,53 +333,55 @@ export const dbHelpers = {
 
   // Items cache operations (now uses single items table)
   cacheItems: async (items) => {
-    try {
-      await ensureDb();
-      const now = Date.now();
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        const now = Date.now();
 
-      // Batch-read existing items to preserve wishlist/createdAt without N+1 queries
-      const existingRows = await db.getAllAsync(
-        `SELECT id, _id, inWishlist, createdAt FROM items`
-      );
-      const existingMap = new Map();
-      for (const row of existingRows) {
-        if (row.id) existingMap.set(row.id, row);
-        if (row._id && row._id !== row.id) existingMap.set(row._id, row);
-      }
-
-      await db.withTransactionAsync(async () => {
-        for (const item of items) {
-          const itemId = item.id || item._id;
-          const existingItem = existingMap.get(itemId);
-          const inWishlist = existingItem?.inWishlist || 0;
-          const createdAt = existingItem?.createdAt || now;
-
-          await db.runAsync(
-            `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, inWishlist, createdAt, cachedAt)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              itemId,
-              item._id || itemId,
-              item.name,
-              item.type,
-              item.image,
-              item.creditPrice || 0,
-              item.ducatPrice || 0,
-              JSON.stringify(item.likes || []),
-              JSON.stringify(item.reviews || []),
-              JSON.stringify(item.offeringDates || []),
-              item.uniqueName || null,
-              inWishlist, // Preserve wishlist flag
-              createdAt, // Preserve original createdAt or set to now
-              now,
-            ]
-          );
+        // Batch-read existing items to preserve wishlist/createdAt without N+1 queries
+        const existingRows = await db.getAllAsync(
+          `SELECT id, _id, inWishlist, createdAt FROM items`
+        );
+        const existingMap = new Map();
+        for (const row of existingRows) {
+          if (row.id) existingMap.set(row.id, row);
+          if (row._id && row._id !== row.id) existingMap.set(row._id, row);
         }
-      });
-    } catch (error) {
-      console.error('Error caching items:', error);
-      throw error;
-    }
+
+        await db.withTransactionAsync(async () => {
+          for (const item of items) {
+            const itemId = item.id || item._id;
+            const existingItem = existingMap.get(itemId);
+            const inWishlist = existingItem?.inWishlist || 0;
+            const createdAt = existingItem?.createdAt || now;
+
+            await db.runAsync(
+              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, inWishlist, createdAt, cachedAt)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                itemId,
+                item._id || itemId,
+                item.name,
+                item.type,
+                item.image,
+                item.creditPrice || 0,
+                item.ducatPrice || 0,
+                JSON.stringify(item.likes || []),
+                JSON.stringify(item.reviews || []),
+                JSON.stringify(item.offeringDates || []),
+                item.uniqueName || null,
+                inWishlist,
+                createdAt,
+                now,
+              ]
+            );
+          }
+        });
+      } catch (error) {
+        console.error('Error caching items:', error);
+        throw error;
+      }
+    });
   },
 
   getCachedItems: async () => {
@@ -398,31 +403,34 @@ export const dbHelpers = {
   },
 
   clearItemsCache: async () => {
-    try {
-      await ensureDb();
-      // Clear cache but preserve wishlist items
-      await db.runAsync(`DELETE FROM items WHERE inWishlist = 0`);
-    } catch (error) {
-      console.error('Error clearing cache:', error);
-    }
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        await db.runAsync(`DELETE FROM items WHERE inWishlist = 0`);
+      } catch (error) {
+        console.error('Error clearing cache:', error);
+      }
+    });
   },
 
   updateItemInCache: async (itemId, updates) => {
-    try {
-      await ensureDb();
-      const setClause = Object.keys(updates)
-        .map((key) => `${key} = ?`)
-        .join(', ');
-      const values = Object.values(updates);
-      
-      await db.runAsync(
-        `UPDATE items SET ${setClause} WHERE id = ? OR _id = ?`,
-        [...values, itemId, itemId]
-      );
-    } catch (error) {
-      console.error('Error updating item in cache:', error);
-      throw error;
-    }
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        const setClause = Object.keys(updates)
+          .map((key) => `${key} = ?`)
+          .join(', ');
+        const values = Object.values(updates);
+        
+        await db.runAsync(
+          `UPDATE items SET ${setClause} WHERE id = ? OR _id = ?`,
+          [...values, itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error updating item in cache:', error);
+        throw error;
+      }
+    });
   },
 
   updateItemLikes: async (itemId, likeCount) => {
