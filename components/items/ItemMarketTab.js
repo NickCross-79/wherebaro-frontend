@@ -224,6 +224,38 @@ export default function ItemMarketTab({
               style={{ position: 'relative', width: chartWidth }}
               {...panResponder.panHandlers}
             >
+              {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (() => {
+                const chartPaddingLeft = 16;
+                const chartPaddingRight = 16;
+                const chartAreaWidth = chartWidth - chartPaddingLeft - chartPaddingRight;
+                const pointSpacing = chartAreaWidth / (rawChartData.length - 1);
+                const cursorX = chartPaddingLeft + (selectedPointIndex * pointSpacing);
+                return (
+                  <>
+                    <View style={{
+                      position: 'absolute',
+                      left: cursorX,
+                      top: 8,
+                      bottom: 0,
+                      width: 1,
+                      backgroundColor: 'rgba(212, 165, 116, 0.5)',
+                      zIndex: 5,
+                      pointerEvents: 'none',
+                    }} />
+                    <View style={{
+                      position: 'absolute',
+                      left: cursorX - 4,
+                      top: 8,
+                      width: 9,
+                      height: 9,
+                      borderRadius: 5,
+                      backgroundColor: '#D4A574',
+                      zIndex: 6,
+                      pointerEvents: 'none',
+                    }} />
+                  </>
+                );
+              })()}
               {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (
                 <View style={{
                   position: 'absolute',
