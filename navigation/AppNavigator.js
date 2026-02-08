@@ -1,0 +1,221 @@
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import BaroScreen from '../screens/BaroScreen';
+import ItemDetailScreen from '../screens/ItemDetailScreen';
+import WishlistScreen from '../screens/WishlistScreen';
+import AllItemsScreen from '../screens/AllItemsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import FeedbackScreen from '../screens/FeedbackScreen';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useInventory } from '../contexts/InventoryContext';
+import BaroIcon from '../assets/icons/icon_baro.svg';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+// ─── Stack Navigators ──────────────────────────────────────────────
+
+const Tab = createMaterialTopTabNavigator();
+const ItemStack = createNativeStackNavigator();
+const SettingsStack = createNativeStackNavigator();
+
+const STACK_OPTIONS = { headerShown: false };
+const ITEM_DETAIL_OPTIONS = { gestureEnabled: false };
+
+function createItemDetailStack(listName, ListComponent) {
+  return function StackNavigator() {
+    return (
+      <ItemStack.Navigator screenOptions={STACK_OPTIONS}>
+        <ItemStack.Screen name={listName} component={ListComponent} />
+        <ItemStack.Screen
+          name="ItemDetail"
+          component={ItemDetailScreen}
+          options={ITEM_DETAIL_OPTIONS}
+        />
+      </ItemStack.Navigator>
+    );
+  };
+}
+
+const BaroStackNavigator = createItemDetailStack('BaroList', BaroScreen);
+const WishlistStackNavigator = createItemDetailStack('WishlistList', WishlistScreen);
+const AllItemsStackNavigator = createItemDetailStack('AllItemsList', AllItemsScreen);
+
+function SettingsStackNavigator() {
+  return (
+    <SettingsStack.Navigator screenOptions={STACK_OPTIONS}>
+      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} />
+      <SettingsStack.Screen name="Feedback" component={FeedbackScreen} />
+    </SettingsStack.Navigator>
+  );
+}
+
+// ─── Custom Tab Bar ────────────────────────────────────────────────
+
+const ICON_MAP = {
+  Baro: 'baro',
+  Wishlist: 'heart',
+  'All Items': 'list',
+  Settings: 'settings',
+};
+
+function CustomTabBar({ state, navigation, insets, badgeCount }) {
+  return (
+    <View
+      style={[
+        styles.tabBar,
+        { paddingBottom: insets.bottom + 10, height: insets.bottom + 70 },
+      ]}
+    >
+      <LinearGradient
+        colors={['rgba(15, 20, 25, 0.15)', 'rgba(15, 20, 25, 0.85)', '#0F1419']}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.tabBarContent}>
+        {state.routes.map((route, index) => {
+          const focused = state.index === index;
+          const color = focused ? '#D4A574' : '#5A6B8C';
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!focused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabItem}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconWrapper}>
+                {route.name === 'Baro' ? (
+                  <BaroIcon width={28} height={28} color={color} />
+                ) : (
+                  <Ionicons
+                    name={ICON_MAP[route.name] || 'ellipse'}
+                    size={24}
+                    color={color}
+                  />
+                )}
+                {route.name === 'Wishlist' && badgeCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{badgeCount}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.tabBarLabel, { color }]}>{route.name}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── Tab Navigator ─────────────────────────────────────────────────
+
+export default function AppNavigator({ isItemDetailActive }) {
+  const insets = useSafeAreaInsets();
+  const { getWishlistCount, wishlistIds, wishlistLoaded } = useWishlist();
+  const { items, isHere } = useInventory();
+
+  const badgeCount =
+    wishlistLoaded && wishlistIds.length > 0 && isHere
+      ? getWishlistCount(items)
+      : 0;
+
+  return (
+    <Tab.Navigator
+      tabBarPosition="bottom"
+      screenOptions={{
+        headerShown: false,
+        swipeEnabled: !isItemDetailActive,
+        animationEnabled: false,
+      }}
+      tabBar={(props) => (
+        <CustomTabBar {...props} insets={insets} badgeCount={badgeCount} />
+      )}
+    >
+      <Tab.Screen name="Baro" component={BaroStackNavigator} options={{ unmountOnBlur: true }} />
+      <Tab.Screen name="Wishlist" component={WishlistStackNavigator} options={{ unmountOnBlur: true }} />
+      <Tab.Screen name="All Items" component={AllItemsStackNavigator} options={{ unmountOnBlur: true }} />
+      <Tab.Screen name="Settings" component={SettingsStackNavigator} />
+    </Tab.Navigator>
+  );
+}
+
+// ─── Navigation helper ─────────────────────────────────────────────
+
+export const getIsItemDetailActive = (state) => {
+  if (!state?.routes) return false;
+  return state.routes.some((route) => {
+    const nested = route.state;
+    if (!nested?.routes) return false;
+    return nested.routes[nested.index]?.name === 'ItemDetail';
+  });
+};
+
+// ─── Styles ────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 0,
+    elevation: 0,
+    backgroundColor: 'transparent',
+    paddingTop: 10,
+  },
+  tabBarContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  iconWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -12,
+    backgroundColor: '#D4A574',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#0A0E1A',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  tabBarLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+});
