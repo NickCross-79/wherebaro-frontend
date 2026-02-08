@@ -12,11 +12,11 @@ const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
 // Set to true to simulate a Baro arrival. The first fetch uses the mock
 // endpoint (Baro absent). When the timer expires, subsequent fetches
 // use the real warframestat.us API (where Baro is currently active).
-const SIMULATE_BARO_ARRIVAL = false;
+const SIMULATE_BARO_ARRIVAL = false; // Toggle simulation mode on/off
 const SIMULATE_MOCK_URL = buildUrl('mockBaroAbsent');
 // ────────────────────────────────────────────────────────────────────
 
-let simulationUsed = false;
+let simulationUsed = false; // Tracks if the simulation endpoint has been used (only first fetch should use it)
 
 /**
  * Fetch raw Baro data from the warframestat.us API.

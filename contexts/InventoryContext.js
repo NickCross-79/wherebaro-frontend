@@ -124,9 +124,10 @@ export const InventoryProvider = ({ children }) => {
           const nextDate = cachedBaroIsHere ? cachedBaroResponse.expiry : cachedBaroResponse.activation;
           const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
           
-          // If the next event date has passed, invalidate cache
+          // If the next event date has passed, invalidate cache and force allItems refresh
           if (nextDateTime && now >= nextDateTime) {
-            logger.log('Cached Baro dates have passed, fetching fresh data');
+            logger.log('Cached Baro dates have passed, refreshing allItems and fetching fresh Baro data');
+            await refreshInBackground();
           } else {
             logger.log('Using cached Baro response');
             
@@ -134,9 +135,8 @@ export const InventoryProvider = ({ children }) => {
             rawInventoryRef.current = cachedBaroResponse.inventory;
             
             // Match Baro inventory with all items from context (or SQLite fallback)
-            const matchSource = allItems.length > 0 ? 'context' : 'SQLite';
-            const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
-            logger.debug('Baro', `Matching ${cachedBaroResponse.inventory.length} cached inventory items against ${itemsToMatch.length} items (source: ${matchSource})`);
+            const itemsToMatch = await dbHelpers.getCachedItems();
+            logger.debug('Baro', `Matching ${cachedBaroResponse.inventory.length} cached inventory items against ${itemsToMatch.length} items (source: SQLite)`);
             const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
             
             setItems(matchedItems);
@@ -178,10 +178,9 @@ export const InventoryProvider = ({ children }) => {
       // Store raw inventory for re-matching when allItems loads
       rawInventoryRef.current = baroData.inventory;
       
-      // Match Baro inventory with all items from context (or SQLite fallback)
-      const matchSource = allItems.length > 0 ? 'context' : 'SQLite';
-      const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
-      logger.debug('Baro', `Matching ${baroData.inventory?.length || 0} inventory items against ${itemsToMatch.length} items (source: ${matchSource})`);
+      // Match Baro inventory with freshly cached items from SQLite
+      const itemsToMatch = await dbHelpers.getCachedItems();
+      logger.debug('Baro', `Matching ${baroData.inventory?.length || 0} inventory items against ${itemsToMatch.length} items (source: SQLite)`);
       const matchedItems = matchInventoryItems(baroData.inventory, itemsToMatch);
 
       setItems(matchedItems);
@@ -201,7 +200,7 @@ export const InventoryProvider = ({ children }) => {
           logger.log('Using cached Baro response on error');
           
           rawInventoryRef.current = cachedBaroResponse.inventory;
-          const itemsToMatch = allItems.length > 0 ? allItems : await dbHelpers.getCachedItems();
+          const itemsToMatch = await dbHelpers.getCachedItems();
           const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
           
           setItems(matchedItems);
@@ -218,7 +217,7 @@ export const InventoryProvider = ({ children }) => {
       setRefreshing(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps: allItems is always [] inside; re-match effect below handles correctness
+  }, [refreshInBackground]); // refreshInBackground forces allItems update when Baro dates expire
 
   useEffect(() => {
     fetchBaroInventory();
