@@ -1,11 +1,13 @@
 import { View, Text, Modal, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from '../../styles/components/search/FilterMenu.styles';
 
 export default function FilterMenu({ visible, onClose, filters, onApplyFilters }) {
   const [localFilters, setLocalFilters] = useState(filters);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const insets = useSafeAreaInsets();
   
   // Sync local state when filters change from parent
   useEffect(() => {
@@ -141,7 +143,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
             </View>
           </ScrollView>
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: 20 + insets.bottom }]}>
             <TouchableOpacity
               style={[styles.clearButton, !hasActiveFilters && styles.clearButtonDisabled]}
               onPress={clearFilters}
