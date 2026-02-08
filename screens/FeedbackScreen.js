@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../styles/screens/FeedbackScreen.styles';
@@ -7,10 +7,18 @@ import styles from '../styles/screens/FeedbackScreen.styles';
 export default function FeedbackScreen({ navigation }) {
   const [message, setMessage] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!message.trim()) return;
-    setMessage('');
-    navigation.goBack();
+    const subject = encodeURIComponent('WhereBaro Feedback');
+    const body = encodeURIComponent(message.trim());
+    const url = `mailto:7lairs@gmail.com?subject=${subject}&body=${body}`;
+    try {
+      await Linking.openURL(url);
+      setMessage('');
+      navigation.goBack();
+    } catch {
+      Alert.alert('No Email App', 'No email client is configured on this device.');
+    }
   };
 
   return (
