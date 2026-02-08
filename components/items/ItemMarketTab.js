@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
@@ -31,6 +31,8 @@ export default function ItemMarketTab({
   const [selectedSubtype, setSelectedSubtype] = useState('');
   const [isSubtypeDropdownOpen, setIsSubtypeDropdownOpen] = useState(false);
   const [selectedPointIndex, setSelectedPointIndex] = useState(null);
+  const selectedPointRef = useRef(null);
+  const rafRef = useRef(null);
   const chartContainerRef = useRef(null);
   const sectionStyle = { marginBottom: 20 };
   
@@ -116,6 +118,33 @@ export default function ItemMarketTab({
   const chartData = chartResult?.chartData;
   const rawChartData = chartResult?.rawData || [];
 
+  // react-native-chart-kit internal padding:
+  // - Left: 64px for y-axis labels (default yAxisLabel width)
+  // - Right: ~16px internal padding
+  const CHART_PADDING_LEFT = 64;
+  const CHART_PADDING_RIGHT = 16;
+  const CHART_AREA_WIDTH = chartWidth - CHART_PADDING_LEFT - CHART_PADDING_RIGHT;
+
+  // Throttled touch handler — batches via rAF to avoid re-rendering every move event
+  const handleTouch = useCallback((event) => {
+    const locationX = event.locationX;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const dataPointCount = selectedPointRef.current?.dataLength;
+      if (!dataPointCount) return;
+      const adjustedX = locationX - CHART_PADDING_LEFT;
+      // If touch is outside the chart data area, clear selection
+      if (adjustedX < -10 || adjustedX > CHART_AREA_WIDTH + 10) {
+        setSelectedPointIndex(null);
+        return;
+      }
+      const pointSpacing = CHART_AREA_WIDTH / (dataPointCount - 1);
+      const index = Math.round(adjustedX / pointSpacing);
+      const clampedIndex = Math.max(0, Math.min(index, dataPointCount - 1));
+      setSelectedPointIndex(clampedIndex);
+    });
+  }, [chartWidth]);
+
   // Create pan responder for drag gesture
   const panResponder = useRef(
     PanResponder.create({
@@ -128,31 +157,16 @@ export default function ItemMarketTab({
         handleTouch(evt.nativeEvent);
       },
       onPanResponderRelease: () => {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
         setSelectedPointIndex(null);
       },
     })
   ).current;
 
-  const handleTouch = (event) => {
-    if (!rawChartData.length || !chartContainerRef.current) return;
-
-    const locationX = event.locationX;
-
-    // Chart has padding - adjust for the actual chart area
-    const chartPaddingLeft = 16;
-    const chartPaddingRight = 16;
-    const chartAreaWidth = chartWidth - chartPaddingLeft - chartPaddingRight;
-    const adjustedX = locationX - chartPaddingLeft;
-
-    // Calculate which data point is closest to the touch
-    const dataPointCount = rawChartData.length;
-    const pointSpacing = chartAreaWidth / (dataPointCount - 1);
-    const index = Math.round(adjustedX / pointSpacing);
-
-    if (index >= 0 && index < dataPointCount) {
-      setSelectedPointIndex(index);
-    }
-  };
+  // Keep ref in sync so rAF callback can read data length without stale closure
+  React.useEffect(() => {
+    selectedPointRef.current = { dataLength: rawChartData.length };
+  }, [rawChartData.length]);
 
   // Get latest average price (from statistics_closed 90days)
   const getLatestPrice = () => {
@@ -225,11 +239,15 @@ export default function ItemMarketTab({
               {...panResponder.panHandlers}
             >
               {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (() => {
-                const chartPaddingLeft = 16;
-                const chartPaddingRight = 16;
-                const chartAreaWidth = chartWidth - chartPaddingLeft - chartPaddingRight;
-                const pointSpacing = chartAreaWidth / (rawChartData.length - 1);
-                const cursorX = chartPaddingLeft + (selectedPointIndex * pointSpacing);
+                const pointSpacing = CHART_AREA_WIDTH / (rawChartData.length - 1);
+                const cursorX = CHART_PADDING_LEFT + (selectedPointIndex * pointSpacing);
+                // Position tooltip on opposite side of the line from center
+                const tooltipWidth = 130;
+                const tooltipGap = 8;
+                const isLeftHalf = cursorX < chartWidth / 2;
+                const tooltipLeft = isLeftHalf
+                  ? cursorX + tooltipGap
+                  : cursorX - tooltipWidth - tooltipGap;
                 return (
                   <>
                     <View style={{
@@ -253,46 +271,46 @@ export default function ItemMarketTab({
                       zIndex: 6,
                       pointerEvents: 'none',
                     }} />
+                    <View style={{
+                      position: 'absolute',
+                      top: 10,
+                      left: tooltipLeft,
+                      width: tooltipWidth,
+                      backgroundColor: '#1C2430',
+                      paddingVertical: 8,
+                      paddingHorizontal: 10,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#D4A574',
+                      zIndex: 10,
+                      alignItems: 'center',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.5,
+                      shadowRadius: 4,
+                      elevation: 5,
+                      pointerEvents: 'none',
+                    }}>
+                      <Text style={{ color: '#8B9CB6', fontSize: 12, marginBottom: 2 }}>
+                        {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ color: '#E8E8E8', fontSize: 18, fontWeight: '600', marginRight: 4 }}>
+                          {Math.round(rawChartData[selectedPointIndex].avg_price)}
+                        </Text>
+                        <Image
+                          source={require('../../assets/imgs/img_platinum.png')}
+                          style={{ width: 18, height: 18 }}
+                        />
+                      </View>
+                    </View>
                   </>
                 );
               })()}
-              {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (
-                <View style={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 0,
-                  backgroundColor: '#1C2430',
-                  paddingVertical: 10,
-                  paddingHorizontal: 16,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: '#D4A574',
-                  zIndex: 10,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.5,
-                  shadowRadius: 4,
-                  elevation: 5,
-                  pointerEvents: 'none',
-                }}>
-                  <Text style={{ color: '#8B9CB6', fontSize: 14, marginBottom: 4 }}>
-                    {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ color: '#E8E8E8', fontSize: 20, fontWeight: '600', marginRight: 6 }}>
-                      {Math.round(rawChartData[selectedPointIndex].avg_price)}
-                    </Text>
-                    <Image
-                      source={require('../../assets/imgs/img_platinum.png')}
-                      style={{ width: 20, height: 20 }}
-                    />
-                  </View>
-                </View>
-              )}
               <LineChart
                 data={chartData}
                 width={chartWidth}
