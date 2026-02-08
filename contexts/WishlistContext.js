@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { dbHelpers } from '../utils/storage';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import { storageHelpers } from '../utils/storage';
+import { addWishlistPushToken, removeWishlistPushToken } from '../services/wishlistService';
 
 const WishlistContext = createContext();
 
@@ -37,6 +39,29 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Syncs a wishlist change with the backend by adding or removing
+   * the device's push token on the item. Runs in the background —
+   * local wishlist state is always the source of truth.
+   */
+  const syncWishlistPushToken = async (itemId, isAdding) => {
+    try {
+      const pushToken = await storageHelpers.get('expoPushToken');
+      if (!pushToken) {
+        // No push token registered — nothing to sync
+        return;
+      }
+      if (isAdding) {
+        await addWishlistPushToken(itemId, pushToken);
+      } else {
+        await removeWishlistPushToken(itemId, pushToken);
+      }
+    } catch (error) {
+      // Don't block the UI for backend sync failures
+      console.warn('Failed to sync wishlist push token:', error);
+    }
+  };
+
   const toggleWishlist = useCallback(async (item) => {
     const itemId = item?.id || item?._id;
     if (!itemId) {
@@ -57,6 +82,9 @@ export const WishlistProvider = ({ children }) => {
         setWishlistIds((prev) => [...prev, itemId]);
         setWishlistItems((prev) => [...prev, item]);
       }
+
+      // Sync push token with backend (fire-and-forget)
+      syncWishlistPushToken(itemId, !isAlready);
     } catch (error) {
       console.error('Error toggling wishlist:', error);
     }
