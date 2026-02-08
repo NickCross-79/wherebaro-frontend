@@ -469,7 +469,7 @@ export default function ItemMarketTab({
                   color: '#8B9CB6',
                   fontSize: 15,
                 }}>
-                  Average Price
+                  Average Price (Today)
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{
