@@ -11,28 +11,28 @@ const ENDPOINTS = {
 };
 
 /**
- * Add the device's push token to an item's wishlist
+ * Add to an item's wishlist count (and optionally register push token)
  * @param {string} itemId - Item MongoDB _id
- * @param {string} pushToken - Expo push token
+ * @param {string|null} pushToken - Expo push token (optional)
  * @returns {Promise<Object>}
  */
-export const addWishlistPushToken = async (itemId, pushToken) => {
+export const addWishlistPushToken = async (itemId, pushToken = null) => {
   return apiPost(ENDPOINTS.ADD_WISHLIST_PUSH_TOKEN, {
     item_oid: itemId,
-    pushToken,
+    ...(pushToken && { pushToken }),
   });
 };
 
 /**
- * Remove the device's push token from an item's wishlist
+ * Remove from an item's wishlist count (and optionally unregister push token)
  * @param {string} itemId - Item MongoDB _id
- * @param {string} pushToken - Expo push token
+ * @param {string|null} pushToken - Expo push token (optional)
  * @returns {Promise<Object>}
  */
-export const removeWishlistPushToken = async (itemId, pushToken) => {
+export const removeWishlistPushToken = async (itemId, pushToken = null) => {
   return apiPost(ENDPOINTS.REMOVE_WISHLIST_PUSH_TOKEN, {
     item_oid: itemId,
-    pushToken,
+    ...(pushToken && { pushToken }),
   });
 };
 

@@ -25,6 +25,7 @@ export const normalizeItem = (item, options = {}) => {
     uniqueName: item?.uniqueName || null,
     likes: Array.isArray(item?.likes) ? item.likes.length : item?.likes || 0,
     reviews: item?.reviews || [],
+    wishlistCount: item?.wishlistCount || 0,
   };
 
   if (!includeDateAdded) {

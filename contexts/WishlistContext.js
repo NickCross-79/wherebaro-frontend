@@ -47,18 +47,14 @@ export const WishlistProvider = ({ children }) => {
   const syncWishlistPushToken = async (itemId, isAdding) => {
     try {
       const pushToken = await storageHelpers.get('expoPushToken');
-      if (!pushToken) {
-        // No push token registered — nothing to sync
-        return;
-      }
       if (isAdding) {
-        await addWishlistPushToken(itemId, pushToken);
+        await addWishlistPushToken(itemId, pushToken || null);
       } else {
-        await removeWishlistPushToken(itemId, pushToken);
+        await removeWishlistPushToken(itemId, pushToken || null);
       }
     } catch (error) {
       // Don't block the UI for backend sync failures
-      console.warn('Failed to sync wishlist push token:', error);
+      console.warn('Failed to sync wishlist:', error);
     }
   };
 
