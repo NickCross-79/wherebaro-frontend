@@ -5,6 +5,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import FilterMenu from '../../components/search/FilterMenu';
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
 jest.mock('@expo/vector-icons', () => {
   const { Text } = require('react-native');
   return {
@@ -141,8 +145,8 @@ describe('FilterMenu', () => {
     );
     // Open sort dropdown
     fireEvent.press(getByText('Default'));
-    // Select 'Most Popular'
-    fireEvent.press(getByText('Most Popular'));
+    // Select 'Popularity'
+    fireEvent.press(getByText('Popularity'));
     // Apply
     fireEvent.press(getByText('Apply'));
     expect(onApplyFilters).toHaveBeenCalledWith(

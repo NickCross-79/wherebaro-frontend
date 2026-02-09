@@ -27,7 +27,7 @@ export default function ItemReviewsTab({
   startEditingReview,
   confirmDeleteReview,
   onReportReview,
-  reportedReviewKeys,
+  reportedReviewKeys = [],
   styles,
 }) {
   const visibleReviews = reviews.filter((review, index) => {
