@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { dbHelpers } from '../utils/storage';
-import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
 import { storageHelpers } from '../utils/storage';
 import { addWishlistPushToken, removeWishlistPushToken } from '../services/api';
+import { WISHLIST_THROTTLE_MS } from '../constants/items';
 
 const WishlistContext = createContext();
 
@@ -39,17 +40,25 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Syncs a wishlist change with the backend by adding or removing
-   * the device's push token on the item. Runs in the background —
-   * local wishlist state is always the source of truth.
-   */
-  const syncWishlistPushToken = async (itemId, isAdding) => {
+  // ── Throttled backend sync ──────────────────────────────────────────
+  // Tracks per-item pending sync so rapid toggles collapse into one call.
+  // Local state (SQLite + React) updates immediately; only the backend
+  // push-token call is debounced.
+  const syncThrottleRef = useRef({}); // { [itemId]: { timerId, pendingAction, inFlight } }
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(syncThrottleRef.current).forEach((entry) => {
+        if (entry.timerId) clearTimeout(entry.timerId);
+      });
+    };
+  }, []);
+
+  const sendWishlistSync = async (itemId, isAdding) => {
     try {
-      // Check if wishlist alerts are enabled
       const wishlistAlertsEnabled = await storageHelpers.getBoolean('wishlistAlertsEnabled', true);
       const pushToken = await storageHelpers.get('expoPushToken');
-      // Only include push token if wishlist alerts are on and token exists
       const tokenToSend = wishlistAlertsEnabled && pushToken ? pushToken : null;
       if (isAdding) {
         await addWishlistPushToken(itemId, tokenToSend);
@@ -57,8 +66,65 @@ export const WishlistProvider = ({ children }) => {
         await removeWishlistPushToken(itemId, tokenToSend);
       }
     } catch (error) {
-      // Don't block the UI for backend sync failures
-      console.warn('Failed to sync wishlist:', error);
+      console.warn('Failed to sync wishlist push token:', error);
+    }
+  };
+
+  const flushWishlistSync = async (itemId) => {
+    const throttle = syncThrottleRef.current[itemId];
+    if (!throttle || throttle.inFlight) return;
+
+    const action = throttle.pendingAction;
+    if (action === null || action === undefined) return;
+
+    throttle.pendingAction = null;
+    throttle.inFlight = true;
+
+    try {
+      await sendWishlistSync(itemId, action);
+    } finally {
+      throttle.inFlight = false;
+      // If another toggle happened while in-flight, schedule again
+      if (throttle.pendingAction !== null && throttle.pendingAction !== undefined) {
+        scheduleWishlistSync(itemId);
+      }
+    }
+  };
+
+  const scheduleWishlistSync = (itemId) => {
+    const throttle = syncThrottleRef.current[itemId];
+    if (!throttle) return;
+    if (throttle.timerId) return; // already scheduled
+
+    throttle.timerId = setTimeout(() => {
+      throttle.timerId = null;
+      void flushWishlistSync(itemId);
+    }, WISHLIST_THROTTLE_MS);
+  };
+
+  const enqueueWishlistSync = (itemId, isAdding) => {
+    if (!syncThrottleRef.current[itemId]) {
+      syncThrottleRef.current[itemId] = { timerId: null, pendingAction: null, inFlight: false };
+    }
+    const throttle = syncThrottleRef.current[itemId];
+    throttle.pendingAction = isAdding;
+
+    if (throttle.inFlight) {
+      scheduleWishlistSync(itemId);
+      return;
+    }
+
+    // Fire immediately if no recent call, otherwise schedule
+    if (!throttle.timerId) {
+      throttle.pendingAction = null;
+      throttle.inFlight = true;
+      sendWishlistSync(itemId, isAdding)
+        .finally(() => {
+          throttle.inFlight = false;
+          if (throttle.pendingAction !== null && throttle.pendingAction !== undefined) {
+            scheduleWishlistSync(itemId);
+          }
+        });
     }
   };
 
@@ -77,14 +143,15 @@ export const WishlistProvider = ({ children }) => {
         setWishlistIds((prev) => prev.filter((id) => id !== itemId));
         setWishlistItems((prev) => prev.filter((wishlistItem) => (wishlistItem?.id || wishlistItem?._id) !== itemId));
       } else {
-        // Add to wishlist
-        await dbHelpers.addToWishlist(item);
+        // Add to wishlist with updated wishlistCount
+        const updatedItem = { ...item, wishlistCount: (item.wishlistCount || 0) + 1 };
+        await dbHelpers.addToWishlist(updatedItem);
         setWishlistIds((prev) => [...prev, itemId]);
-        setWishlistItems((prev) => [...prev, item]);
+        setWishlistItems((prev) => [...prev, updatedItem]);
       }
 
-      // Sync push token with backend (fire-and-forget)
-      syncWishlistPushToken(itemId, !isAlready);
+      // Throttled backend sync — collapses rapid toggles into one call
+      enqueueWishlistSync(itemId, !isAlready);
     } catch (error) {
       console.error('Error toggling wishlist:', error);
     }
@@ -102,6 +169,8 @@ export const WishlistProvider = ({ children }) => {
   }, [wishlistIds]);
 
   const updateWishlistLikes = useItemLikesSync(setWishlistItems);
+  const updateWishlistReviewCount = useItemReviewCountSync(setWishlistItems);
+  const updateWishlistItemWishlistCount = useItemWishlistCountSync(setWishlistItems);
 
   const contextValue = useMemo(
     () => ({
@@ -112,8 +181,10 @@ export const WishlistProvider = ({ children }) => {
       isInWishlist,
       getWishlistCount,
       updateWishlistLikes,
+      updateWishlistReviewCount,
+      updateWishlistItemWishlistCount,
     }),
-    [wishlistIds, wishlistItems, wishlistLoaded, toggleWishlist, isInWishlist, getWishlistCount, updateWishlistLikes]
+    [wishlistIds, wishlistItems, wishlistLoaded, toggleWishlist, isInWishlist, getWishlistCount, updateWishlistLikes, updateWishlistReviewCount, updateWishlistItemWishlistCount]
   );
 
   return (

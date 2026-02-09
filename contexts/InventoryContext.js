@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
-import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
 import { useAllItems } from './AllItemsContext';
 import { fetchBaroStatus, fetchBaroData, isBaroActive } from '../services/api';
 import logger from '../utils/logger';
@@ -354,6 +354,8 @@ export const InventoryProvider = ({ children }) => {
   }, [fetchBaroInventory]);
 
   const updateItemLikes = useItemLikesSync(setItems);
+  const updateItemReviewCount = useItemReviewCountSync(setItems);
+  const updateItemWishlistCount = useItemWishlistCountSync(setItems);
 
   const contextValue = useMemo(
     () => ({
@@ -366,8 +368,10 @@ export const InventoryProvider = ({ children }) => {
       isHere,
       onRefresh,
       updateItemLikes,
+      updateItemReviewCount,
+      updateItemWishlistCount,
     }),
-    [items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes]
+    [items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes, updateItemReviewCount, updateItemWishlistCount]
   );
 
   return (

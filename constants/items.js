@@ -15,6 +15,8 @@ export const DEFAULT_USERNAME = 'Anonymous';
 // Timing constants
 export const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 export const LIKE_THROTTLE_MS = 3000; // 3 seconds
+export const REVIEW_COOLDOWN_MS = 3000; // 3 seconds between review submissions
+export const WISHLIST_THROTTLE_MS = 2000; // 2 seconds — collapses rapid toggles
 
 // Image URLs
 export const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images';

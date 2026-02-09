@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Alert } from 'react-native';
 import { fetchReviews, postReview, updateReview, deleteReview } from '../services/api';
 import { getCurrentUsername } from '../utils/userStorage';
+import { REVIEW_COOLDOWN_MS } from '../constants/items';
 
-export const useReviewManagement = (itemId) => {
+export const useReviewManagement = (itemId, syncReviewCount) => {
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState('');
   const [isPostingReview, setIsPostingReview] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [editingReviewKey, setEditingReviewKey] = useState(null);
   const [editingReviewText, setEditingReviewText] = useState('');
+
+  // Throttle refs — prevent double-submit / rapid-fire
+  const lastPostAtRef = useRef(0);
+  const deletingRef = useRef(false);
 
   const getReviewKey = (review, index) => {
     if (review?._id?.$oid) return review._id.$oid;
@@ -57,8 +62,13 @@ export const useReviewManagement = (itemId) => {
       return;
     }
 
+    // Cooldown — prevent rapid double-submits
+    const elapsed = Date.now() - lastPostAtRef.current;
+    if (elapsed < REVIEW_COOLDOWN_MS) return;
+
     try {
       setIsPostingReview(true);
+      lastPostAtRef.current = Date.now();
       const username = await getCurrentUsername();
       
       const payload = {
@@ -81,6 +91,8 @@ export const useReviewManagement = (itemId) => {
       };
       setReviews((prev) => [postedReview, ...prev]);
       setNewReview('');
+      // Sync +1 review count across all contexts
+      if (syncReviewCount) syncReviewCount(1);
     } catch (error) {
       console.error('Failed to post review', error);
       Alert.alert('Error', 'Failed to post review. Please try again.');
@@ -155,6 +167,10 @@ export const useReviewManagement = (itemId) => {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            // Guard against double-fire
+            if (deletingRef.current) return;
+            deletingRef.current = true;
+
             const reviewId = getReviewId(review);
 
             if (!reviewId) {
@@ -170,9 +186,13 @@ export const useReviewManagement = (itemId) => {
             try {
               await deleteReview(reviewId, currentUid);
               setReviews((prev) => prev.filter((_, i) => i !== index));
+              // Sync -1 review count across all contexts
+              if (syncReviewCount) syncReviewCount(-1);
             } catch (error) {
               console.error('Failed to delete review', error);
               Alert.alert('Error', 'Failed to delete review. Please try again.');
+            } finally {
+              deletingRef.current = false;
             }
           },
         },

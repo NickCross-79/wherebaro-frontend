@@ -26,8 +26,10 @@ jest.mock('../../utils/normalizeItem', () => ({
 jest.mock('../../constants/items', () => ({
   CACHE_DURATION_MS: 60 * 60 * 1000,
 }));
-jest.mock('../../hooks/useItemLikesSync', () => ({
+jest.mock('../../hooks/useItemFieldSync', () => ({
   useItemLikesSync: jest.fn(() => jest.fn()),
+  useItemReviewCountSync: jest.fn(() => jest.fn()),
+  useItemWishlistCountSync: jest.fn(() => jest.fn()),
 }));
 jest.mock('../../utils/logger', () => ({
   debug: jest.fn(),

@@ -3,7 +3,7 @@ import { fetchAllItems } from '../services/api';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { normalizeItem } from '../utils/normalizeItem';
 import { CACHE_DURATION_MS } from '../constants/items';
-import { useItemLikesSync } from '../hooks/useItemLikesSync';
+import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
 import logger from '../utils/logger';
 
 const AllItemsContext = createContext();
@@ -103,6 +103,8 @@ export const AllItemsProvider = ({ children }) => {
   }, []);
 
   const updateItemLikes = useItemLikesSync(setItems);
+  const updateItemReviewCount = useItemReviewCountSync(setItems);
+  const updateItemWishlistCount = useItemWishlistCountSync(setItems);
 
   const value = useMemo(
     () => ({
@@ -113,8 +115,10 @@ export const AllItemsProvider = ({ children }) => {
       onRefresh,
       refreshInBackground,
       updateItemLikes,
+      updateItemReviewCount,
+      updateItemWishlistCount,
     }),
-    [items, loading, refreshing, error, onRefresh, refreshInBackground, updateItemLikes]
+    [items, loading, refreshing, error, onRefresh, refreshInBackground, updateItemLikes, updateItemReviewCount, updateItemWishlistCount]
   );
 
   return <AllItemsContext.Provider value={value}>{children}</AllItemsContext.Provider>;

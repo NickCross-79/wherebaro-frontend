@@ -2,11 +2,15 @@ import { Text, View, Image, Pressable, Animated, Dimensions } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import BaroIcon from '../../assets/icons/icon_baro.svg';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { useAllItems } from '../../contexts/AllItemsContext';
+import { useInventory } from '../../contexts/InventoryContext';
 import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
 
 function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
+  const { updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
   const [showHeart, setShowHeart] = useState(false);
   const heartOpacity = useRef(new Animated.Value(1)).current;
   const heartScale = useRef(new Animated.Value(0.5)).current;
@@ -35,6 +39,10 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
       });
     }
     
+    const itemId = item?.id || item?._id;
+    const delta = inWishlist ? -1 : 1;
+    updateAllItemsWishlistCount(itemId, delta);
+    updateInventoryWishlistCount(itemId, delta);
     toggleWishlist(item);
   };
 

@@ -14,8 +14,10 @@ jest.mock('../../utils/storage', () => ({
     removeFromWishlist: jest.fn().mockResolvedValue(undefined),
   },
 }));
-jest.mock('../../hooks/useItemLikesSync', () => ({
+jest.mock('../../hooks/useItemFieldSync', () => ({
   useItemLikesSync: jest.fn(() => jest.fn()),
+  useItemReviewCountSync: jest.fn(() => jest.fn()),
+  useItemWishlistCountSync: jest.fn(() => jest.fn()),
 }));
 
 const { dbHelpers } = require('../../utils/storage');
@@ -72,7 +74,7 @@ describe('WishlistContext', () => {
       await flushPromises();
     });
 
-    expect(dbHelpers.addToWishlist).toHaveBeenCalledWith(item);
+    expect(dbHelpers.addToWishlist).toHaveBeenCalledWith({ ...item, wishlistCount: 1 });
     expect(result.current.wishlistIds).toContain('new-1');
   });
 

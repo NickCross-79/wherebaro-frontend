@@ -69,9 +69,9 @@ export default function ItemDetailScreen({ route, navigation }) {
       gestureEnabled: false,
     });
   }, [navigation]);
-  const { toggleWishlist, isInWishlist, updateWishlistLikes } = useWishlist();
-  const { items: inventoryItems, updateItemLikes: updateInventoryLikes } = useInventory();
-  const { items: allItems, updateItemLikes: updateAllItemsLikes } = useAllItems();
+  const { toggleWishlist, isInWishlist, updateWishlistLikes, updateWishlistReviewCount } = useWishlist();
+  const { items: inventoryItems, updateItemLikes: updateInventoryLikes, updateItemReviewCount: updateInventoryReviewCount, updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
+  const { items: allItems, updateItemLikes: updateAllItemsLikes, updateItemReviewCount: updateAllItemsReviewCount, updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
@@ -84,6 +84,14 @@ export default function ItemDetailScreen({ route, navigation }) {
     // Single DB write (hooks only update in-memory state)
     dbHelpers.updateItemLikes(itemId, newCount);
   };
+
+  const syncReviewCount = useCallback((delta) => {
+    const id = item.id || item._id;
+    updateInventoryReviewCount(id, delta);
+    updateAllItemsReviewCount(id, delta);
+    updateWishlistReviewCount(id, delta);
+    dbHelpers.updateItemReviewCount(id, delta);
+  }, [item, updateInventoryReviewCount, updateAllItemsReviewCount, updateWishlistReviewCount]);
 
   const {
     userLiked,
@@ -116,7 +124,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     saveEditingReview,
     confirmDeleteReview,
     hasUserReview,
-  } = useReviewManagement(item.id || item._id);
+  } = useReviewManagement(item.id || item._id, syncReviewCount);
 
   // Check if market tab should be shown
   const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
@@ -158,6 +166,13 @@ export default function ItemDetailScreen({ route, navigation }) {
     : null;
 
   const handleWishlist = () => {
+    const id = item.id || item._id;
+    const isCurrentlyWishlisted = isInWishlist(id);
+    const delta = isCurrentlyWishlisted ? -1 : 1;
+    // Update wishlist count across AllItems and Inventory contexts
+    updateInventoryWishlistCount(id, delta);
+    updateAllItemsWishlistCount(id, delta);
+    // WishlistContext.toggleWishlist handles its own items' count
     toggleWishlist(item);
   };
 

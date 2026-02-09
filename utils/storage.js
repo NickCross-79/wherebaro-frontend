@@ -468,6 +468,47 @@ export const dbHelpers = {
       }
     });
   },
+
+  /**
+   * Adjust the review count for an item in the SQLite cache by delta (+1 or -1).
+   * Reads the current reviews array, resizes it, and writes back.
+   */
+  updateItemReviewCount: async (itemId, delta) => {
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        if (!db) return;
+        const row = await db.getFirstAsync(
+          `SELECT reviews FROM items WHERE id = ? OR _id = ?`,
+          [itemId, itemId]
+        );
+        if (!row) return;
+        const reviews = JSON.parse(row.reviews || '[]');
+        if (delta > 0) {
+          reviews.unshift({ _placeholder: true });
+        } else if (reviews.length > 0) {
+          reviews.pop();
+        }
+        await db.runAsync(
+          `UPDATE items SET reviews = ? WHERE id = ? OR _id = ?`,
+          [JSON.stringify(reviews), itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error updating item review count:', error);
+      }
+    });
+  },
+
+  /**
+   * Adjust the wishlistCount for an item in the SQLite cache by delta (+1 or -1).
+   * Since wishlistCount is not a SQLite column, we read/write the full row.
+   * For now this is a no-op because wishlistCount is not persisted in SQLite.
+   * The in-memory contexts handle local updates; the next full refresh syncs from server.
+   */
+  updateItemWishlistCount: async (_itemId, _delta) => {
+    // wishlistCount is not stored in the SQLite items table, so nothing to update.
+    // In-memory context updates handle the immediate UI feedback.
+  },
 };
 
 export default {
