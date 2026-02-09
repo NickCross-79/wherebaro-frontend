@@ -114,6 +114,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  wishlistCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  wishlistCountText: {
+    color: '#D4A574',
+    fontSize: 15,
+    fontWeight: '600',
+  },
   cardContent: {
     flexDirection: 'row',
     padding: 16,

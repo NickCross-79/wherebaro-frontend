@@ -97,6 +97,10 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
                 <Ionicons name="chatbubbles" size={18} color="#D4A574" />
                 <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
               </View>
+              <View style={styles.wishlistCountContainer}>
+                <Ionicons name="heart" size={18} color="#D4A574" />
+                <Text style={styles.wishlistCountText}>{item.wishlistCount || 0}</Text>
+              </View>
             </View>
           </View>
           
@@ -142,6 +146,7 @@ export default memo(ItemCard, (prevProps, nextProps) => {
     prevItem?.ducatPrice === nextItem?.ducatPrice &&
     (prevItem?.likes?.length || prevItem?.likes || 0) === (nextItem?.likes?.length || nextItem?.likes || 0) &&
     (prevItem?.reviews?.length || 0) === (nextItem?.reviews?.length || 0) &&
+    (prevItem?.wishlistCount || 0) === (nextItem?.wishlistCount || 0) &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.isNew === nextProps.isNew &&
     prevProps.hideWishlistBadge === nextProps.hideWishlistBadge &&
