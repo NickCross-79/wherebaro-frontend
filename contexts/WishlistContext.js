@@ -46,11 +46,15 @@ export const WishlistProvider = ({ children }) => {
    */
   const syncWishlistPushToken = async (itemId, isAdding) => {
     try {
+      // Check if wishlist alerts are enabled
+      const wishlistAlertsEnabled = await storageHelpers.getBoolean('wishlistAlertsEnabled', true);
       const pushToken = await storageHelpers.get('expoPushToken');
+      // Only include push token if wishlist alerts are on and token exists
+      const tokenToSend = wishlistAlertsEnabled && pushToken ? pushToken : null;
       if (isAdding) {
-        await addWishlistPushToken(itemId, pushToken || null);
+        await addWishlistPushToken(itemId, tokenToSend);
       } else {
-        await removeWishlistPushToken(itemId, pushToken || null);
+        await removeWishlistPushToken(itemId, tokenToSend);
       }
     } catch (error) {
       // Don't block the UI for backend sync failures

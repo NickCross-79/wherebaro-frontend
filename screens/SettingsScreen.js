@@ -5,6 +5,7 @@ import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
+import { registerForPushNotifications, unregisterPushToken } from '../services/api';
 import styles from '../styles/screens/SettingsScreen.styles';
 
 export default function SettingsScreen({ navigation }) {
@@ -47,11 +48,24 @@ export default function SettingsScreen({ navigation }) {
   const handleNotificationsChange = async (value) => {
     setNotifications(value);
     await updateNotificationSettings({ notifications: value });
+    try {
+      if (value) {
+        await registerForPushNotifications();
+      } else {
+        await unregisterPushToken();
+      }
+    } catch (error) {
+      console.warn('Failed to update push token registration:', error);
+    }
   };
 
   const handleWishlistAlertsChange = async (value) => {
     setWishlistAlerts(value);
     await updateNotificationSettings({ wishlistAlerts: value });
+    // When disabled, the syncWishlistPushToken in WishlistContext will
+    // check this setting and skip sending push tokens to the backend.
+    // Existing tokens on items are left in place — on next toggle they
+    // will be cleaned up naturally. This avoids a bulk network operation.
   };
 
   const handleAutoRefreshChange = async (value) => {

@@ -325,6 +325,29 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [loading, isHere]); // Only on initial load, not every items change
 
+  // Auto-refresh inventory on an interval when the setting is enabled
+  useEffect(() => {
+    let intervalId = null;
+
+    const startAutoRefresh = async () => {
+      const enabled = await storageHelpers.getBoolean('autoRefreshEnabled', false);
+      if (enabled) {
+        const AUTO_REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
+        logger.debug('Baro', 'Auto-refresh enabled, polling every hour');
+        intervalId = setInterval(() => {
+          logger.debug('Baro', 'Auto-refresh: refreshing inventory...');
+          refreshInBackground();
+        }, AUTO_REFRESH_INTERVAL);
+      }
+    };
+
+    startAutoRefresh();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [refreshInBackground]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchBaroInventory(true); // Force refresh
