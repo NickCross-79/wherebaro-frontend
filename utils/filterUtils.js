@@ -26,8 +26,8 @@ export const filterByCategories = (items, categories) => {
     
     return categories.some(category => {
       const categoryLower = category.toLowerCase();
-      // Match either the full type or just the first word
-      return itemType === categoryLower || firstWord === categoryLower;
+      // Match full type, first word, or if the type contains the category word
+      return itemType === categoryLower || firstWord === categoryLower || itemType.includes(categoryLower);
     });
   });
 };
