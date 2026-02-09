@@ -163,9 +163,9 @@ export default function SettingsScreen({ navigation }) {
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Baro Arrival Alerts</Text>
+              <Text style={styles.settingLabel}>Baro Alerts</Text>
               <Text style={styles.settingDescription}>
-                Get notified when Baro arrives
+                Get notified when Baro arrives or leaves
               </Text>
             </View>
             <Switch
