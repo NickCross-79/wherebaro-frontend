@@ -9,7 +9,7 @@ import { WishlistProvider } from './contexts/WishlistContext';
 import { InventoryProvider } from './contexts/InventoryContext';
 import { AllItemsProvider } from './contexts/AllItemsContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
-import { registerForPushNotifications } from './services/pushNotificationService';
+import { registerForPushNotifications } from './services/api';
 import AppNavigator, { getIsItemDetailActive } from './navigation/AppNavigator';
 import styles from './styles/App.styles';
 

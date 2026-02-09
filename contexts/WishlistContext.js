@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { dbHelpers } from '../utils/storage';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
 import { storageHelpers } from '../utils/storage';
-import { addWishlistPushToken, removeWishlistPushToken } from '../services/wishlistService';
+import { addWishlistPushToken, removeWishlistPushToken } from '../services/api';
 
 const WishlistContext = createContext();
 

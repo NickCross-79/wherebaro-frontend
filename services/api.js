@@ -9,3 +9,6 @@ export * from './reviewService';
 export * from './likeService';
 export * from './userService';
 export * from './wishlistService';
+export * from './marketService';
+export * from './pushNotificationService';
+export * from './baroService';

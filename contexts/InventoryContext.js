@@ -3,8 +3,7 @@ import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync } from '../hooks/useItemLikesSync';
 import { useAllItems } from './AllItemsContext';
-import { fetchBaroStatus } from '../services/itemService';
-import { fetchBaroData, isBaroActive } from '../services/baroService';
+import { fetchBaroStatus, fetchBaroData, isBaroActive } from '../services/api';
 import logger from '../utils/logger';
 
 /**
