@@ -26,8 +26,14 @@ export default function ItemReviewsTab({
   cancelEditingReview,
   startEditingReview,
   confirmDeleteReview,
+  onReportReview,
+  reportedReviewKeys,
   styles,
 }) {
+  const visibleReviews = reviews.filter((review, index) => {
+    const key = getReviewKey(review, index);
+    return !reportedReviewKeys.includes(key);
+  });
   return (
     <ScrollView
       style={styles.content}
@@ -89,18 +95,18 @@ export default function ItemReviewsTab({
           {/* Reviews List */}
           <View style={styles.reviewsListSection}>
             <Text style={styles.sectionTitle}>
-              Reviews ({reviews.length})
+              Reviews ({visibleReviews.length})
             </Text>
-            {reviews.length === 0 ? (
+            {visibleReviews.length === 0 ? (
               <View style={styles.emptyReviews}>
                 <Ionicons name="chatbubbles-outline" size={48} color="#5A6B8C" />
                 <Text style={styles.emptyReviewsText}>No reviews yet</Text>
                 <Text style={styles.emptyReviewsSubtext}>Be the first to review this item!</Text>
               </View>
             ) : (
-              reviews.map((review, index) => (
+              visibleReviews.map((review, index) => (
                 <ReviewCard
-                  key={index}
+                  key={getReviewKey(review, index)}
                   review={review}
                   index={index}
                   currentUid={CURRENT_UID}
@@ -113,6 +119,7 @@ export default function ItemReviewsTab({
                   startEditingReview={startEditingReview}
                   confirmDeleteReview={confirmDeleteReview}
                   getRelativeTime={getRelativeTime}
+                  onReportReview={onReportReview}
                   styles={styles}
                 />
               ))

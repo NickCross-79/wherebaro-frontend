@@ -346,6 +346,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  reviewHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  reportButton: {
+    padding: 4,
+  },
   reviewActionButton: {
     padding: 6,
   },

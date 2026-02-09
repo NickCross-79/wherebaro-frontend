@@ -15,6 +15,7 @@ function ReviewCard({
   startEditingReview,
   confirmDeleteReview,
   getRelativeTime,
+  onReportReview,
   styles,
 }) {
   const isOwnReview = review?.uid === currentUid;
@@ -32,7 +33,18 @@ function ReviewCard({
           <Ionicons name="person-circle" size={32} color="#D4A574" />
           <Text style={styles.reviewerName}>{review.user}</Text>
         </View>
-        <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
+        <View style={styles.reviewHeaderRight}>
+          <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
+          {!isOwnReview && onReportReview && (
+            <TouchableOpacity
+              style={styles.reportButton}
+              onPress={() => onReportReview(review, index)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="flag" size={16} color="#D23B35" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <Text style={styles.reviewText}>{review.content}</Text>
 

@@ -8,6 +8,7 @@ const ENDPOINTS = {
   POST_REVIEW: buildUrl('postReview'),
   UPDATE_REVIEW: buildUrl('updateReview'),
   DELETE_REVIEW: buildUrl('deleteReview'),
+  REPORT_REVIEW: buildUrl('reportReview'),
 };
 
 /**
@@ -53,9 +54,19 @@ export const deleteReview = async (reviewId, uid) => {
   return apiPost(ENDPOINTS.DELETE_REVIEW, { review_id: reviewId, uid });
 };
 
+/**
+ * Report a review
+ * @param {string} reviewId - Review ID
+ * @returns {Promise<Object>} Report result
+ */
+export const reportReview = async (reviewId) => {
+  return apiPost(ENDPOINTS.REPORT_REVIEW, { review_id: reviewId });
+};
+
 export default {
   fetchReviews,
   postReview,
   updateReview,
   deleteReview,
+  reportReview,
 };

@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text } from 'react-native';
-import { useEffect, useState } from 'react';
+import { Alert, View, Text } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useInventory } from '../contexts/InventoryContext';
@@ -9,6 +9,8 @@ import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { fetchReviews, fetchLikes } from '../services/api';
 import { dbHelpers } from '../utils/storage';
+import { storageHelpers } from '../utils/storage';
+import { reportReview } from '../services/reviewService';
 import { fetchMarketData } from '../services/marketService';
 import ItemDetailsTab from '../components/items/ItemDetailsTab';
 import ItemReviewsTab from '../components/items/ItemReviewsTab';
@@ -29,6 +31,39 @@ export default function ItemDetailScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState('details');
   const [marketData, setMarketData] = useState(null);
   const [isLoadingMarket, setIsLoadingMarket] = useState(false);
+  const [reportedReviewKeys, setReportedReviewKeys] = useState([]);
+
+  // Load reported reviews on mount
+  useEffect(() => {
+    const loadReported = async () => {
+      const reported = await storageHelpers.getReportedReviews();
+      setReportedReviewKeys(reported);
+    };
+    loadReported();
+  }, []);
+
+  const handleReportReview = useCallback((review, index) => {
+    const reviewKey = review?._id?.$oid || review?._id || String(index);
+    Alert.alert(
+      'Report Review',
+      'Are you sure you want to report this review? It will be hidden from your view.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Report',
+          style: 'destructive',
+          onPress: async () => {
+            await storageHelpers.addReportedReview(reviewKey);
+            setReportedReviewKeys((prev) => [...prev, reviewKey]);
+            // Increment report count on the backend (fire-and-forget)
+            reportReview(reviewKey).catch((err) =>
+              console.error('Failed to report review to server:', err)
+            );
+          },
+        },
+      ]
+    );
+  }, []);
 
   // Disable default swipe gesture to prevent navigating away
   useEffect(() => {
@@ -256,6 +291,8 @@ export default function ItemDetailScreen({ route, navigation }) {
           cancelEditingReview={cancelEditingReview}
           startEditingReview={startEditingReview}
           confirmDeleteReview={(review, index) => confirmDeleteReview(review, index, CURRENT_UID)}
+          onReportReview={handleReportReview}
+          reportedReviewKeys={reportedReviewKeys}
           styles={styles}
         />
       )}

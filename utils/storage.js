@@ -228,6 +228,26 @@ export const storageHelpers = {
   clearBaroResponse: async () => {
     await secureStorage.deleteItem('baroResponse');
   },
+
+  // Reported reviews
+  getReportedReviews: async () => {
+    const value = await secureStorage.getItem('reportedReviews');
+    if (!value) return [];
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error('Error parsing reported reviews:', error);
+      return [];
+    }
+  },
+
+  addReportedReview: async (reviewKey) => {
+    const reported = await storageHelpers.getReportedReviews();
+    if (!reported.includes(reviewKey)) {
+      reported.push(reviewKey);
+      await secureStorage.setItem('reportedReviews', JSON.stringify(reported));
+    }
+  },
 };
 
 // SQLite Helper functions
