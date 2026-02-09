@@ -89,24 +89,18 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
               <Text style={styles.categoryText}>{item.type}</Text>
             </View>
             <View style={styles.statsContainer}>
-              {(Array.isArray(item.likes) ? item.likes.length : item.likes || 0) > 0 && (
-                <View style={styles.likesContainer}>
-                  <Ionicons name="thumbs-up" size={20} color="#D4A574" />
-                  <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes}</Text>
-                </View>
-              )}
-              {(Array.isArray(item.reviews) ? item.reviews.length : 0) > 0 && (
-                <View style={styles.reviewsContainer}>
-                  <Ionicons name="chatbubbles" size={18} color="#D4A574" />
-                  <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
-                </View>
-              )}
-              {(item.wishlistCount || 0) > 0 && (
-                <View style={styles.wishlistCountContainer}>
-                  <Ionicons name="heart" size={18} color="#D4A574" />
-                  <Text style={styles.wishlistCountText}>{item.wishlistCount}</Text>
-                </View>
-              )}
+              <View style={[styles.likesContainer, { opacity: (Array.isArray(item.likes) ? item.likes.length : item.likes || 0) > 0 ? 1 : 0 }]}>
+                <Ionicons name="thumbs-up" size={20} color="#D4A574" />
+                <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
+              </View>
+              <View style={[styles.reviewsContainer, { opacity: (Array.isArray(item.reviews) ? item.reviews.length : 0) > 0 ? 1 : 0 }]}>
+                <Ionicons name="chatbubbles" size={18} color="#D4A574" />
+                <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
+              </View>
+              <View style={[styles.wishlistCountContainer, { opacity: (item.wishlistCount || 0) > 0 ? 1 : 0 }]}>
+                <Ionicons name="heart" size={18} color="#D4A574" />
+                <Text style={styles.wishlistCountText}>{item.wishlistCount || 0}</Text>
+              </View>
             </View>
           </View>
           
