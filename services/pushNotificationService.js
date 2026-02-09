@@ -47,10 +47,11 @@ export const registerForPushNotifications = async () => {
     const token = tokenData.data;
     console.log('Device push token:', token);
 
-    // Check if token changed
+    // Check if token is already registered with backend
     const storedToken = await storageHelpers.get('expoPushToken');
-    if (storedToken === token) {
-      console.log('Push token unchanged, skipping registration');
+    const isRegistered = await storageHelpers.get('pushTokenRegistered');
+    if (storedToken === token && isRegistered) {
+      console.log('Push token unchanged and already registered, skipping');
       return token;
     }
 
@@ -79,13 +80,88 @@ export const registerForPushNotifications = async () => {
     
     // Store token locally only after successful backend registration
     await storageHelpers.set('expoPushToken', token);
+    await storageHelpers.set('pushTokenRegistered', true);
     
-    console.log('Push token stored locally');
+    console.log('Push token stored and registered with backend');
     return token;
 
   } catch (error) {
     console.error('Error registering for push notifications:', error);
     return null;
+  }
+};
+
+/**
+ * Get or create a local push token without registering with the backend.
+ * Use this when you need a token for item-level notifications (e.g. wishlist)
+ * but don't want to register for general push notifications (e.g. Baro alerts).
+ * @returns {Promise<string|null>} The Expo push token or null if failed
+ */
+export const getLocalPushToken = async () => {
+  try {
+    // Return existing token if available
+    const storedToken = await storageHelpers.get('expoPushToken');
+    if (storedToken) return storedToken;
+
+    // Check if physical device
+    if (!Device.isDevice) {
+      console.log('Push notifications require a physical device');
+      return null;
+    }
+
+    // Request permissions
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('Push notification permissions denied');
+      return null;
+    }
+
+    // Get Expo push token
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const token = tokenData.data;
+
+    // For Android, create notification channel
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('baro-alerts', {
+        name: 'Baro Alerts',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#D4A574',
+      });
+    }
+
+    // Store token locally (no backend registration)
+    await storageHelpers.set('expoPushToken', token);
+    console.log('Push token obtained and stored locally (not registered with backend)');
+    return token;
+  } catch (error) {
+    console.error('Error getting local push token:', error);
+    return null;
+  }
+};
+
+/**
+ * Remove push token from backend but keep it stored locally.
+ * Use when disabling Baro alerts but keeping wishlist alerts active.
+ */
+export const unregisterFromBackend = async () => {
+  try {
+    const token = await storageHelpers.get('expoPushToken');
+    if (!token) return;
+
+    const { removePushToken: removeToken } = await import('./api');
+    await removeToken(token);
+    await storageHelpers.remove('pushTokenRegistered');
+    console.log('Push token unregistered from backend (kept locally)');
+  } catch (error) {
+    console.error('Error unregistering push token from backend:', error);
   }
 };
 
@@ -102,6 +178,7 @@ export const unregisterPushToken = async () => {
     await removeToken(token);
     
     await storageHelpers.remove('expoPushToken');
+    await storageHelpers.remove('pushTokenRegistered');
     console.log('Push token unregistered');
   } catch (error) {
     console.error('Error unregistering push token:', error);

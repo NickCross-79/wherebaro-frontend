@@ -8,6 +8,7 @@ import * as Device from 'expo-device';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
 import { registerForPushNotifications, unregisterPushToken, bulkSyncWishlistPushToken } from '../services/api';
+import { getLocalPushToken, unregisterFromBackend } from '../services/pushNotificationService';
 import { useWishlist } from '../contexts/WishlistContext';
 import styles from '../styles/screens/SettingsScreen.styles';
 
@@ -99,9 +100,12 @@ export default function SettingsScreen({ navigation }) {
     } else {
       setNotifications(false);
       await updateNotificationSettings({ notifications: false });
-      // Only unregister token if wishlist alerts are also off
       if (!wishlistAlerts) {
+        // No alerts at all — full unregister (backend + local)
         unregisterPushToken().catch(() => {});
+      } else {
+        // Wishlist still needs local token — only remove from backend
+        unregisterFromBackend().catch(() => {});
       }
     }
   };
@@ -112,8 +116,9 @@ export default function SettingsScreen({ navigation }) {
       if (!granted) return;
       setWishlistAlerts(true);
       await updateNotificationSettings({ wishlistAlerts: true });
-      // Ensure push token is registered for wishlist notifications
-      const token = await registerForPushNotifications();
+      // Get token locally — don't register with backend general push tokens
+      // (that's only for Baro alerts)
+      const token = await getLocalPushToken();
       // Bulk add push token to all existing wishlisted items
       if (token && wishlistIds.length > 0) {
         bulkSyncWishlistPushToken(wishlistIds, token, 'add').catch((err) =>
