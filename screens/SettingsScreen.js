@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking, Clipboard } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -249,6 +249,7 @@ export default function SettingsScreen({ navigation }) {
               'Device ID',
               deviceId,
               [
+                { text: 'Copy', onPress: () => Clipboard.setString(deviceId) },
                 { text: 'OK' }
               ]
             )}
