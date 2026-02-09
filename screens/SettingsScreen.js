@@ -1,8 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
 import { registerForPushNotifications, unregisterPushToken } from '../services/api';
@@ -26,9 +28,22 @@ export default function SettingsScreen({ navigation }) {
     };
     const loadSettings = async () => {
       const settings = await getNotificationSettings();
+      setAutoRefresh(settings.autoRefresh);
+
+      // Check actual permission state — override stored prefs if denied
+      if (Device.isDevice) {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          setNotifications(false);
+          setWishlistAlerts(false);
+          if (settings.notifications || settings.wishlistAlerts) {
+            await updateNotificationSettings({ notifications: false, wishlistAlerts: false });
+          }
+          return;
+        }
+      }
       setNotifications(settings.notifications);
       setWishlistAlerts(settings.wishlistAlerts);
-      setAutoRefresh(settings.autoRefresh);
     };
     const loadDeviceId = async () => {
       const uid = await storageHelpers.getOrCreateUID();
@@ -39,6 +54,33 @@ export default function SettingsScreen({ navigation }) {
     loadDeviceId();
   }, []);
 
+  /**
+   * Request notification permissions. Returns true if granted.
+   * If the OS won't show a prompt (previously denied), directs user to settings.
+   */
+  const requestNotificationPermission = async () => {
+    if (!Device.isDevice) {
+      // On simulator, just allow — no real push but preference is saved
+      return true;
+    }
+
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status === 'granted') {
+      return true;
+    }
+
+    // Permission denied — OS may not show the prompt again
+    Alert.alert(
+      'Notifications Disabled',
+      'Please enable notifications for this app in your device settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+      ],
+    );
+    return false;
+  };
+
   // Save username when it changes
   const handleDisplayNameChange = async (newName) => {
     setDisplayName(newName);
@@ -46,26 +88,38 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleNotificationsChange = async (value) => {
-    setNotifications(value);
-    await updateNotificationSettings({ notifications: value });
-    try {
-      if (value) {
-        await registerForPushNotifications();
-      } else {
-        await unregisterPushToken();
+    if (value) {
+      const granted = await requestNotificationPermission();
+      if (!granted) return;
+      setNotifications(true);
+      await updateNotificationSettings({ notifications: true });
+      registerForPushNotifications().catch(() => {});
+    } else {
+      setNotifications(false);
+      await updateNotificationSettings({ notifications: false });
+      // Only unregister token if wishlist alerts are also off
+      if (!wishlistAlerts) {
+        unregisterPushToken().catch(() => {});
       }
-    } catch (error) {
-      console.warn('Failed to update push token registration:', error);
     }
   };
 
   const handleWishlistAlertsChange = async (value) => {
-    setWishlistAlerts(value);
-    await updateNotificationSettings({ wishlistAlerts: value });
-    // When disabled, the syncWishlistPushToken in WishlistContext will
-    // check this setting and skip sending push tokens to the backend.
-    // Existing tokens on items are left in place — on next toggle they
-    // will be cleaned up naturally. This avoids a bulk network operation.
+    if (value) {
+      const granted = await requestNotificationPermission();
+      if (!granted) return;
+      setWishlistAlerts(true);
+      await updateNotificationSettings({ wishlistAlerts: true });
+      // Ensure push token is registered for wishlist notifications
+      registerForPushNotifications().catch(() => {});
+    } else {
+      setWishlistAlerts(false);
+      await updateNotificationSettings({ wishlistAlerts: false });
+      // Only unregister token if baro alerts are also off
+      if (!notifications) {
+        unregisterPushToken().catch(() => {});
+      }
+    }
   };
 
   const handleAutoRefreshChange = async (value) => {
