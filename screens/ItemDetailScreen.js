@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { Alert, View, Text } from 'react-native';
-import { useEffect, useState, useCallback } from 'react';
+import { Alert, View, Text, useWindowDimensions, Animated as RNAnimated } from 'react-native';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useInventory } from '../contexts/InventoryContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { getCurrentUID, getCurrentUsername } from '../utils/userStorage';
-import { GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { fetchReviews, fetchLikes, reportReview, fetchMarketData } from '../services/api';
 import { dbHelpers } from '../utils/storage';
 import { storageHelpers } from '../utils/storage';
@@ -18,18 +18,27 @@ import ItemDetailTabs from '../components/items/ItemDetailTabs';
 import { useLike } from '../hooks/useLike';
 import { useReviewManagement } from '../hooks/useReviewManagement';
 import { formatDate, getRelativeTime } from '../utils/dateUtils';
-import { createSwipeGesture } from '../utils/gestureHelpers';
 import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
 import styles from '../styles/screens/ItemDetailScreen.styles';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
+  const { width: screenWidth } = useWindowDimensions();
   const [CURRENT_UID, setCURRENT_UID] = useState(null);
   const [showOfferings, setShowOfferings] = useState(false);
-  const [activeTab, setActiveTab] = useState('details');
+  const [tabIndex, setTabIndex] = useState(0);
   const [marketData, setMarketData] = useState(null);
   const [isLoadingMarket, setIsLoadingMarket] = useState(false);
   const [reportedReviewKeys, setReportedReviewKeys] = useState([]);
+
+  // Animated pager
+  const translateX = useRef(new RNAnimated.Value(0)).current;
+  const tabIndexRef = useRef(0);
+
+  const updateTabIndex = useCallback((newIndex) => {
+    tabIndexRef.current = newIndex;
+    setTabIndex(newIndex);
+  }, []);
 
   // Load reported reviews on mount
   useEffect(() => {
@@ -53,7 +62,6 @@ export default function ItemDetailScreen({ route, navigation }) {
           onPress: async () => {
             await storageHelpers.addReportedReview(reviewKey);
             setReportedReviewKeys((prev) => [...prev, reviewKey]);
-            // Increment report count on the backend (fire-and-forget)
             reportReview(reviewKey).catch((err) =>
               console.error('Failed to report review to server:', err)
             );
@@ -76,12 +84,88 @@ export default function ItemDetailScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
 
+  // Check if market tab should be shown
+  const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
+    category => item.type.toLowerCase().startsWith(category.toLowerCase())
+  ) && !MARKET_EXCLUDED_ITEMS.includes(item.name.toLowerCase());
+
+  const tabCount = hasMarketTab ? 3 : 2;
+
+  // Build tab routes for the tab bar
+  const routes = useMemo(() => {
+    const r = [
+      { key: 'details', title: 'Details', icon: 'information-circle' },
+      { key: 'reviews', title: 'Reviews', icon: 'chatbubbles' },
+    ];
+    if (hasMarketTab) {
+      r.push({ key: 'market', title: 'Market', icon: 'trending-up' });
+    }
+    return r;
+  }, [hasMarketTab]);
+
+  // Animate to a tab index
+  const animateToIndex = useCallback((index) => {
+    RNAnimated.spring(translateX, {
+      toValue: -index * screenWidth,
+      damping: 20,
+      stiffness: 200,
+      mass: 0.5,
+      useNativeDriver: true,
+    }).start();
+  }, [screenWidth, translateX]);
+
+  // Swipe gesture
+  const panGesture = useMemo(() =>
+    Gesture.Pan()
+      .activeOffsetX([-15, 15])
+      .failOffsetY([-10, 10])
+      .onUpdate((event) => {
+        const base = -tabIndexRef.current * screenWidth;
+        translateX.setValue(base + event.translationX);
+      })
+      .onEnd((event) => {
+        const { translationX, velocityX } = event;
+        let newIndex = tabIndexRef.current;
+
+        // Swipe right
+        if (translationX > 50 || velocityX > 500) {
+          if (tabIndexRef.current === 0) {
+            // First tab — go back
+            animateToIndex(0);
+            navigation.goBack();
+            return;
+          } else {
+            newIndex = tabIndexRef.current - 1;
+          }
+        }
+        // Swipe left
+        else if (translationX < -50 || velocityX < -500) {
+          if (tabIndexRef.current < tabCount - 1) {
+            newIndex = tabIndexRef.current + 1;
+          }
+        }
+
+        newIndex = Math.max(0, Math.min(newIndex, tabCount - 1));
+        animateToIndex(newIndex);
+        if (newIndex !== tabIndexRef.current) {
+          updateTabIndex(newIndex);
+        }
+      })
+      .runOnJS(true),
+    [screenWidth, tabCount, navigation, updateTabIndex, animateToIndex]
+  );
+
+  // Animate to correct position when tab is tapped
+  useEffect(() => {
+    animateToIndex(tabIndex);
+    tabIndexRef.current = tabIndex;
+  }, [tabIndex, animateToIndex]);
+
   const syncLikeCount = (newCount) => {
     const itemId = item.id || item._id;
     updateInventoryLikes(itemId, newCount);
     updateAllItemsLikes(itemId, newCount);
     updateWishlistLikes(itemId, newCount);
-    // Single DB write (hooks only update in-memory state)
     dbHelpers.updateItemLikes(itemId, newCount);
   };
 
@@ -126,13 +210,6 @@ export default function ItemDetailScreen({ route, navigation }) {
     hasUserReview,
   } = useReviewManagement(item.id || item._id, syncReviewCount);
 
-  // Check if market tab should be shown
-  const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
-    category => item.type.toLowerCase().startsWith(category.toLowerCase())
-  ) && !MARKET_EXCLUDED_ITEMS.includes(item.name.toLowerCase());
-
-  const swipeGesture = createSwipeGesture(activeTab, setActiveTab, navigation, hasMarketTab);
-
   // Get user UID on mount
   useEffect(() => {
     const loadUID = async () => {
@@ -169,10 +246,8 @@ export default function ItemDetailScreen({ route, navigation }) {
     const id = item.id || item._id;
     const isCurrentlyWishlisted = isInWishlist(id);
     const delta = isCurrentlyWishlisted ? -1 : 1;
-    // Update wishlist count across AllItems and Inventory contexts
     updateInventoryWishlistCount(id, delta);
     updateAllItemsWishlistCount(id, delta);
-    // WishlistContext.toggleWishlist handles its own items' count
     toggleWishlist(item);
   };
 
@@ -239,78 +314,99 @@ export default function ItemDetailScreen({ route, navigation }) {
     void loadMarketData();
   }, [itemId, hasMarketTab]);
 
+  // Set active tab by key (for tab bar taps)
+  const setActiveTabByKey = useCallback((key) => {
+    const idx = routes.findIndex((r) => r.key === key);
+    if (idx !== -1) updateTabIndex(idx);
+  }, [routes, updateTabIndex]);
+
   return (
-    <GestureDetector gesture={swipeGesture}>
+    <GestureDetector gesture={panGesture}>
       <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <ItemDetailHeader
-        title={item.name}
-        onBack={() => navigation.goBack()}
-        onToggleWishlist={handleWishlist}
-        isWishlisted={onWishlist}
-        styles={styles}
-      />
+        <StatusBar style="light" />
+        
+        {/* Header */}
+        <ItemDetailHeader
+          title={item.name}
+          onBack={() => navigation.goBack()}
+          onToggleWishlist={handleWishlist}
+          isWishlisted={onWishlist}
+          styles={styles}
+        />
 
-      {/* Tab Navigation */}
-      <ItemDetailTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        styles={styles}
-        item={item}
-        hasMarketTab={hasMarketTab}
-      />
+        {/* Tab Navigation */}
+        <ItemDetailTabs
+          activeTab={routes[tabIndex]?.key}
+          setActiveTab={setActiveTabByKey}
+          styles={styles}
+          item={item}
+          hasMarketTab={hasMarketTab}
+        />
 
-      {activeTab === 'details' ? (
-        <ItemDetailsTab
-          item={displayItem}
-          bottomSpacer={bottomSpacer}
-          showOfferings={showOfferings}
-          setShowOfferings={setShowOfferings}
-          formatDate={formatDate}
-          lastBrought={lastBrought}
-          styles={styles}
-        />
-      ) : activeTab === 'market' ? (
-        <ItemMarketTab
-          item={displayItem}
-          bottomSpacer={bottomSpacer}
-          styles={styles}
-          marketData={marketData}
-          isLoadingMarket={isLoadingMarket}
-        />
-      ) : (
-        <ItemReviewsTab
-          bottomSpacer={bottomSpacer}
-          isLoadingReviews={isLoadingReviews}
-          likeCount={likeCount}
-          userLiked={userLiked}
-          isLiking={isLiking}
-          handleLike={() => handleLikeClick(itemId, CURRENT_UID)}
-          hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
-          newReview={newReview}
-          setNewReview={setNewReview}
-          isPostingReview={isPostingReview}
-          handlePostReview={handlePostReviewWrapper}
-          reviews={reviews}
-          CURRENT_UID={CURRENT_UID}
-          getRelativeTime={getRelativeTime}
-          editingReviewKey={editingReviewKey}
-          getReviewKey={getReviewKey}
-          editingReviewText={editingReviewText}
-          setEditingReviewText={setEditingReviewText}
-          saveEditingReview={(index) => saveEditingReview(index, CURRENT_UID)}
-          cancelEditingReview={cancelEditingReview}
-          startEditingReview={startEditingReview}
-          confirmDeleteReview={(review, index) => confirmDeleteReview(review, index, CURRENT_UID)}
-          onReportReview={handleReportReview}
-          reportedReviewKeys={reportedReviewKeys}
-          styles={styles}
-        />
-      )}
+        {/* Swipeable tab content */}
+        <View style={{ flex: 1, overflow: 'hidden' }}>
+          <RNAnimated.View
+            style={{
+              flexDirection: 'row',
+              width: screenWidth * tabCount,
+              flex: 1,
+              transform: [{ translateX }],
+            }}
+          >
+            <View style={{ width: screenWidth, flex: 1 }}>
+              <ItemDetailsTab
+                item={displayItem}
+                bottomSpacer={bottomSpacer}
+                showOfferings={showOfferings}
+                setShowOfferings={setShowOfferings}
+                formatDate={formatDate}
+                lastBrought={lastBrought}
+                styles={styles}
+              />
+            </View>
+            <View style={{ width: screenWidth, flex: 1 }}>
+              <ItemReviewsTab
+                bottomSpacer={bottomSpacer}
+                isLoadingReviews={isLoadingReviews}
+                likeCount={likeCount}
+                userLiked={userLiked}
+                isLiking={isLiking}
+                handleLike={() => handleLikeClick(itemId, CURRENT_UID)}
+                hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
+                newReview={newReview}
+                setNewReview={setNewReview}
+                isPostingReview={isPostingReview}
+                handlePostReview={handlePostReviewWrapper}
+                reviews={reviews}
+                CURRENT_UID={CURRENT_UID}
+                getRelativeTime={getRelativeTime}
+                editingReviewKey={editingReviewKey}
+                getReviewKey={getReviewKey}
+                editingReviewText={editingReviewText}
+                setEditingReviewText={setEditingReviewText}
+                saveEditingReview={(index) => saveEditingReview(index, CURRENT_UID)}
+                cancelEditingReview={cancelEditingReview}
+                startEditingReview={startEditingReview}
+                confirmDeleteReview={(review, index) => confirmDeleteReview(review, index, CURRENT_UID)}
+                onReportReview={handleReportReview}
+                reportedReviewKeys={reportedReviewKeys}
+                styles={styles}
+              />
+            </View>
+            {hasMarketTab && (
+              <View style={{ width: screenWidth, flex: 1 }}>
+                <ItemMarketTab
+                  item={displayItem}
+                  bottomSpacer={bottomSpacer}
+                  styles={styles}
+                  marketData={marketData}
+                  isLoadingMarket={isLoadingMarket}
+                />
+              </View>
+            )}
+          </RNAnimated.View>
+        </View>
       </View>
     </GestureDetector>
   );
 }
-
