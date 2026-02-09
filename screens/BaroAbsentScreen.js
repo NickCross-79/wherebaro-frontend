@@ -81,7 +81,7 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
     <View style={styles.container}>
       <StatusBar style="light" />
       <View style={styles.content}>
-        <Text style={styles.title}>Where Baro?</Text>
+        <Text style={styles.title}>When Baro?</Text>
         <Text style={styles.subtitle}>The Void Trader is traveling through the Void</Text>
         
         <View style={styles.journeyContainer}>
