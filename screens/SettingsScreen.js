@@ -7,12 +7,14 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
-import { registerForPushNotifications, unregisterPushToken } from '../services/api';
+import { registerForPushNotifications, unregisterPushToken, bulkSyncWishlistPushToken } from '../services/api';
+import { useWishlist } from '../contexts/WishlistContext';
 import styles from '../styles/screens/SettingsScreen.styles';
 
 export default function SettingsScreen({ navigation }) {
   const scrollRef = useRef(null);
   useScrollToTop(scrollRef);
+  const { wishlistIds } = useWishlist();
   const [notifications, setNotifications] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -111,10 +113,23 @@ export default function SettingsScreen({ navigation }) {
       setWishlistAlerts(true);
       await updateNotificationSettings({ wishlistAlerts: true });
       // Ensure push token is registered for wishlist notifications
-      registerForPushNotifications().catch(() => {});
+      const token = await registerForPushNotifications();
+      // Bulk add push token to all existing wishlisted items
+      if (token && wishlistIds.length > 0) {
+        bulkSyncWishlistPushToken(wishlistIds, token, 'add').catch((err) =>
+          console.warn('Failed to bulk add wishlist push tokens:', err)
+        );
+      }
     } else {
       setWishlistAlerts(false);
       await updateNotificationSettings({ wishlistAlerts: false });
+      // Bulk remove push token from all wishlisted items
+      const pushToken = await storageHelpers.get('expoPushToken');
+      if (pushToken && wishlistIds.length > 0) {
+        bulkSyncWishlistPushToken(wishlistIds, pushToken, 'remove').catch((err) =>
+          console.warn('Failed to bulk remove wishlist push tokens:', err)
+        );
+      }
       // Only unregister token if baro alerts are also off
       if (!notifications) {
         unregisterPushToken().catch(() => {});

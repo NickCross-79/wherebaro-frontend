@@ -8,6 +8,7 @@ import { buildUrl, apiPost } from './apiConfig';
 const ENDPOINTS = {
   ADD_WISHLIST_PUSH_TOKEN: buildUrl('addWishlistPushToken'),
   REMOVE_WISHLIST_PUSH_TOKEN: buildUrl('removeWishlistPushToken'),
+  BULK_SYNC_WISHLIST_PUSH_TOKEN: buildUrl('bulkSyncWishlistPushToken'),
 };
 
 /**
@@ -36,7 +37,24 @@ export const removeWishlistPushToken = async (itemId, pushToken = null) => {
   });
 };
 
+/**
+ * Bulk add or remove push token across multiple wishlisted items.
+ * Does not change wishlist counts — used for notification preference toggling.
+ * @param {string[]} itemIds - Array of item MongoDB _ids
+ * @param {string} pushToken - Expo push token
+ * @param {'add'|'remove'} action - Whether to add or remove the token
+ * @returns {Promise<Object>}
+ */
+export const bulkSyncWishlistPushToken = async (itemIds, pushToken, action) => {
+  return apiPost(ENDPOINTS.BULK_SYNC_WISHLIST_PUSH_TOKEN, {
+    item_oids: itemIds,
+    pushToken,
+    action,
+  });
+};
+
 export default {
   addWishlistPushToken,
   removeWishlistPushToken,
+  bulkSyncWishlistPushToken,
 };
