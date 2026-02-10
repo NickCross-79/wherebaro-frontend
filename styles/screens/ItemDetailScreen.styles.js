@@ -107,6 +107,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 0,
   },
+  wikiLinkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  wikiLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5B9BD5',
+  },
   pricesContainer: {
     flexDirection: 'row',
     gap: 12,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -49,15 +49,16 @@ export default function ItemDetailsTab({
       <View style={styles.infoSection}>
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.categoryText}>{item.type}</Text>
+        {item.link ? (
+          <TouchableOpacity
+            style={styles.wikiLinkContainer}
+            onPress={() => Linking.openURL(`https://wiki.warframe.com/w/${item.link}`)}
+          >
+            <Ionicons name="open-outline" size={16} color="#5B9BD5" />
+            <Text style={styles.wikiLinkText}>View on Wiki</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
-
-      {/* Last Brought Date */}
-      {!isVoidSurplus && (
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateLabel}>Last Brought</Text>
-        <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
-      </View>
-      )}
 
       {/* Prices */}
       <View style={styles.pricesContainer}>
@@ -86,6 +87,14 @@ export default function ItemDetailsTab({
           </Text>
         </View>
       </View>
+
+      {/* Last Brought Date */}
+      {!isVoidSurplus && (
+      <View style={styles.dateContainer}>
+        <Text style={styles.dateLabel}>Last Brought</Text>
+        <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
+      </View>
+      )}
 
       {/* Offering Dates Dropdown */}
       {!isVoidSurplus && (
