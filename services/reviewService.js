@@ -11,13 +11,32 @@ const ENDPOINTS = {
   REPORT_REVIEW: buildUrl('reportReview'),
 };
 
+// In-memory cache: { [itemId]: { data, timestamp } }
+const reviewsCache = new Map();
+const REVIEWS_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
 /**
- * Fetch reviews for an item
+ * Invalidate the reviews cache for a specific item.
+ * Call after posting, updating, or deleting a review.
+ */
+export const invalidateReviewsCache = (itemId) => {
+  reviewsCache.delete(itemId);
+};
+
+/**
+ * Fetch reviews for an item.
+ * Results are cached in memory for 2 minutes.
  * @param {string} itemId - Item ID
  * @returns {Promise<Array>} Array of reviews
  */
 export const fetchReviews = async (itemId) => {
-  return apiFetch(`${ENDPOINTS.GET_REVIEWS}?item_id=${itemId}`);
+  const cached = reviewsCache.get(itemId);
+  if (cached && Date.now() - cached.timestamp < REVIEWS_CACHE_TTL) {
+    return cached.data;
+  }
+  const data = await apiFetch(`${ENDPOINTS.GET_REVIEWS}?item_id=${itemId}`);
+  reviewsCache.set(itemId, { data, timestamp: Date.now() });
+  return data;
 };
 
 /**
@@ -32,6 +51,9 @@ export const postReview = async (reviewData) => {
     payload.item_oid = payload.item_id;
     delete payload.item_id;
   }
+  // Invalidate cache for this item
+  const cacheKey = reviewData.item_id || reviewData.item_oid;
+  if (cacheKey) invalidateReviewsCache(cacheKey);
   return apiPost(ENDPOINTS.POST_REVIEW, payload);
 };
 
@@ -69,4 +91,5 @@ export default {
   updateReview,
   deleteReview,
   reportReview,
+  invalidateReviewsCache,
 };

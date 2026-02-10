@@ -55,8 +55,7 @@ export const AllItemsProvider = ({ children }) => {
       const normalized = data.map(normalizeItem);
       logger.debug('AllItems', `Received ${normalized.length} items from API, caching...`);
       
-      // Cache the items
-      await dbHelpers.clearItemsCache();
+      // Cache the items (INSERT OR REPLACE handles updates, no need to clear first)
       await dbHelpers.cacheItems(normalized);
       await storageHelpers.setLastDataRefresh(Date.now());
       
