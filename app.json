@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "wherebaro-frontend",
-    "slug": "wherebaro-frontend",
+    "name": "When Baro?",
+    "slug": "when-baro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/imgs/logo_baro.png",
