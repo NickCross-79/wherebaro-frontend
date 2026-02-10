@@ -9,7 +9,7 @@ export default function FeedbackScreen({ navigation }) {
 
   const handleSubmit = async () => {
     if (!message.trim()) return;
-    const subject = encodeURIComponent('WhereBaro Feedback');
+    const subject = encodeURIComponent('WhenBaro Feedback');
     const body = encodeURIComponent(message.trim());
     const url = `mailto:7lairs@gmail.com?subject=${subject}&body=${body}`;
     try {

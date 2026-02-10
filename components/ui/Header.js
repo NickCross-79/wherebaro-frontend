@@ -9,7 +9,7 @@ function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, n
     <View style={styles.header}>
       {showTitle && (
         <>
-          <Text style={styles.headerTitle}>WHERE BARO</Text>
+          <Text style={styles.headerTitle}>WHEN BARO</Text>
           <Text style={styles.headerSubtitle}>Void Trader Tracker</Text>
         </>
       )}

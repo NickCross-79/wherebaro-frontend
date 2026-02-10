@@ -1,4 +1,4 @@
-# WhereBaro Frontend
+# WhenBaro Frontend
 
 A React Native (Expo) mobile app for tracking **Baro Ki'Teer** — the Warframe void trader. See what Baro is selling, wishlist items, browse historical offerings, check warframe.market prices, and get push notifications when he arrives with items you want.
 
@@ -65,7 +65,7 @@ A React Native (Expo) mobile app for tracking **Baro Ki'Teer** — the Warframe 
 ### Installation
 
 ```bash
-cd wherebaro-frontend
+cd whenbaro-frontend
 npm install
 ```
 
@@ -99,7 +99,7 @@ npm run test:coverage # Coverage report
 ## Project Structure
 
 ```
-wherebaro-frontend/
+whenbaro-frontend/
 ├── App.js                      # Root component — DB init, providers, navigation
 ├── app.json                    # Expo config (splash, icons, plugins)
 ├── eas.json                    # EAS Build profiles
@@ -347,7 +347,7 @@ npx eas build --profile production --platform android
 ## Configuration
 
 ### app.json
-- **Package name**: `com.wherebaro.app`
+- **Package name**: `com.whenbaro.app`
 - **Orientation**: Portrait only
 - **Background color**: `#0A0E1A`
 - **Plugins**: expo-sqlite, expo-secure-store, expo-notifications

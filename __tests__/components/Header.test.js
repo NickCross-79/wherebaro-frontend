@@ -28,13 +28,13 @@ jest.mock('../../styles/components/ui/Header.styles', () => ({
 describe('Header', () => {
   it('renders title and subtitle by default', () => {
     const { getByText } = render(<Header />);
-    expect(getByText('WHERE BARO')).toBeTruthy();
+    expect(getByText('WHEN BARO')).toBeTruthy();
     expect(getByText('Void Trader Tracker')).toBeTruthy();
   });
 
   it('hides title when showTitle is false', () => {
     const { queryByText } = render(<Header showTitle={false} />);
-    expect(queryByText('WHERE BARO')).toBeNull();
+    expect(queryByText('WHEN BARO')).toBeNull();
   });
 
   it('renders BaroTimer when nextArrival is provided', () => {
