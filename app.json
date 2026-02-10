@@ -37,10 +37,10 @@
       ]
     ],
     "extra": {
+      "EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL": "https://api.whenbaro.app",
       "eas": {
-        "projectId": "5e09dccb-e16d-44a4-8373-696c19716db3"
-      },
-      "EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL": "https://api.whenbaro.app"
+        "projectId": "379c5464-62fb-4458-9164-4b3d78449fcd"
+      }
     }
   }
 }

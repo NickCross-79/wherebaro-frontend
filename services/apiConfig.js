@@ -1,8 +1,10 @@
 /**
  * API configuration and utilities
  */
+import Constants from 'expo-constants';
 
 export const API_BASE_URL =
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
   process.env.EXPO_PUBLIC_AZURE_FUNCTION_APP_BASE_URL ||
   process.env.AZURE_FUNCTION_APP_BASE_URL ||
   '';
