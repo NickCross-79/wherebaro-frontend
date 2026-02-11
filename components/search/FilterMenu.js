@@ -24,11 +24,15 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     const newCategories = (localFilters.categories || []).includes(category)
       ? (localFilters.categories || []).filter(c => c !== category)
       : [...(localFilters.categories || []), category];
-    setLocalFilters({ ...localFilters, categories: newCategories });
+    const updatedFilters = { ...localFilters, categories: newCategories };
+    setLocalFilters(updatedFilters);
+    onApplyFilters(updatedFilters);
   };
 
   const setPopularity = (value) => {
-    setLocalFilters({ ...localFilters, popularity: value });
+    const updatedFilters = { ...localFilters, popularity: value };
+    setLocalFilters(updatedFilters);
+    onApplyFilters(updatedFilters);
     setShowSortDropdown(false);
   };
 
@@ -36,11 +40,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     const clearedFilters = { categories: [], popularity: 'all' };
     setLocalFilters(clearedFilters);
     onApplyFilters(clearedFilters);
-    onClose();
-  };
-
-  const applyFilters = () => {
-    onApplyFilters(localFilters);
     onClose();
   };
 
@@ -59,10 +58,10 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Text style={styles.headerTitle}>Filter Items</Text>
-              {hasActiveFilters && (
+              {hasActiveFilters && (localFilters.categories || []).length > 0 && (
                 <View style={styles.filterBadge}>
                   <Text style={styles.filterBadgeText}>
-                    {(localFilters.categories || []).length + (localFilters.popularity !== 'all' ? 1 : 0)}
+                    {(localFilters.categories || []).length}
                   </Text>
                 </View>
               )}
@@ -149,9 +148,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
               <Text style={[styles.clearButtonText, !hasActiveFilters && styles.clearButtonTextDisabled]}>
                 Clear All
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.applyButton} onPress={applyFilters}>
-              <Text style={styles.applyButtonText}>Apply</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -138,14 +138,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footer: {
-    flexDirection: 'row',
     padding: 20,
-    gap: 12,
     borderTopWidth: 1,
     borderTopColor: '#1A2332',
   },
   clearButton: {
-    flex: 1,
     paddingVertical: 14,
     borderRadius: 10,
     borderWidth: 2,

@@ -12,7 +12,7 @@ export const filterBySearch = (items, searchQuery) => {
 };
 
 /**
- * Filters items by category - matches first word of item type or full category
+ * Filters items by category - matches any word in type except parenthetical descriptors
  * @param {Array} items - Items to filter
  * @param {Array} categories - Category filters
  * @returns {Array} Filtered items
@@ -22,12 +22,14 @@ export const filterByCategories = (items, categories) => {
   
   return items.filter(item => {
     const itemType = item.type.toLowerCase();
-    const firstWord = itemType.split(/\s+/)[0];
+    // Remove parenthetical content (e.g., "Cosmetic (weapon)" -> "Cosmetic")
+    const typeWithoutParens = itemType.replace(/\s*\([^)]*\)/g, '').trim();
+    const typeWords = typeWithoutParens.split(/\s+/);
     
     return categories.some(category => {
       const categoryLower = category.toLowerCase();
-      // Match full type, first word, or if the type contains the category word
-      return itemType === categoryLower || firstWord === categoryLower || itemType.includes(categoryLower);
+      // Match if category matches exact type or any word in the type (excluding parenthetical content)
+      return typeWithoutParens === categoryLower || typeWords.includes(categoryLower);
     });
   });
 };

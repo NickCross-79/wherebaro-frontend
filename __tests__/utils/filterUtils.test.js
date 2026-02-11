@@ -11,6 +11,8 @@ const mockItems = [
   { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [] },
   { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2] },
   { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4] },
+  { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [] },
+  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [] },
 ];
 
 describe('filterBySearch', () => {
@@ -65,6 +67,22 @@ describe('filterByCategories', () => {
     const result = filterByCategories(mockItems, ['Primed', 'Quest']);
     expect(result).toHaveLength(3); // 2 Primed + 1 Quest
   });
+
+  it('does not match parenthetical descriptors (e.g. "Weapon" should not match "Cosmetic (weapon)")', () => {
+    const result = filterByCategories(mockItems, ['Weapon']);
+    expect(result).toHaveLength(0); // Should not match 'Cosmetic (weapon)'
+  });
+
+  it('matches cosmetic category correctly', () => {
+    const result = filterByCategories(mockItems, ['Cosmetic']);
+    expect(result).toHaveLength(2); // 'Cosmetic Syandana' + 'Cosmetic (weapon)'
+  });
+
+  it('matches multi-word types like "Ship Decoration" when filtering for "Decoration"', () => {
+    const result = filterByCategories(mockItems, ['Decoration']);
+    expect(result).toHaveLength(1); // 'Ship Decoration'
+    expect(result[0].name).toBe('Ship Display');
+  });
 });
 
 describe('sortByPopularity', () => {
@@ -87,7 +105,7 @@ describe('sortByPopularity', () => {
 
   it('sorts by least reviews', () => {
     const result = sortByPopularity(mockItems, 'least-reviews');
-    expect(result[0].name).toBe('Prisma Grinlok');
+    // Two items have 0 reviews, so check first item has 0 reviews
     expect(result[0].reviews).toHaveLength(0);
   });
 
@@ -128,6 +146,6 @@ describe('applyAllFilters', () => {
       categories: [],
       popularity: 'all',
     });
-    expect(result).toHaveLength(5);
+    expect(result).toHaveLength(7);
   });
 });

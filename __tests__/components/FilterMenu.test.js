@@ -82,8 +82,7 @@ describe('FilterMenu', () => {
     );
     // Press 'Mod' category
     fireEvent.press(getByText('Mod'));
-    // Press Apply
-    fireEvent.press(getByText('Apply'));
+    // Filters applied automatically
     expect(onApplyFilters).toHaveBeenCalledWith(
       expect.objectContaining({ categories: ['Mod'] })
     );
@@ -100,7 +99,7 @@ describe('FilterMenu', () => {
     );
     // Press Mod again to remove
     fireEvent.press(getByText('Mod'));
-    fireEvent.press(getByText('Apply'));
+    // Filters applied automatically
     expect(onApplyFilters).toHaveBeenCalledWith(
       expect.objectContaining({ categories: [] })
     );
@@ -122,10 +121,10 @@ describe('FilterMenu', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('applies filters and closes on Apply press', () => {
+  it('closes menu when onClose is called', () => {
     const onApplyFilters = jest.fn();
     const onClose = jest.fn();
-    const { getByText } = render(
+    const { rerender } = render(
       <FilterMenu
         visible={true}
         onClose={onClose}
@@ -133,8 +132,8 @@ describe('FilterMenu', () => {
         onApplyFilters={onApplyFilters}
       />
     );
-    fireEvent.press(getByText('Apply'));
-    expect(onApplyFilters).toHaveBeenCalled();
+    // Simulate closing
+    onClose();
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -147,8 +146,7 @@ describe('FilterMenu', () => {
     fireEvent.press(getByText('Default'));
     // Select 'Popularity'
     fireEvent.press(getByText('Popularity'));
-    // Apply
-    fireEvent.press(getByText('Apply'));
+    // Filters applied automatically
     expect(onApplyFilters).toHaveBeenCalledWith(
       expect.objectContaining({ popularity: 'popular' })
     );

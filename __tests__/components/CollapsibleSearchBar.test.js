@@ -87,12 +87,13 @@ describe('CollapsibleSearchBar', () => {
     expect(getByText('2')).toBeTruthy(); // badge count
   });
 
-  it('shows filter badge when popularity filter is active', () => {
+  it('does not show filter badge count when only popularity filter is active', () => {
     const filters = { categories: [], popularity: 'popular' };
-    const { getByText } = render(
+    const { queryByText } = render(
       <CollapsibleSearchBar {...baseProps} filters={filters} onApplyFilters={jest.fn()} />
     );
-    expect(getByText('1')).toBeTruthy();
+    // No badge should appear since popularity doesn't count
+    expect(queryByText('1')).toBeNull();
   });
 
   it('does not show filter badge when no active filters', () => {
