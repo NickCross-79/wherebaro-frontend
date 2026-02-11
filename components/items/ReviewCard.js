@@ -57,7 +57,13 @@ function ReviewCard({
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            maxLength={250}
           />
+          {(250 - editingReviewText.length) <= 50 && (
+            <Text style={[styles.characterCount, (250 - editingReviewText.length) <= 10 && styles.characterCountWarning]}>
+              {250 - editingReviewText.length}
+            </Text>
+          )}
           <View style={styles.reviewEditActions}>
             <TouchableOpacity
               style={[styles.reviewEditButton, styles.reviewEditSave]}

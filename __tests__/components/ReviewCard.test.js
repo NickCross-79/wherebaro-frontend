@@ -15,6 +15,8 @@ describe('ReviewCard', () => {
     reviewText: {},
     reviewEditContainer: {},
     reviewEditInput: {},
+    characterCount: {},
+    characterCountWarning: {},
     reviewEditActions: {},
     reviewEditButton: {},
     reviewEditSave: {},

@@ -78,7 +78,13 @@ export default function ItemReviewsTab({
                 value={newReview}
                 onChangeText={setNewReview}
                 textAlignVertical="top"
+                maxLength={250}
               />
+              {(250 - newReview.length) <= 50 && (
+                <Text style={[styles.characterCount, (250 - newReview.length) <= 10 && styles.characterCountWarning]}>
+                  {250 - newReview.length}
+                </Text>
+              )}
               <TouchableOpacity
                 style={[
                   styles.postButton,

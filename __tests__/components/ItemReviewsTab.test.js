@@ -34,6 +34,8 @@ describe('ItemReviewsTab', () => {
     postReviewSection: {},
     sectionTitle: {},
     reviewInput: {},
+    characterCount: {},
+    characterCountWarning: {},
     postButton: {},
     postButtonDisabled: {},
     postButtonText: {},

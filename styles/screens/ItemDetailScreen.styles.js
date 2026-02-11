@@ -294,6 +294,16 @@ const styles = StyleSheet.create({
     minHeight: 100,
     marginBottom: 12,
   },
+  characterCount: {
+    fontSize: 12,
+    color: '#8B9DC3',
+    textAlign: 'right',
+    marginBottom: 8,
+    marginTop: -8,
+  },
+  characterCountWarning: {
+    color: '#D23B35',
+  },
   postButton: {
     backgroundColor: '#D4A574',
     paddingVertical: 12,
