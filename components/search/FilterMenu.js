@@ -148,7 +148,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
               disabled={!hasActiveFilters}
             >
               <Text style={[styles.clearButtonText, !hasActiveFilters && styles.clearButtonTextDisabled]}>
-                Clear All
+                Reset
               </Text>
             </TouchableOpacity>
           </View>

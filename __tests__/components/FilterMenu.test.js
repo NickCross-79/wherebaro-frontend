@@ -105,7 +105,7 @@ describe('FilterMenu', () => {
     );
   });
 
-  it('clears all filters on Clear All press', () => {
+  it('clears all filters on Reset press', () => {
     const onApplyFilters = jest.fn();
     const onClose = jest.fn();
     const { getByText } = render(
@@ -116,7 +116,7 @@ describe('FilterMenu', () => {
         onApplyFilters={onApplyFilters}
       />
     );
-    fireEvent.press(getByText('Clear All'));
+    fireEvent.press(getByText('Reset'));
     expect(onApplyFilters).toHaveBeenCalledWith({ categories: [], popularity: 'all' });
     expect(onClose).toHaveBeenCalled();
   });
