@@ -144,8 +144,8 @@ describe('FilterMenu', () => {
     );
     // Open sort dropdown
     fireEvent.press(getByText('Default'));
-    // Select 'Popularity'
-    fireEvent.press(getByText('Popularity'));
+    // Select 'Most Liked'
+    fireEvent.press(getByText('Most Liked'));
     // Filters applied automatically
     expect(onApplyFilters).toHaveBeenCalledWith(
       expect.objectContaining({ popularity: 'popular' })

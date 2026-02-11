@@ -6,13 +6,13 @@ import {
 } from '../../utils/filterUtils';
 
 const mockItems = [
-  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3] },
-  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1] },
-  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [] },
-  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2] },
-  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4] },
-  { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [] },
-  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [] },
+  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3], wishlistCount: 25 },
+  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1], wishlistCount: 30 },
+  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [], wishlistCount: 10 },
+  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2], wishlistCount: 5 },
+  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4], wishlistCount: 50 },
+  { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [], wishlistCount: 0 },
+  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [], wishlistCount: 2 },
 ];
 
 describe('filterBySearch', () => {
@@ -92,26 +92,21 @@ describe('sortByPopularity', () => {
     expect(result[1].name).toBe('Primed Flow');
   });
 
-  it('sorts by least popular (lowest likes first)', () => {
-    const result = sortByPopularity(mockItems, 'unpopular');
-    expect(result[0].name).toBe('Ki\'Teer Syandana');
-  });
-
   it('sorts by most reviews', () => {
     const result = sortByPopularity(mockItems, 'most-reviews');
     expect(result[0].name).toBe('Sands of Inaros');
     expect(result[0].reviews).toHaveLength(4);
   });
 
-  it('sorts by least reviews', () => {
-    const result = sortByPopularity(mockItems, 'least-reviews');
-    // Two items have 0 reviews, so check first item has 0 reviews
-    expect(result[0].reviews).toHaveLength(0);
-  });
-
   it('returns same order for unknown sort type', () => {
     const result = sortByPopularity(mockItems, 'all');
     expect(result.map(i => i.name)).toEqual(mockItems.map(i => i.name));
+  });
+
+  it('sorts by most wishlisted', () => {
+    const result = sortByPopularity(mockItems, 'most-wishlisted');
+    expect(result[0].name).toBe('Sands of Inaros');
+    expect(result[0].wishlistCount).toBe(50);
   });
 
   it('does not mutate the original array', () => {

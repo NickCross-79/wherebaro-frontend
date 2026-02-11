@@ -17,7 +17,9 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   const categories = ['Mod', 'Weapon', 'Cosmetic', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
     { label: 'Default', value: 'all' },
-    { label: 'Popularity', value: 'popular' },
+    { label: 'Most Liked', value: 'popular' },
+    { label: 'Most Wishlisted', value: 'most-wishlisted' },
+    { label: 'Most Reviewed', value: 'most-reviews' },
   ];
 
   const toggleCategory = (category) => {

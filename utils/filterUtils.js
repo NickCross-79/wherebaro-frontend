@@ -35,9 +35,9 @@ export const filterByCategories = (items, categories) => {
 };
 
 /**
- * Sorts items by popularity
+ * Sorts items by popularity, reviews, or wishlists
  * @param {Array} items - Items to sort
- * @param {string} sortType - Sort type: 'all', 'popular', 'unpopular', 'most-reviews', 'least-reviews'
+ * @param {string} sortType - Sort type: 'all', 'popular', 'unpopular', 'most-reviews', 'least-reviews', 'most-wishlisted', 'least-wishlisted'
  * @returns {Array} Sorted items
  */
 export const sortByPopularity = (items, sortType) => {
@@ -51,6 +51,10 @@ export const sortByPopularity = (items, sortType) => {
     sorted.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
   } else if (sortType === 'least-reviews') {
     sorted.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
+  } else if (sortType === 'most-wishlisted') {
+    sorted.sort((a, b) => (b.wishlistCount || 0) - (a.wishlistCount || 0));
+  } else if (sortType === 'least-wishlisted') {
+    sorted.sort((a, b) => (a.wishlistCount || 0) - (b.wishlistCount || 0));
   }
   
   return sorted;
