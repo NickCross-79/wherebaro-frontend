@@ -51,12 +51,6 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Loading...</Text>
-        {uid && (
-          <View style={styles.loadingUidContainer}>
-            <Text style={styles.loadingUidLabel}>Device UID</Text>
-            <Text style={styles.loadingUidValue}>{uid}</Text>
-          </View>
-        )}
       </View>
     );
   }
