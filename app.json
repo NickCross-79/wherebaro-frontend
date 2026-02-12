@@ -4,10 +4,10 @@
     "slug": "when-baro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/imgs/logo_baro.png",
+    "icon": "./assets/imgs/logo_baro_icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/imgs/logo_baro.png",
+      "image": "./assets/imgs/logo_baro_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0E1A"
     },
@@ -19,12 +19,12 @@
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/imgs/logo_baro.png",
+        "foregroundImage": "./assets/imgs/logo_baro_icon.png",
         "backgroundColor": "#0A0E1A"
       }
     },
     "web": {
-      "favicon": "./assets/imgs/logo_baro.png"
+      "favicon": "./assets/imgs/logo_baro_icon.png"
     },
     "plugins": [
       "expo-sqlite",
