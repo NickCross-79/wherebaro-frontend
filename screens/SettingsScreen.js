@@ -266,7 +266,10 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.settingValue}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => Linking.openURL('https://privacy.whenbaro.app')}
+          >
             <Text style={styles.settingLabel}>Privacy Policy</Text>
             <Text style={styles.settingValue}>›</Text>
           </TouchableOpacity>
