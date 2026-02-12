@@ -33,7 +33,7 @@
         "expo-notifications",
         {
           "icon": "./assets/imgs/logo_baro.png",
-          "color": "#D4A574"
+          "color": "#0A0E1A"
         }
       ]
     ],

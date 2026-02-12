@@ -43,7 +43,9 @@ export const registerForPushNotifications = async () => {
     }
 
     // Get Expo push token
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: '379c5464-62fb-4458-9164-4b3d78449fcd',
+    });
     const token = tokenData.data;
     console.log('Device push token:', token);
 
@@ -124,7 +126,9 @@ export const getLocalPushToken = async () => {
     }
 
     // Get Expo push token
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: '379c5464-62fb-4458-9164-4b3d78449fcd',
+    });
     const token = tokenData.data;
 
     // For Android, create notification channel
