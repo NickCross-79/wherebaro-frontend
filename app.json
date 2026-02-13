@@ -32,8 +32,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/imgs/logo_baro.png",
-          "color": "#0A0E1A"
+          "icon": "./assets/imgs/logo_baro_notif_icon.png",
+          "color": "#FFFFFF"
         }
       ]
     ],
