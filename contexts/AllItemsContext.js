@@ -27,25 +27,41 @@ export const AllItemsProvider = ({ children }) => {
       logger.debug('AllItems', `fetchItems called (forceRefresh=${forceRefresh})`);
       setError(null);
 
-      // Check cache first if not forcing refresh
+      // Always try to load cache first on initial launch
       if (!forceRefresh) {
-        const lastRefresh = await storageHelpers.getLastDataRefresh();
-        const now = Date.now();
-        
-        if (now - lastRefresh < CACHE_DURATION_MS) {
-          // Use cached data
-          const cachedItems = await dbHelpers.getCachedItems();
-          if (cachedItems.length > 0) {
-            const hasOfferingDates = cachedItems.some(
-              (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
-            );
-            if (hasOfferingDates) {
-              logger.debug('AllItems', `Using cached items (${cachedItems.length} items)`);
-              setItems(cachedItems);
-              setLoading(false);
+        const cachedItems = await dbHelpers.getCachedItems();
+        if (cachedItems.length > 0) {
+          const hasOfferingDates = cachedItems.some(
+            (cached) => Array.isArray(cached?.offeringDates) && cached.offeringDates.length > 0
+          );
+          if (hasOfferingDates) {
+            logger.debug('AllItems', `Showing cached items (${cachedItems.length} items)`);
+            setItems(cachedItems);
+            setLoading(false);
+
+            // Check if cache is still fresh
+            const lastRefresh = await storageHelpers.getLastDataRefresh();
+            const now = Date.now();
+            if (now - lastRefresh < CACHE_DURATION_MS) {
+              logger.debug('AllItems', 'Cache is fresh, skipping API fetch');
               setRefreshing(false);
               return;
             }
+
+            // Cache is stale — refresh in background while showing cached data
+            logger.debug('AllItems', 'Cache is stale, refreshing in background...');
+            try {
+              const data = await fetchAllItems();
+              const normalized = data.map(normalizeItem);
+              logger.debug('AllItems', `Background update: ${normalized.length} items from API`);
+              await dbHelpers.cacheItems(normalized);
+              await storageHelpers.setLastDataRefresh(Date.now());
+              setItems(normalized);
+            } catch (bgErr) {
+              logger.error('Background refresh failed, keeping cached data:', bgErr);
+            }
+            setRefreshing(false);
+            return;
           }
         }
       }
