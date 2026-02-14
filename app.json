@@ -17,6 +17,7 @@
     "android": {
       "package": "com.whenbaro.app",
       "versionCode": 1,
+      "targetSdkVersion": 35,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/imgs/logo_baro_icon.png",
