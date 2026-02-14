@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   statsContainer: {
-    gap: 10,
+    gap: 4,
     alignItems: 'flex-end',
   },
   likesContainer: {
@@ -145,13 +145,13 @@ const styles = StyleSheet.create({
   },
   itemInfo: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 4,
   },
   nameAndLikes: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 0,
   },
   nameContainer: {
     flex: 1,
