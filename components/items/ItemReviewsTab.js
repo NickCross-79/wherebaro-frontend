@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewCard from './ReviewCard';
 
@@ -42,7 +42,7 @@ export default function ItemReviewsTab({
     >
       {isLoadingReviews ? (
         <View style={styles.loadingReviews}>
-          <Ionicons name="hourglass-outline" size={48} color="#D4A574" />
+          <ActivityIndicator size="large" color="#D4A574" />
           <Text style={styles.loadingReviewsText}>Loading reviews and likes...</Text>
         </View>
       ) : (
