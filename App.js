@@ -36,7 +36,7 @@ export default function App() {
         }
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
-        logger.log('Device UID:', deviceUID);
+        logger.log('Device UID:', deviceUID.substring(0, 12) + '...');
         await registerForPushNotifications();
         setDbInitialized(true);
       } catch (error) {

@@ -7,6 +7,14 @@ import { Platform } from 'react-native';
 import { storageHelpers } from '../utils/storage';
 import { registerPushToken } from './api';
 
+/**
+ * Truncate sensitive data for logging
+ */
+function truncate(value, maxLength = 20) {
+  if (!value || value.length <= maxLength) return value;
+  return `${value.substring(0, maxLength)}...`;
+}
+
 // Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -47,7 +55,7 @@ export const registerForPushNotifications = async () => {
       projectId: '379c5464-62fb-4458-9164-4b3d78449fcd',
     });
     const token = tokenData.data;
-    console.log('Device push token:', token);
+    console.log('Device push token:', truncate(token, 30));
 
     // Check if token is already registered with backend
     const storedToken = await storageHelpers.get('expoPushToken');
