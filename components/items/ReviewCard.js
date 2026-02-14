@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { decodeHtmlEntities } from '../../utils/htmlDecode';
 
 function ReviewCard({
   review,
@@ -46,7 +47,7 @@ function ReviewCard({
           )}
         </View>
       </View>
-      <Text style={styles.reviewText}>{review.content}</Text>
+      <Text style={styles.reviewText}>{decodeHtmlEntities(review.content)}</Text>
 
       {isEditing && (
         <View style={styles.reviewEditContainer}>
