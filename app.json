@@ -30,7 +30,6 @@
     "plugins": [
       "expo-sqlite",
       "expo-secure-store",
-      "expo-insights",
       [
         "expo-notifications",
         {
