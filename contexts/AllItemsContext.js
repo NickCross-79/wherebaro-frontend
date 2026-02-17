@@ -108,12 +108,12 @@ export const AllItemsProvider = ({ children }) => {
 
   // Silent background refresh — no loading/refreshing UI state changes
   const refreshInBackground = useCallback(async () => {
-    logger.debug('AllItems', '🔄 Starting background refresh...');
+    logger.debug('AllItems', 'Starting background refresh...');
     try {
       await fetchItems(true);
-      logger.debug('AllItems', '✅ Background refresh complete');
+      logger.debug('AllItems', 'Background refresh complete');
     } catch (err) {
-      logger.error('[AllItems] ❌ Background refresh failed:', err);
+      logger.error('[AllItems] Background refresh failed:', err);
     }
   }, []);
 

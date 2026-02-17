@@ -57,7 +57,7 @@ const matchInventoryItems = (inventory, cachedItems) => {
 
     if (!fullItem) {
       unmatched++;
-      logger.debug('Baro', `❌ Unmatched item: "${invItem.item}" (suffix: ${invSuffix || 'none'})`);
+      logger.debug('Baro', `Unmatched item: "${invItem.item}" (suffix: ${invSuffix || 'none'})`);
       return {
         _unmatched: true,
         name: invItem.item,
@@ -263,7 +263,7 @@ export const InventoryProvider = ({ children }) => {
     logger.debug('Baro', `Auto-refresh timer set: ${Math.round(timeUntilExpiry / 1000)}s until ${nextArrival.toISOString()} (isHere=${isHere})`);
 
     const timeoutId = setTimeout(() => {
-      logger.debug('Baro', `⏰ Timer expired! isHere=${isHere}, starting ${isHere ? 'departure' : 'arrival'} flow`);
+      logger.debug('Baro', `Timer expired! isHere=${isHere}, starting ${isHere ? 'departure' : 'arrival'} flow`);
 
       // When Baro is arriving (absent timer hit 0), show syncing state
       // and poll our backend until it confirms Baro is active.
@@ -277,11 +277,11 @@ export const InventoryProvider = ({ children }) => {
         const poll = async () => {
           attempts++;
           try {
-            logger.debug('Baro', `🔄 Polling backend (attempt ${attempts}/${maxAttempts})...`);
+            logger.debug('Baro', `Polling backend (attempt ${attempts}/${maxAttempts})...`);
             const status = await fetchBaroStatus();
             logger.debug('Baro', `Poll response: isActive=${status.isActive}, items=${status.items?.length || 0}`);
             if (status.isActive) {
-              logger.debug('Baro', '✅ Backend confirms Baro is active! Refreshing allItems then inventory...');
+              logger.debug('Baro', 'Backend confirms Baro is active! Refreshing allItems then inventory...');
               await refreshInBackground();
               await fetchBaroInventory(true);
               setSyncing(false);
@@ -295,7 +295,7 @@ export const InventoryProvider = ({ children }) => {
             logger.debug('Baro', 'Backend not ready yet, next poll in 20s...');
             pollTimerRef.current = setTimeout(poll, 20_000);
           } else {
-            logger.debug('Baro', '⚠️ Max poll attempts reached, falling back to direct refresh');
+            logger.debug('Baro', 'Max poll attempts reached, falling back to direct refresh');
             refreshInBackground();
             setSyncing(false);
           }

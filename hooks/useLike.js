@@ -55,17 +55,17 @@ export const useLike = (initialLiked, initialCount, syncLikeCount) => {
 
     try {
       if (targetLiked) {
-        console.log('📌 Making like API call', { itemId, uid: uid.substring(0, 12) + '...' });
+        console.log('Making like API call', { itemId, uid: uid.substring(0, 12) + '...' });
         await likeItem(itemId, uid);
-        console.log('✅ Like API call succeeded', { itemId });
+        console.log('Like API call succeeded', { itemId });
       } else {
-        console.log('📌 Making unlike API call', { itemId, uid: uid.substring(0, 12) + '...' });
+        console.log('Making unlike API call', { itemId, uid: uid.substring(0, 12) + '...' });
         await unlikeItem(itemId, uid);
-        console.log('✅ Unlike API call succeeded', { itemId });
+        console.log('Unlike API call succeeded', { itemId });
       }
     } catch (error) {
       console.error(
-        targetLiked ? '❌ Failed to add like' : '❌ Failed to remove like',
+        targetLiked ? 'Failed to add like' : 'Failed to remove like',
         { itemId, uid: uid.substring(0, 12) + '...', error }
       );
       Alert.alert(

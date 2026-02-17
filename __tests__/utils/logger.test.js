@@ -47,8 +47,8 @@ describe('logger', () => {
     });
 
     it('info() logs with emoji prefix', () => {
-      logger.info('🔄', 'refreshing');
-      expect(console.log).toHaveBeenCalledWith('🔄', 'refreshing');
+      logger.info('REFRESH', 'refreshing');
+      expect(console.log).toHaveBeenCalledWith('REFRESH', 'refreshing');
     });
   });
 
@@ -80,7 +80,7 @@ describe('logger', () => {
     });
 
     it('info() does NOT call console.log', () => {
-      logger.info('🔄', 'should not appear');
+      logger.info('REFRESH', 'should not appear');
       expect(console.log).not.toHaveBeenCalled();
     });
   });

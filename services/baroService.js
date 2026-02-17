@@ -40,7 +40,7 @@ export const fetchBaroData = async () => {
     const now = new Date();
     const activation = new Date(now.getTime() - 60 * 60 * 1000); // 1h ago
     const expiry = new Date(now.getTime() + SIMULATE_DEPARTURE_SECONDS * 1000);
-    logger.debug('BaroService', `🧪 Departure sim: Baro leaves in ${SIMULATE_DEPARTURE_SECONDS}s`);
+    logger.debug('BaroService', `Departure sim: Baro leaves in ${SIMULATE_DEPARTURE_SECONDS}s`);
 
     // Fetch real inventory from warframestat.us so matching works
     let inventory = [];
@@ -67,7 +67,7 @@ export const fetchBaroData = async () => {
   if (SIMULATE_BARO_ARRIVAL && !simulationUsed) {
     fetchUrl = SIMULATE_MOCK_URL;
     simulationUsed = true;
-    logger.debug('BaroService', '🧪 Arrival sim: using mock absent endpoint');
+    logger.debug('BaroService', 'Arrival sim: using mock absent endpoint');
   }
 
   logger.debug('BaroService', `Fetching: ${fetchUrl}`);

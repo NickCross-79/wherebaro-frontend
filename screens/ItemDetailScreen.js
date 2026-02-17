@@ -282,7 +282,7 @@ export default function ItemDetailScreen({ route, navigation }) {
         const likedByUser = likes.some((like) => String(like?.uid) === currentUid);
         setUserLiked(likedByUser);
       } catch (error) {
-        console.error('❌ Failed to load likes', { itemId, error });
+        console.error('Failed to load likes', { itemId, error });
       }
     };
 
@@ -304,7 +304,7 @@ export default function ItemDetailScreen({ route, navigation }) {
         const data = await fetchMarketData(item.name);
         setMarketData(data?.market || null);
       } catch (error) {
-        console.error('❌ Failed to load market data', { itemId, error });
+        console.error('Failed to load market data', { itemId, error });
         setMarketData(null);
       } finally {
         setIsLoadingMarket(false);
