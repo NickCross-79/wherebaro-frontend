@@ -20,6 +20,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     { label: 'Most Liked', value: 'popular' },
     { label: 'Most Wishlisted', value: 'most-wishlisted' },
     { label: 'Most Reviewed', value: 'most-reviews' },
+    { label: 'Last Brought', value: 'last-brought' },
   ];
 
   const toggleCategory = (category) => {

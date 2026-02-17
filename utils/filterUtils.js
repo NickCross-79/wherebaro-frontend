@@ -35,9 +35,28 @@ export const filterByCategories = (items, categories) => {
 };
 
 /**
- * Sorts items by popularity, reviews, or wishlists
+ * Gets the most recent date from an item's offeringDates array
+ * @param {Object} item - Item with offeringDates array
+ * @returns {Date|null} Most recent date or null if no dates
+ */
+const getMostRecentOfferingDate = (item) => {
+  if (!item.offeringDates || !Array.isArray(item.offeringDates) || item.offeringDates.length === 0) {
+    return null;
+  }
+  
+  const dates = item.offeringDates
+    .map(dateStr => new Date(dateStr))
+    .filter(date => !isNaN(date.getTime()));
+  
+  if (dates.length === 0) return null;
+  
+  return new Date(Math.max(...dates.map(d => d.getTime())));
+};
+
+/**
+ * Sorts items by popularity, reviews, wishlists, or last brought date
  * @param {Array} items - Items to sort
- * @param {string} sortType - Sort type: 'all', 'popular', 'unpopular', 'most-reviews', 'least-reviews', 'most-wishlisted', 'least-wishlisted'
+ * @param {string} sortType - Sort type: 'all', 'popular', 'unpopular', 'most-reviews', 'least-reviews', 'most-wishlisted', 'least-wishlisted', 'last-brought'
  * @returns {Array} Sorted items
  */
 export const sortByPopularity = (items, sortType) => {
@@ -55,6 +74,19 @@ export const sortByPopularity = (items, sortType) => {
     sorted.sort((a, b) => (b.wishlistCount || 0) - (a.wishlistCount || 0));
   } else if (sortType === 'least-wishlisted') {
     sorted.sort((a, b) => (a.wishlistCount || 0) - (b.wishlistCount || 0));
+  } else if (sortType === 'last-brought') {
+    sorted.sort((a, b) => {
+      const dateA = getMostRecentOfferingDate(a);
+      const dateB = getMostRecentOfferingDate(b);
+      
+      // Items without dates go to the end
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      
+      // Most recent first (descending order)
+      return dateB.getTime() - dateA.getTime();
+    });
   }
   
   return sorted;

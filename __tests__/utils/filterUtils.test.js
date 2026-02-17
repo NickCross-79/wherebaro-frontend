@@ -6,13 +6,13 @@ import {
 } from '../../utils/filterUtils';
 
 const mockItems = [
-  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3], wishlistCount: 25 },
-  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1], wishlistCount: 30 },
-  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [], wishlistCount: 10 },
-  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2], wishlistCount: 5 },
-  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4], wishlistCount: 50 },
+  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3], wishlistCount: 25, offeringDates: ['2024-01-15', '2024-06-20'] },
+  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1], wishlistCount: 30, offeringDates: ['2023-12-10', '2024-08-05'] },
+  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [], wishlistCount: 10, offeringDates: ['2024-03-15'] },
+  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2], wishlistCount: 5, offeringDates: [] },
+  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4], wishlistCount: 50, offeringDates: ['2024-09-01', '2024-10-15'] },
   { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [], wishlistCount: 0 },
-  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [], wishlistCount: 2 },
+  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [], wishlistCount: 2, offeringDates: ['2024-02-20', '2024-07-10'] },
 ];
 
 describe('filterBySearch', () => {
@@ -107,6 +107,24 @@ describe('sortByPopularity', () => {
     const result = sortByPopularity(mockItems, 'most-wishlisted');
     expect(result[0].name).toBe('Sands of Inaros');
     expect(result[0].wishlistCount).toBe(50);
+  });
+
+  it('sorts by last brought (most recent date first)', () => {
+    const result = sortByPopularity(mockItems, 'last-brought');
+    // Sands of Inaros has 2024-10-15 (most recent)
+    expect(result[0].name).toBe('Sands of Inaros');
+    // Primed Continuity has 2024-08-05
+    expect(result[1].name).toBe('Primed Continuity');
+    // Ship Display has 2024-07-10
+    expect(result[2].name).toBe('Ship Display');
+  });
+
+  it('sorts last brought with items without dates going to the end', () => {
+    const result = sortByPopularity(mockItems, 'last-brought');
+    const lastTwo = result.slice(-2);
+    // Ki'Teer Syandana has empty array, Ki'Teer Weapon Skin has no offeringDates
+    expect(lastTwo.map(i => i.name)).toContain('Ki\'Teer Syandana');
+    expect(lastTwo.map(i => i.name)).toContain('Ki\'Teer Weapon Skin');
   });
 
   it('does not mutate the original array', () => {
