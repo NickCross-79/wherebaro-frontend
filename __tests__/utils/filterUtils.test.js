@@ -98,9 +98,18 @@ describe('sortByPopularity', () => {
     expect(result[0].reviews).toHaveLength(4);
   });
 
-  it('returns same order for unknown sort type', () => {
+  it('sorts alphabetically by default (sortType "all")', () => {
     const result = sortByPopularity(mockItems, 'all');
-    expect(result.map(i => i.name)).toEqual(mockItems.map(i => i.name));
+    const names = result.map(i => i.name);
+    expect(names).toEqual([
+      'Ki\'Teer Syandana',
+      'Ki\'Teer Weapon Skin',
+      'Primed Continuity',
+      'Primed Flow',
+      'Prisma Grinlok',
+      'Sands of Inaros',
+      'Ship Display',
+    ]);
   });
 
   it('sorts by most wishlisted', () => {

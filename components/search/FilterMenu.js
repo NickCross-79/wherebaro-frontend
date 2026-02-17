@@ -16,7 +16,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   
   const categories = ['Mod', 'Weapon', 'Cosmetic', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
   const popularityOptions = [
-    { label: 'Default', value: 'all' },
+    { label: 'Alphabetical', value: 'all' },
     { label: 'Most Liked', value: 'popular' },
     { label: 'Most Wishlisted', value: 'most-wishlisted' },
     { label: 'Most Reviewed', value: 'most-reviews' },
@@ -83,7 +83,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                 onPress={() => setShowSortDropdown(!showSortDropdown)}
               >
                 <Text style={styles.dropdownText}>
-                  {popularityOptions.find(opt => opt.value === localFilters.popularity)?.label || 'Default'}
+                  {popularityOptions.find(opt => opt.value === localFilters.popularity)?.label || 'Alphabetical'}
                 </Text>
                 <Ionicons 
                   name={showSortDropdown ? "chevron-up" : "chevron-down"} 

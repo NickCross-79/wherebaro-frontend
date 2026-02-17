@@ -87,6 +87,9 @@ export const sortByPopularity = (items, sortType) => {
       // Most recent first (descending order)
       return dateB.getTime() - dateA.getTime();
     });
+  } else {
+    // Default: sort alphabetically by name
+    sorted.sort((a, b) => a.name.localeCompare(b.name));
   }
   
   return sorted;
