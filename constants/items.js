@@ -8,6 +8,14 @@ export const MARKET_EXCLUDED_ITEMS = [
   'primed dissapointment',
 ];
 
+// Permanent items that appear in Baro's inventory every week
+// These items should not display offering dates or "last brought" information
+export const PERMANENT_BARO_ITEMS = [
+  'void surplus',
+  'sands of inaros blueprint',
+  'fae path ephemera'
+];
+
 // Default values
 export const DEFAULT_ITEM_TYPE = 'Unknown';
 export const DEFAULT_USERNAME = 'Anonymous';

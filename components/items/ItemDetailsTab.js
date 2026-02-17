@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { PERMANENT_BARO_ITEMS } from '../../constants/items';
 
 export default function ItemDetailsTab({
   item,
@@ -13,7 +14,7 @@ export default function ItemDetailsTab({
   styles,
 }) {
   const offeringDates = item.offeringDates || [];
-  const isVoidSurplus = item.name?.toLowerCase() === 'void surplus';
+  const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
 
   return (
     <ScrollView
@@ -89,7 +90,7 @@ export default function ItemDetailsTab({
       </View>
 
       {/* Last Brought Date */}
-      {!isVoidSurplus && (
+      {!isPermanentItem && (
       <View style={styles.dateContainer}>
         <Text style={styles.dateLabel}>Last Brought</Text>
         <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
@@ -97,7 +98,7 @@ export default function ItemDetailsTab({
       )}
 
       {/* Offering Dates Dropdown */}
-      {!isVoidSurplus && (
+      {!isPermanentItem && (
       <View style={styles.dropdownContainer}>
         <TouchableOpacity
           style={styles.dropdownHeader}
