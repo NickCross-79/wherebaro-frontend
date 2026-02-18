@@ -1,22 +1,15 @@
 import { forwardRef } from 'react';
-import { ScrollView, RefreshControl } from 'react-native';
+import { ScrollView } from 'react-native';
 import ItemCard from '../items/ItemCard';
 import EmptyState from '../ui/EmptyState';
 import styles from '../../styles/components/baro/InventoryList.styles';
 
-const InventoryList = forwardRef(({ items, refreshing, onRefresh, onItemPress }, ref) => {
+const InventoryList = forwardRef(({ items, onItemPress }, ref) => {
   return (
     <ScrollView
       ref={ref}
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#D4A574"
-        />
-      }
     >
       {items.length === 0 ? (
         <EmptyState />

@@ -17,7 +17,7 @@ export default function BaroScreen({ navigation }) {
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
-  const { items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh } = useInventory();
+  const { items, loading, syncing, nextArrival, nextLocation, isHere } = useInventory();
 
   const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
 
@@ -28,7 +28,7 @@ export default function BaroScreen({ navigation }) {
     navigation.navigate('ItemDetail', { item });
   }, [navigation]);
 
-  logger.debug('BaroScreen', `Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}, refreshing=${refreshing}`);
+  logger.debug('BaroScreen', `Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}`);
 
   // Show syncing screen when transitioning to Baro active state (check first — takes priority)
   if (syncing) {
@@ -36,7 +36,7 @@ export default function BaroScreen({ navigation }) {
     return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
   }
 
-  if (loading && !refreshing) {
+  if (loading) {
     logger.debug('BaroScreen', '→ Showing LoadingScreen (initial load)');
     return <LoadingScreen />;
   }
@@ -70,8 +70,6 @@ export default function BaroScreen({ navigation }) {
       <InventoryList
         ref={scrollRef}
         items={finalItems}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
         onItemPress={handleItemPress}
       />
     </View>

@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import ItemCard from '../components/items/ItemCard';
@@ -14,7 +14,7 @@ export default function AllItemsScreen({ navigation }) {
   useScrollToTop(listRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
-  const { items, loading, refreshing, error, onRefresh } = useAllItems();
+  const { items, loading, error } = useAllItems();
 
   // Load filters on mount
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AllItemsScreen({ navigation }) {
         />
       </View>
 
-      {loading && !refreshing ? (
+      {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#D4A574" />
           <Text style={styles.loadingText}>Loading Baro's archive...</Text>
@@ -70,18 +70,10 @@ export default function AllItemsScreen({ navigation }) {
           data={[]}
           renderItem={null}
           contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#D4A574"
-            />
-          }
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>Error loading items</Text>
               <Text style={styles.emptySubtext}>{error}</Text>
-              <Text style={styles.emptySubtext}>Pull down to retry</Text>
             </View>
           )}
         />
@@ -92,20 +84,13 @@ export default function AllItemsScreen({ navigation }) {
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#D4A574"
-            />
-          }
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
                 {items.length === 0 ? 'No items in archive' : 'No items found'}
               </Text>
               <Text style={styles.emptySubtext}>
-                {items.length === 0 ? 'Pull down to refresh' : 'Try a different search term'}
+                {items.length === 0 ? 'Try restarting the app' : 'Try a different search term'}
               </Text>
             </View>
           )}
