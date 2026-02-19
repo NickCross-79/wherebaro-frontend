@@ -81,6 +81,7 @@ const createTables = async () => {
         offeringDates TEXT,
         uniqueName TEXT,
         link TEXT,
+        wishlistCount INTEGER DEFAULT 0,
         inWishlist INTEGER DEFAULT 0,
         createdAt INTEGER,
         cachedAt INTEGER
@@ -93,20 +94,6 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_wishlist ON items(inWishlist);
     `);
     console.log('Wishlist index created');
-
-    const columns = await db.getAllAsync('PRAGMA table_info(items)');
-    const hasOfferingDates = columns.some((column) => column.name === 'offeringDates');
-    if (!hasOfferingDates) {
-      await db.execAsync('ALTER TABLE items ADD COLUMN offeringDates TEXT;');
-    }
-    const hasUniqueName = columns.some((column) => column.name === 'uniqueName');
-    if (!hasUniqueName) {
-      await db.execAsync('ALTER TABLE items ADD COLUMN uniqueName TEXT;');
-    }
-    const hasLink = columns.some((column) => column.name === 'link');
-    if (!hasLink) {
-      await db.execAsync('ALTER TABLE items ADD COLUMN link TEXT;');
-    }
   } catch (error) {
     console.error('Error creating tables:', error);
   }
@@ -271,8 +258,8 @@ export const dbHelpers = {
         const createdAt = existingItem?.createdAt || now;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt, wishlistCount)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -288,6 +275,7 @@ export const dbHelpers = {
             1,
             createdAt,
             now,
+            item.wishlistCount || 0,
           ]
         );
       } catch (error) {
@@ -323,6 +311,7 @@ export const dbHelpers = {
         likes: JSON.parse(row.likes || '[]'),
         reviews: JSON.parse(row.reviews || '[]'),
         offeringDates: JSON.parse(row.offeringDates || '[]'),
+        wishlistCount: row.wishlistCount || 0,
       }));
     } catch (error) {
       console.error('Error getting wishlist items:', error);
@@ -382,8 +371,8 @@ export const dbHelpers = {
             const createdAt = existingItem?.createdAt || now;
 
             await db.runAsync(
-              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt, wishlistCount)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 itemId,
                 item._id || itemId,
@@ -400,6 +389,7 @@ export const dbHelpers = {
                 inWishlist,
                 createdAt,
                 now,
+                item.wishlistCount || 0,
               ]
             );
           }
@@ -422,6 +412,7 @@ export const dbHelpers = {
         likes: JSON.parse(row.likes || '[]'),
         reviews: JSON.parse(row.reviews || '[]'),
         offeringDates: JSON.parse(row.offeringDates || '[]'),
+        wishlistCount: row.wishlistCount || 0,
       }));
     } catch (error) {
       console.error('Error getting cached items:', error);
@@ -508,13 +499,19 @@ export const dbHelpers = {
 
   /**
    * Adjust the wishlistCount for an item in the SQLite cache by delta (+1 or -1).
-   * Since wishlistCount is not a SQLite column, we read/write the full row.
-   * For now this is a no-op because wishlistCount is not persisted in SQLite.
-   * The in-memory contexts handle local updates; the next full refresh syncs from server.
    */
-  updateItemWishlistCount: async (_itemId, _delta) => {
-    // wishlistCount is not stored in the SQLite items table, so nothing to update.
-    // In-memory context updates handle the immediate UI feedback.
+  updateItemWishlistCount: async (itemId, delta) => {
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        await db.runAsync(
+          `UPDATE items SET wishlistCount = MAX(0, COALESCE(wishlistCount, 0) + ?) WHERE id = ? OR _id = ?`,
+          [delta, itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error updating wishlist count:', error);
+      }
+    });
   },
 };
 
