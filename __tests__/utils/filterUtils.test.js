@@ -98,15 +98,15 @@ describe('sortByPopularity', () => {
     expect(result[0].reviews).toHaveLength(4);
   });
 
-  it('sorts alphabetically by default (sortType "all")', () => {
+  it('sorts new items first, then alphabetically by default (sortType "all")', () => {
     const result = sortByPopularity(mockItems, 'all');
     const names = result.map(i => i.name);
     expect(names).toEqual([
-      'Ki\'Teer Syandana',
+      'Prisma Grinlok',       // new (1 offering date) — first
+      'Ki\'Teer Syandana',    // then alphabetical
       'Ki\'Teer Weapon Skin',
       'Primed Continuity',
       'Primed Flow',
-      'Prisma Grinlok',
       'Sands of Inaros',
       'Ship Display',
     ]);

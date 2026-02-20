@@ -88,8 +88,14 @@ export const sortByPopularity = (items, sortType) => {
       return dateB.getTime() - dateA.getTime();
     });
   } else {
-    // Default: sort alphabetically by name
-    sorted.sort((a, b) => a.name.localeCompare(b.name));
+    // Default: new items first (single offering date), then alphabetically
+    sorted.sort((a, b) => {
+      const aNew = a.offeringDates?.length === 1;
+      const bNew = b.offeringDates?.length === 1;
+      if (aNew && !bNew) return -1;
+      if (!aNew && bNew) return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
   }
   
   return sorted;

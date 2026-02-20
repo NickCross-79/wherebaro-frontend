@@ -19,7 +19,7 @@ const InventoryList = forwardRef(({ items, onItemPress }, ref) => {
             key={item.id || item._id || `item-${index}`}
             item={item}
             onPress={() => onItemPress && onItemPress(item)}
-            isNew={index === 0}
+            isNew={item.offeringDates?.length === 1}
           />
         ))
       )}
