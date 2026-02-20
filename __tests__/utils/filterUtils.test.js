@@ -92,10 +92,13 @@ describe('sortByPopularity', () => {
     expect(result[1].name).toBe('Primed Flow');
   });
 
-  it('sorts by most reviews', () => {
+  it('sorts by most reviews, then alphabetically on ties', () => {
     const result = sortByPopularity(mockItems, 'most-reviews');
-    expect(result[0].name).toBe('Sands of Inaros');
+    expect(result[0].name).toBe('Sands of Inaros');       // 4 reviews
     expect(result[0].reviews).toHaveLength(4);
+    // 0-review items sorted alphabetically
+    const zeroReviewNames = result.filter(i => (i.reviews || []).length === 0).map(i => i.name);
+    expect(zeroReviewNames).toEqual(['Ki\'Teer Weapon Skin', 'Prisma Grinlok', 'Ship Display']);
   });
 
   it('sorts new items first, then alphabetically by default (sortType "all")', () => {
@@ -128,12 +131,11 @@ describe('sortByPopularity', () => {
     expect(result[2].name).toBe('Ship Display');
   });
 
-  it('sorts last brought with items without dates going to the end', () => {
+  it('sorts last brought with items without dates alphabetically at end', () => {
     const result = sortByPopularity(mockItems, 'last-brought');
-    const lastTwo = result.slice(-2);
-    // Ki'Teer Syandana has empty array, Ki'Teer Weapon Skin has no offeringDates
-    expect(lastTwo.map(i => i.name)).toContain('Ki\'Teer Syandana');
-    expect(lastTwo.map(i => i.name)).toContain('Ki\'Teer Weapon Skin');
+    const lastTwo = result.slice(-2).map(i => i.name);
+    // Both have no dates — alphabetical tiebreaker
+    expect(lastTwo).toEqual(['Ki\'Teer Syandana', 'Ki\'Teer Weapon Skin']);
   });
 
   it('does not mutate the original array', () => {

@@ -62,30 +62,32 @@ const getMostRecentOfferingDate = (item) => {
 export const sortByPopularity = (items, sortType) => {
   const sorted = [...items];
   
+  const alpha = (a, b) => (a.name || '').localeCompare(b.name || '');
+
   if (sortType === 'popular') {
-    sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0) || alpha(a, b));
   } else if (sortType === 'unpopular') {
-    sorted.sort((a, b) => (a.likes || 0) - (b.likes || 0));
+    sorted.sort((a, b) => (a.likes || 0) - (b.likes || 0) || alpha(a, b));
   } else if (sortType === 'most-reviews') {
-    sorted.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length));
+    sorted.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length) || alpha(a, b));
   } else if (sortType === 'least-reviews') {
-    sorted.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length));
+    sorted.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length) || alpha(a, b));
   } else if (sortType === 'most-wishlisted') {
-    sorted.sort((a, b) => (b.wishlistCount || 0) - (a.wishlistCount || 0));
+    sorted.sort((a, b) => (b.wishlistCount || 0) - (a.wishlistCount || 0) || alpha(a, b));
   } else if (sortType === 'least-wishlisted') {
-    sorted.sort((a, b) => (a.wishlistCount || 0) - (b.wishlistCount || 0));
+    sorted.sort((a, b) => (a.wishlistCount || 0) - (b.wishlistCount || 0) || alpha(a, b));
   } else if (sortType === 'last-brought') {
     sorted.sort((a, b) => {
       const dateA = getMostRecentOfferingDate(a);
       const dateB = getMostRecentOfferingDate(b);
       
       // Items without dates go to the end
-      if (!dateA && !dateB) return 0;
+      if (!dateA && !dateB) return alpha(a, b);
       if (!dateA) return 1;
       if (!dateB) return -1;
       
-      // Most recent first (descending order)
-      return dateB.getTime() - dateA.getTime();
+      // Most recent first (descending order), then alphabetical
+      return (dateB.getTime() - dateA.getTime()) || alpha(a, b);
     });
   } else {
     // Default: new items first, then alphabetically
