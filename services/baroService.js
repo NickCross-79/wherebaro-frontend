@@ -93,28 +93,62 @@ export const fetchBaroData = async () => {
  * @returns {Promise<Object>} Baro data with { activation, expiry, inventory, location }
  */
 export const fetchBaroDataWithFallback = async () => {
+  let data;
   try {
-    return await fetchBaroData();
+    data = await fetchBaroData();
   } catch (error) {
     logger.warn('BaroService', `Warframestat API failed: ${error.message}, falling back to backend...`);
+    return await fetchFromBackend(error);
+  }
+
+  // Baro is active but API returned no inventory — fall back to backend
+  const active = isBaroActive(data.activation, data.expiry);
+  if (active && (!data.inventory || data.inventory.length === 0)) {
+    logger.warn('BaroService', 'Warframestat returned active Baro with empty inventory, falling back to backend...');
     try {
-      const response = await fetch(GET_CURRENT_URL);
-      if (!response.ok) {
-        throw new Error(`Backend getCurrent failed: ${response.status}`);
+      const fallback = await fetchFromBackend();
+      if (fallback.inventory && fallback.inventory.length > 0) {
+        return fallback;
       }
-      const current = await response.json();
-      logger.debug('BaroService', `Backend fallback: isActive=${current.isActive}, items=${current.items?.length || 0}`);
-      // Normalize shape: backend returns "items", consumers expect "inventory"
-      return {
-        activation: current.activation,
-        expiry: current.expiry,
-        location: current.location,
-        inventory: current.items || [],
-      };
-    } catch (fallbackError) {
-      logger.error('BaroService', `Backend fallback also failed: ${fallbackError.message}`);
-      throw error; // Re-throw original error
+      logger.warn('BaroService', 'Backend also returned empty inventory — using warframestat response');
+    } catch {
+      logger.warn('BaroService', 'Backend fallback failed — using warframestat response');
     }
+  }
+
+  return data;
+};
+
+/**
+ * Fetch Baro data from our backend's current document.
+ * @param {Error} [originalError] - If provided, re-thrown when backend also fails
+ * @returns {Promise<Object>} Normalized Baro data
+ */
+const fetchFromBackend = async (originalError) => {
+  try {
+    const response = await fetch(GET_CURRENT_URL);
+    if (!response.ok) {
+      throw new Error(`Backend getCurrent failed: ${response.status}`);
+    }
+    const current = await response.json();
+    logger.debug('BaroService', `Backend fallback: isActive=${current.isActive}, items=${current.items?.length || 0}`);
+    // Normalize shape: backend returns full item documents,
+    // consumers expect warframestat-style { uniqueName, item, ducats, credits }
+    const inventory = (current.items || []).map(item => ({
+      uniqueName: item.uniqueName || '',
+      item: item.name || '',
+      ducats: item.ducatPrice ?? 0,
+      credits: item.creditPrice ?? 0,
+    }));
+    return {
+      activation: current.activation,
+      expiry: current.expiry,
+      location: current.location,
+      inventory,
+    };
+  } catch (fallbackError) {
+    logger.error('BaroService', `Backend fallback also failed: ${fallbackError.message}`);
+    throw originalError || fallbackError;
   }
 };
 
