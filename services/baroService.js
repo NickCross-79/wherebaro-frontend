@@ -6,7 +6,7 @@
 import { buildUrl } from './apiConfig';
 import logger from '../utils/logger';
 
-const BARO_API_URL = 'https://api.warframestat.us/pc/voidTrader/';
+const BARO_API_URL = 'https://api.warframestat.us/pc/voidTraders/';
 
 // ─── SIMULATION MODE ───────────────────────────────────────────────
 // SIMULATE_BARO_ARRIVAL: First fetch returns mock "absent" data with
@@ -47,8 +47,9 @@ export const fetchBaroData = async () => {
     try {
       const realResp = await fetch(BARO_API_URL);
       if (realResp.ok) {
-        const realData = await realResp.json();
-        inventory = realData.inventory || [];
+        const realArr = await realResp.json();
+        const realData = Array.isArray(realArr) ? realArr[0] : realArr;
+        inventory = realData?.inventory || [];
       }
     } catch (e) {
       logger.warn('BaroService', 'Could not fetch real inventory for departure sim');
@@ -75,7 +76,8 @@ export const fetchBaroData = async () => {
   if (!response.ok) {
     throw new Error(`Failed to fetch Baro data: ${response.status}`);
   }
-  const data = await response.json();
+  const json = await response.json();
+  const data = Array.isArray(json) ? json[0] : json;
   logger.debug('BaroService', `Response: active=${isBaroActive(data.activation, data.expiry)}, inventory=${data.inventory?.length || 0}, location=${data.location}`);
   return data;
 };
