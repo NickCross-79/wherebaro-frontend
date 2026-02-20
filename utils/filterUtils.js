@@ -88,10 +88,10 @@ export const sortByPopularity = (items, sortType) => {
       return dateB.getTime() - dateA.getTime();
     });
   } else {
-    // Default: new items first (single offering date), then alphabetically
+    // Default: new items first, then alphabetically
     sorted.sort((a, b) => {
-      const aNew = a.offeringDates?.length === 1;
-      const bNew = b.offeringDates?.length === 1;
+      const aNew = !!a.isNew;
+      const bNew = !!b.isNew;
       if (aNew && !bNew) return -1;
       if (!aNew && bNew) return 1;
       return (a.name || '').localeCompare(b.name || '');

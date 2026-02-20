@@ -26,9 +26,10 @@ const buildSuffixMap = (cachedItems) => {
   return map;
 };
 
-const matchInventoryItems = (inventory, cachedItems) => {
+const matchInventoryItems = (inventory, cachedItems, visitDate) => {
   const suffixMap = buildSuffixMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
+  const visitDay = visitDate ? new Date(visitDate).toISOString().split('T')[0] : null;
 
   const results = inventory.map(invItem => {
     const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
@@ -52,11 +53,16 @@ const matchInventoryItems = (inventory, cachedItems) => {
       };
     }
 
-    return {
+    const merged = {
       ...fullItem,
       creditPrice: invItem.credits,
       ducatPrice: invItem.ducats,
     };
+    merged.isNew = visitDay
+      && Array.isArray(merged.offeringDates)
+      && merged.offeringDates.length === 1
+      && merged.offeringDates[0] === visitDay;
+    return merged;
   });
 
   return results;
@@ -73,6 +79,7 @@ const cachedItems = [
     type: 'Primed Mod',
     likes: 10,
     reviews: [],
+    offeringDates: ['2025-01-10', '2025-06-20'],
   },
   {
     _id: '2',
@@ -82,6 +89,7 @@ const cachedItems = [
     type: 'Prisma Primary',
     likes: 5,
     reviews: [],
+    offeringDates: ['2025-06-20'],
   },
   {
     _id: '3',
@@ -91,6 +99,7 @@ const cachedItems = [
     type: 'Cosmetic',
     likes: 2,
     reviews: [],
+    offeringDates: [],
   },
 ];
 
@@ -239,5 +248,49 @@ describe('matchInventoryItems', () => {
     const result = matchInventoryItems(inventory, cachedItems);
     expect(result[0]._unmatched).toBeUndefined();
     expect(result[0].name).toBe('Primed Flow');
+  });
+
+  it('marks item as new when it has exactly one offering date matching the visit', () => {
+    const inventory = [
+      { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
+    ];
+    // Prisma Grinlok has offeringDates: ['2025-06-20'], visit is 2025-06-20
+    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
+    expect(result[0].isNew).toBe(true);
+  });
+
+  it('does not mark item as new when it has multiple offering dates', () => {
+    const inventory = [
+      { item: 'Primed Flow', uniqueName: '/Lotus/PrimedFlow', credits: 100000, ducats: 300 },
+    ];
+    // Primed Flow has offeringDates: ['2025-01-10', '2025-06-20']
+    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
+    expect(result[0].isNew).toBe(false);
+  });
+
+  it('does not mark item as new when its single date does not match the visit', () => {
+    const inventory = [
+      { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
+    ];
+    // Prisma Grinlok has offeringDates: ['2025-06-20'], but visit is a different date
+    const result = matchInventoryItems(inventory, cachedItems, '2025-07-04T14:00:00.000Z');
+    expect(result[0].isNew).toBe(false);
+  });
+
+  it('does not mark item as new when offeringDates is empty', () => {
+    const inventory = [
+      { item: "Ki'Teer Syandana", uniqueName: '/Lotus/KiTeerSyandana', credits: 50000, ducats: 200 },
+    ];
+    // Ki'Teer Syandana has offeringDates: []
+    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
+    expect(result[0].isNew).toBe(false);
+  });
+
+  it('does not mark item as new when no visitDate is provided', () => {
+    const inventory = [
+      { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
+    ];
+    const result = matchInventoryItems(inventory, cachedItems);
+    expect(result[0].isNew).toBeFalsy();
   });
 });

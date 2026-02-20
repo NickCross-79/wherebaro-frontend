@@ -57,12 +57,12 @@ describe('InventoryList', () => {
     expect(getByText('No items')).toBeTruthy();
   });
 
-  it('marks items with exactly one offering date as new', () => {
+  it('marks items with isNew flag from matching', () => {
     const items = [
-      { id: '1', name: 'Primed Flow', offeringDates: ['2025-01-10', '2024-06-15'] },
-      { id: '2', name: 'Brand New Mod', offeringDates: ['2025-01-10'] },
-      { id: '3', name: 'Another Veteran', offeringDates: ['2025-01-10', '2024-01-05', '2023-06-20'] },
-      { id: '4', name: 'Also New', offeringDates: ['2025-01-10'] },
+      { id: '1', name: 'Primed Flow', isNew: false },
+      { id: '2', name: 'Brand New Mod', isNew: true },
+      { id: '3', name: 'Another Veteran', isNew: false },
+      { id: '4', name: 'Also New', isNew: true },
     ];
     render(<InventoryList items={items} refreshing={false} onRefresh={jest.fn()} />);
 

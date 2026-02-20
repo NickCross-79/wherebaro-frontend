@@ -6,13 +6,13 @@ import {
 } from '../../utils/filterUtils';
 
 const mockItems = [
-  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3], wishlistCount: 25, offeringDates: ['2024-01-15', '2024-06-20'] },
-  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1], wishlistCount: 30, offeringDates: ['2023-12-10', '2024-08-05'] },
-  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [], wishlistCount: 10, offeringDates: ['2024-03-15'] },
-  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2], wishlistCount: 5, offeringDates: [] },
-  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4], wishlistCount: 50, offeringDates: ['2024-09-01', '2024-10-15'] },
-  { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [], wishlistCount: 0 },
-  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [], wishlistCount: 2, offeringDates: ['2024-02-20', '2024-07-10'] },
+  { name: 'Primed Flow', type: 'Primed Mod', likes: 10, reviews: [1, 2, 3], wishlistCount: 25, offeringDates: ['2024-01-15', '2024-06-20'], isNew: false },
+  { name: 'Primed Continuity', type: 'Primed Mod', likes: 5, reviews: [1], wishlistCount: 30, offeringDates: ['2023-12-10', '2024-08-05'], isNew: false },
+  { name: 'Prisma Grinlok', type: 'Prisma Primary', likes: 8, reviews: [], wishlistCount: 10, offeringDates: ['2024-03-15'], isNew: true },
+  { name: 'Ki\'Teer Syandana', type: 'Cosmetic Syandana', likes: 2, reviews: [1, 2], wishlistCount: 5, offeringDates: [], isNew: false },
+  { name: 'Sands of Inaros', type: 'Quest Blueprint', likes: 15, reviews: [1, 2, 3, 4], wishlistCount: 50, offeringDates: ['2024-09-01', '2024-10-15'], isNew: false },
+  { name: 'Ki\'Teer Weapon Skin', type: 'Cosmetic (weapon)', likes: 3, reviews: [], wishlistCount: 0, isNew: false },
+  { name: 'Ship Display', type: 'Ship Decoration', likes: 4, reviews: [], wishlistCount: 2, offeringDates: ['2024-02-20', '2024-07-10'], isNew: false },
 ];
 
 describe('filterBySearch', () => {
