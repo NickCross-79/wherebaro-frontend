@@ -114,8 +114,7 @@ whenbaro-frontend/
 ├── components/
 │   ├── baro/                   # Baro-specific components
 │   │   ├── BaroTimer.js        #   Arrival/departure countdown
-│   │   ├── InventoryList.js    #   Baro's current item list
-│   │   └── NewItemShowcase.js  #   Highlight for new offerings
+│   │   └── InventoryList.js    #   Baro's current item list
 │   ├── items/                  # Item display components
 │   │   ├── ItemCard.js         #   Item list card
 │   │   ├── ItemDetailHeader.js #   Detail screen header (back, wishlist)

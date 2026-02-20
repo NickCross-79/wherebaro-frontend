@@ -13,12 +13,6 @@ jest.mock('../../components/baro/BaroTimer', () => {
     return <Text testID="baro-timer">{label}</Text>;
   };
 });
-jest.mock('../../components/baro/NewItemShowcase', () => {
-  const { Text } = require('react-native');
-  return function MockNewItemShowcase({ item }) {
-    return <Text testID="new-item">{item.name}</Text>;
-  };
-});
 jest.mock('../../styles/components/ui/Header.styles', () => ({
   header: {},
   headerTitle: {},
@@ -47,12 +41,6 @@ describe('Header', () => {
     const future = new Date(Date.now() + 60000);
     const { getByText } = render(<Header nextArrival={future} isHere={true} />);
     expect(getByText('Leaving In')).toBeTruthy();
-  });
-
-  it('renders NewItemShowcase when newItem is provided', () => {
-    const item = { name: 'Primed Flow' };
-    const { getByTestId } = render(<Header newItem={item} />);
-    expect(getByTestId('new-item')).toBeTruthy();
   });
 
   it('renders children', () => {

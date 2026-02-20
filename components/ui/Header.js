@@ -1,10 +1,9 @@
 import { Text, View } from 'react-native';
 import { memo } from 'react';
 import BaroTimer from '../baro/BaroTimer';
-import NewItemShowcase from '../baro/NewItemShowcase';
 import styles from '../../styles/components/ui/Header.styles';
 
-function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, newItem, onNewItemPress, children }) {
+function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, children }) {
   return (
     <View style={styles.header}>
       {showTitle && (
@@ -21,7 +20,6 @@ function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, n
           expiredText={isHere ? 'Leaving Soon' : 'Arriving Soon'}
         />
       )}
-      {newItem && <NewItemShowcase item={newItem} onPress={onNewItemPress} />}
       {children}
     </View>
   );

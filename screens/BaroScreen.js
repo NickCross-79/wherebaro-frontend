@@ -21,9 +21,6 @@ export default function BaroScreen({ navigation }) {
 
   const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
 
-  // Get newest item (first in sorted list when Baro is here)
-  const newestItem = isHere && items.length > 0 ? items[0] : null;
-
   const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });
   }, [navigation]);
