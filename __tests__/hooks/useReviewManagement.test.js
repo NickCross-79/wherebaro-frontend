@@ -70,10 +70,11 @@ describe('useReviewManagement', () => {
   });
 
   describe('fetchReviewsAndLikes', () => {
-    it('fetches and sorts reviews (current user first)', async () => {
+    it('fetches and sorts reviews (current user first, then newest)', async () => {
       const reviews = [
-        { uid: 'other', content: 'B' },
-        { uid: 'me', content: 'A' },
+        { uid: 'other1', content: 'Oldest', date: '2026-01-01', time: '10:00:00' },
+        { uid: 'me', content: 'Mine', date: '2026-01-02', time: '12:00:00' },
+        { uid: 'other2', content: 'Newest', date: '2026-02-15', time: '08:00:00' },
       ];
       fetchReviews.mockResolvedValue({ reviews });
 
@@ -85,7 +86,8 @@ describe('useReviewManagement', () => {
       });
 
       expect(result.current.reviews[0].uid).toBe('me');
-      expect(result.current.reviews[1].uid).toBe('other');
+      expect(result.current.reviews[1].uid).toBe('other2');
+      expect(result.current.reviews[2].uid).toBe('other1');
       expect(result.current.isLoadingReviews).toBe(false);
     });
 

@@ -41,7 +41,10 @@ export const useReviewManagement = (itemId, syncReviewCount) => {
       fetchedReviews.sort((a, b) => {
         if (a?.uid === currentUid && b?.uid !== currentUid) return -1;
         if (b?.uid === currentUid && a?.uid !== currentUid) return 1;
-        return 0;
+        // Newest first by date+time
+        const dateA = `${a?.date || ''}T${a?.time || ''}`;
+        const dateB = `${b?.date || ''}T${b?.time || ''}`;
+        return dateB.localeCompare(dateA);
       });
 
       setReviews(fetchedReviews);
