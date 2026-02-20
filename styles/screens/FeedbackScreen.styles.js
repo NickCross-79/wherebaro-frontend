@@ -1,17 +1,18 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/theme';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
+    backgroundColor: colors.background,
   },
   header: {
     paddingTop: 60,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderBottomWidth: 2,
-    borderBottomColor: '#D4A574',
+    borderBottomColor: colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -20,16 +21,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#151B23',
+    backgroundColor: colors.surfaceAlt,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4A574',
+    color: colors.accent,
     letterSpacing: 2,
   },
   placeholder: {
@@ -44,37 +45,37 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 13,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     marginBottom: 16,
   },
   input: {
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
     padding: 14,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
     minHeight: 140,
   },
   submitButton: {
     marginTop: 16,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   submitButtonDisabled: {
-    backgroundColor: '#2A3442',
+    backgroundColor: colors.controlOff,
   },
   submitButtonText: {
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,

@@ -14,6 +14,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import BaroIcon from '../assets/icons/icon_baro.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from '../styles/navigation/AppNavigator.styles';
+import { colors, gradients } from '../constants/theme';
 
 // ─── Stack Navigators ──────────────────────────────────────────────
 
@@ -70,14 +71,14 @@ function CustomTabBar({ state, navigation, insets, badgeCount }) {
       ]}
     >
       <LinearGradient
-        colors={['rgba(15, 20, 25, 0.15)', 'rgba(15, 20, 25, 0.85)', '#0F1419']}
+        colors={gradients.tabBar}
         locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.tabBarContent}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
-          const color = focused ? '#D4A574' : '#5A6B8C';
+          const color = focused ? colors.accent : colors.textDim;
 
           const onPress = () => {
             const event = navigation.emit({

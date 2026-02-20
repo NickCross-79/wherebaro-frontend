@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Linking, Alert } f
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../styles/screens/FeedbackScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function FeedbackScreen({ navigation }) {
   const [message, setMessage] = useState('');
@@ -27,7 +28,7 @@ export default function FeedbackScreen({ navigation }) {
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#D4A574" />
+          <Ionicons name="chevron-back" size={28} color={colors.accent} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>FEEDBACK</Text>
         <View style={styles.placeholder} />
@@ -42,7 +43,7 @@ export default function FeedbackScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Type your feedback here..."
-          placeholderTextColor="#5A6B8C"
+          placeholderTextColor={colors.textDim}
           multiline
           numberOfLines={6}
           value={message}

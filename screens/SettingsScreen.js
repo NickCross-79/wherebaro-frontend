@@ -11,6 +11,7 @@ import { registerForPushNotifications, unregisterPushToken, bulkSyncWishlistPush
 import { getLocalPushToken, unregisterFromBackend } from '../services/pushNotificationService';
 import { useWishlist } from '../contexts/WishlistContext';
 import styles from '../styles/screens/SettingsScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function SettingsScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -176,8 +177,8 @@ export default function SettingsScreen({ navigation }) {
             <Switch
               value={notifications}
               onValueChange={handleNotificationsChange}
-              trackColor={{ false: '#2A3442', true: '#D4A574' }}
-              thumbColor={notifications ? '#FFFFFF' : '#8B9DC3'}
+              trackColor={{ false: colors.controlOff, true: colors.accent }}
+              thumbColor={notifications ? colors.text : colors.textSecondary}
             />
           </View>
 
@@ -191,8 +192,8 @@ export default function SettingsScreen({ navigation }) {
             <Switch
               value={wishlistAlerts}
               onValueChange={handleWishlistAlertsChange}
-              trackColor={{ false: '#2A3442', true: '#D4A574' }}
-              thumbColor={wishlistAlerts ? '#FFFFFF' : '#8B9DC3'}
+              trackColor={{ false: colors.controlOff, true: colors.accent }}
+              thumbColor={wishlistAlerts ? colors.text : colors.textSecondary}
             />
           </View>
         </View>
@@ -213,7 +214,7 @@ export default function SettingsScreen({ navigation }) {
               value={displayName}
               onChangeText={handleDisplayNameChange}
               placeholder="Enter display name"
-              placeholderTextColor="#5A6B8C"
+              placeholderTextColor={colors.textDim}
               maxLength={24}
             />
           </View>
@@ -228,8 +229,8 @@ export default function SettingsScreen({ navigation }) {
             <Switch
               value={autoRefresh}
               onValueChange={handleAutoRefreshChange}
-              trackColor={{ false: '#2A3442', true: '#D4A574' }}
-              thumbColor={autoRefresh ? '#FFFFFF' : '#8B9DC3'}
+              trackColor={{ false: colors.controlOff, true: colors.accent }}
+              thumbColor={autoRefresh ? colors.text : colors.textSecondary}
             />
           </View>
         </View>

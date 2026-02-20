@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../constants/theme';
 
 const styles = StyleSheet.create({
   heartPopup: {
@@ -13,7 +14,7 @@ const styles = StyleSheet.create({
   },
   newBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderTopLeftRadius: 8,
@@ -25,13 +26,13 @@ const styles = StyleSheet.create({
   newBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   wishlistBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderTopLeftRadius: 8,
@@ -43,18 +44,18 @@ const styles = StyleSheet.create({
   wishlistBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   itemCard: {
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#1A2332',
-    shadowColor: '#000',
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -62,12 +63,12 @@ const styles = StyleSheet.create({
   },
   itemCardNew: {
     borderTopLeftRadius: 0,
-    borderColor: '#D4A574',
+    borderColor: colors.accent,
     borderWidth: 2,
   },
   itemCardWishlist: {
     borderTopLeftRadius: 0,
-    borderColor: '#D4A574',
+    borderColor: colors.accent,
     borderWidth: 2,
   },
   cardHeader: {
@@ -75,16 +76,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#1A2332',
+    backgroundColor: colors.border,
   },
   typeTag: {
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   typeText: {
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   likesText: {
-    color: '#D4A574',
+    color: colors.accent,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   reviewsText: {
-    color: '#D4A574',
+    color: colors.accent,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   wishlistCountText: {
-    color: '#D4A574',
+    color: colors.accent,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -131,13 +132,13 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 100,
     height: 100,
-    backgroundColor: '#151B23',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 1,
-    borderColor: '#1F2937',
+    borderColor: colors.borderAlt,
   },
   itemImage: {
     width: 80,
@@ -160,13 +161,13 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 2,
   },
   categoryText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9BA5B8',
+    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 0,
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 13,
-    color: '#8B9DC3',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     fontWeight: '600',
@@ -202,12 +203,12 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontSize: 16,
-    color: '#E8E8E8',
+    color: colors.textLight,
     fontWeight: '700',
   },
   ducatValue: {
     fontSize: 16,
-    color: '#D4A574',
+    color: colors.accent,
     fontWeight: '700',
   },
 });

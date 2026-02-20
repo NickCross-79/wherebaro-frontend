@@ -1,22 +1,23 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/theme';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
+    backgroundColor: colors.background,
   },
   header: {
     paddingTop: 50,
     paddingBottom: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderBottomWidth: 2,
-    borderBottomColor: '#D4A574',
+    borderBottomColor: colors.accent,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#D4A574',
+    color: colors.accent,
     letterSpacing: 3,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -37,12 +38,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#8B9DC3',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#5A6B8C',
+    color: colors.textDim,
     textAlign: 'center',
   },
 });

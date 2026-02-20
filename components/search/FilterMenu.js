@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from '../../styles/components/search/FilterMenu.styles';
+import { colors } from '../../constants/theme';
 
 export default function FilterMenu({ visible, onClose, filters, onApplyFilters }) {
   const [localFilters, setLocalFilters] = useState(filters);
@@ -70,7 +71,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
               )}
             </View>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#FFFFFF" />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -88,7 +89,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                 <Ionicons 
                   name={showSortDropdown ? "chevron-up" : "chevron-down"} 
                   size={20} 
-                  color="#8B9DC3" 
+                  color={colors.textSecondary} 
                 />
               </TouchableOpacity>
               {showSortDropdown && (
@@ -109,7 +110,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                         {option.label}
                       </Text>
                       {localFilters.popularity === option.value && (
-                        <Ionicons name="checkmark" size={20} color="#D4A574" />
+                        <Ionicons name="checkmark" size={20} color={colors.accent} />
                       )}
                     </TouchableOpacity>
                   ))}

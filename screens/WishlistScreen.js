@@ -7,6 +7,7 @@ import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/WishlistScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function WishlistScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -39,7 +40,7 @@ export default function WishlistScreen({ navigation }) {
           value={searchQuery}
           onChangeText={setSearchQuery}
           title="Items you're waiting for"
-          titleColor="#8B9DC3"
+          titleColor={colors.textSecondary}
           titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
           onApplyFilters={setFilters}

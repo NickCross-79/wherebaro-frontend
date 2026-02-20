@@ -1,28 +1,29 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/theme';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
+    backgroundColor: colors.background,
   },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderBottomWidth: 2,
-    borderBottomColor: '#D4A574',
+    borderBottomColor: colors.accent,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#D4A574',
+    color: colors.accent,
     letterSpacing: 3,
     textTransform: 'uppercase',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     marginTop: 4,
     fontWeight: '500',
   },
@@ -39,13 +40,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4A574',
+    color: colors.accent,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
   settingItem: {
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
@@ -53,15 +54,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
   },
   settingItemColumn: {
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
   },
   settingInfo: {
     flex: 1,
@@ -69,36 +70,36 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '700',
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     fontWeight: '500',
   },
   settingValue: {
     fontSize: 16,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     fontWeight: '600',
   },
   deviceIdValue: {
     fontSize: 11,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     fontWeight: '500',
     maxWidth: '60%',
     textAlign: 'right',
   },
   textInput: {
     marginTop: 12,
-    backgroundColor: '#151B23',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
   },
   creditsText: {
     fontSize: 14,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     fontWeight: '700',
   },
   creditsSubtext: {
     fontSize: 12,
-    color: '#5A6B8C',
+    color: colors.textDim,
     marginTop: 4,
   },
 });

@@ -12,6 +12,7 @@ import { initializeDatabase, storageHelpers } from './utils/storage';
 import { registerForPushNotifications } from './services/api';
 import AppNavigator, { getIsItemDetailActive } from './navigation/AppNavigator';
 import styles from './styles/App.styles';
+import { colors } from './constants/theme';
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
@@ -20,7 +21,7 @@ export default function App() {
   const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
-    NavigationBar.setBackgroundColorAsync('#0F1419');
+    NavigationBar.setBackgroundColorAsync(colors.surface);
     NavigationBar.setButtonStyleAsync('light');
     NavigationBar.setVisibilityAsync('visible');
   }, []);
@@ -63,7 +64,7 @@ export default function App() {
             <InventoryProvider>
               <StatusBar
                 barStyle="light-content"
-                backgroundColor="#0F1419"
+                backgroundColor={colors.surface}
                 translucent={false}
               />
               <NavigationContainer

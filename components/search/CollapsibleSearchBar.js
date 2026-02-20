@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import FilterMenu from './FilterMenu';
 import styles from '../../styles/components/search/CollapsibleSearchBar.styles';
+import { colors } from '../../constants/theme';
 
-export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, titleColor = '#FFFFFF', titleStyle, filters, onApplyFilters }) {
+export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, titleColor = colors.text, titleStyle, filters, onApplyFilters }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
@@ -31,7 +32,7 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
               style={[styles.iconButton, styles.filterButton]} 
               onPress={() => setShowFilterMenu(true)}
             >
-              <Ionicons name="filter" size={24} color="#8B9DC3" />
+              <Ionicons name="filter" size={24} color={colors.textSecondary} />
               {hasActiveFilters && activeFilterCount > 0 && (
                 <View style={styles.filterBadge}>
                   <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
@@ -44,18 +45,18 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
             <TextInput
               style={styles.searchInput}
               placeholder={placeholder}
-              placeholderTextColor="#5A6B8C"
+              placeholderTextColor={colors.textDim}
               value={value}
               onChangeText={onChangeText}
               autoFocus
             />
             <TouchableOpacity style={styles.closeButton} onPress={handleToggle}>
-              <Ionicons name="close" size={20} color="#8B9DC3" />
+              <Ionicons name="close" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           ) : (
             <TouchableOpacity style={styles.iconButton} onPress={handleToggle}>
-              <Ionicons name="search" size={24} color="#8B9DC3" />
+              <Ionicons name="search" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../constants/theme';
 
 const styles = StyleSheet.create({
   emptyContainer: {
@@ -8,12 +9,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 20,
-    color: '#8B9DC3',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#5A6B8C',
+    color: colors.textDim,
     marginTop: 8,
   },
 });

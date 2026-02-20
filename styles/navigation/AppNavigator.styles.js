@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/theme';
 
 const styles = StyleSheet.create({
   tabBar: {
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -12,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     minWidth: 18,
     height: 18,
     borderRadius: 9,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeText: {
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     fontSize: 10,
     fontWeight: '700',
   },

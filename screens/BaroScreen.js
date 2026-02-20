@@ -11,6 +11,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function BaroScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -58,7 +59,7 @@ export default function BaroScreen({ navigation }) {
           value={searchQuery}
           onChangeText={setSearchQuery}
           title="This Week's Items"
-          titleColor="#8B9DC3"
+          titleColor={colors.textSecondary}
           titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
           onApplyFilters={setFilters}

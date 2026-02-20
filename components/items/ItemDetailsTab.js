@@ -3,6 +3,7 @@ import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linki
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PERMANENT_BARO_ITEMS } from '../../constants/items';
+import { colors, gradients } from '../../constants/theme';
 
 export default function ItemDetailsTab({
   item,
@@ -31,7 +32,7 @@ export default function ItemDetailsTab({
         blurRadius={4}
       >
         <LinearGradient
-          colors={['rgba(10, 14, 26, 0.95)', 'rgba(10, 14, 26, 0.15)']}
+          colors={gradients.imageOverlay}
           start={{ x: 0.5, y: 1 }}
           end={{ x: 0.5, y: 0 }}
           style={styles.gradientOverlay}
@@ -55,7 +56,7 @@ export default function ItemDetailsTab({
             style={styles.wikiLinkContainer}
             onPress={() => Linking.openURL(`https://wiki.warframe.com/w/${item.link}`)}
           >
-            <Ionicons name="open-outline" size={16} color="#5B9BD5" />
+            <Ionicons name="open-outline" size={16} color={colors.link} />
             <Text style={styles.wikiLinkText}>View on Wiki</Text>
           </TouchableOpacity>
         ) : null}
@@ -110,7 +111,7 @@ export default function ItemDetailsTab({
             <Ionicons
               name={showOfferings ? 'chevron-up' : 'chevron-down'}
               size={20}
-              color="#D4A574"
+              color={colors.accent}
             />
           </View>
         </TouchableOpacity>

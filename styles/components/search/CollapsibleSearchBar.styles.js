@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../constants/theme';
 
 const styles = StyleSheet.create({
   container: {
@@ -9,7 +10,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
@@ -27,16 +28,16 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
   },
   searchInput: {
     flex: 1,
     padding: 12,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -44,11 +45,11 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   iconButton: {
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1A2332',
+    borderColor: colors.border,
   },
   filterButton: {
     position: 'relative',
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   filterBadgeText: {
-    color: '#0A0E1A',
+    color: colors.textOnAccent,
     fontSize: 11,
     fontWeight: '700',
   },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../../constants/theme';
 
 export default function ItemDetailTabs({ activeTab, setActiveTab, styles, hasMarketTab }) {
   const showMarketTab = hasMarketTab;
@@ -13,7 +14,7 @@ export default function ItemDetailTabs({ activeTab, setActiveTab, styles, hasMar
         <Ionicons
           name="information-circle"
           size={20}
-          color={activeTab === 'details' ? '#D4A574' : '#8B9DC3'}
+          color={activeTab === 'details' ? colors.accent : colors.textSecondary}
         />
         <Text style={[styles.tabText, activeTab === 'details' && styles.tabTextActive]}>
           Details
@@ -26,7 +27,7 @@ export default function ItemDetailTabs({ activeTab, setActiveTab, styles, hasMar
         <Ionicons
           name="chatbubbles"
           size={20}
-          color={activeTab === 'reviews' ? '#D4A574' : '#8B9DC3'}
+          color={activeTab === 'reviews' ? colors.accent : colors.textSecondary}
         />
         <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
           Reviews
@@ -40,7 +41,7 @@ export default function ItemDetailTabs({ activeTab, setActiveTab, styles, hasMar
           <Ionicons
             name="trending-up"
             size={20}
-            color={activeTab === 'market' ? '#D4A574' : '#8B9DC3'}
+            color={activeTab === 'market' ? colors.accent : colors.textSecondary}
           />
           <Text style={[styles.tabText, activeTab === 'market' && styles.tabTextActive]}>
             Market

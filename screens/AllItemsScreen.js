@@ -8,6 +8,7 @@ import { useAllItems } from '../contexts/AllItemsContext';
 import { storageHelpers } from '../utils/storage';
 import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/AllItemsScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function AllItemsScreen({ navigation }) {
   const listRef = useRef(null);
@@ -53,7 +54,7 @@ export default function AllItemsScreen({ navigation }) {
           value={searchQuery}
           onChangeText={setSearchQuery}
           title={`${finalItems.length} items in archive`}
-          titleColor="#8B9DC3"
+          titleColor={colors.textSecondary}
           titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
           filters={filters}
           onApplyFilters={setFilters}
@@ -62,7 +63,7 @@ export default function AllItemsScreen({ navigation }) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#D4A574" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading Baro's archive...</Text>
         </View>
       ) : error ? (

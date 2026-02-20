@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../constants/theme';
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
@@ -6,11 +7,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0A0E1A',
+    backgroundColor: colors.background,
     padding: 20,
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 18,
     marginBottom: 20,
   },
@@ -18,12 +19,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingUidLabel: {
-    color: '#D4A574',
+    color: colors.accent,
     fontSize: 12,
     marginBottom: 4,
   },
   loadingUidValue: {
-    color: '#8B9DC3',
+    color: colors.textSecondary,
     fontSize: 10,
     fontFamily: 'monospace',
   },

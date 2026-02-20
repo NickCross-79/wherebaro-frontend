@@ -6,6 +6,7 @@ import { useAllItems } from '../../contexts/AllItemsContext';
 import { useInventory } from '../../contexts/InventoryContext';
 import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
+import { colors } from '../../constants/theme';
 
 function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -59,7 +60,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
           ]}
           pointerEvents="none"
         >
-          <Ionicons name="heart" size={80} color="#D4A574" />
+          <Ionicons name="heart" size={80} color={colors.accent} />
         </Animated.View>
       )}
       {isNew && (
@@ -86,7 +87,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
               resizeMode="contain"
             />
           ) : (
-            <BaroIcon width={64} height={64} color="#D4A574" />
+            <BaroIcon width={64} height={64} color={colors.accent} />
           )}
         </View>
         
@@ -98,15 +99,15 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
             </View>
             <View style={styles.statsContainer}>
               <View style={[styles.likesContainer, { opacity: (Array.isArray(item.likes) ? item.likes.length : item.likes || 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="thumbs-up" size={20} color="#D4A574" />
+                <Ionicons name="thumbs-up" size={20} color={colors.accent} />
                 <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
               </View>
               <View style={[styles.reviewsContainer, { opacity: (Array.isArray(item.reviews) ? item.reviews.length : 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="chatbubbles" size={18} color="#D4A574" />
+                <Ionicons name="chatbubbles" size={18} color={colors.accent} />
                 <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
               </View>
               <View style={[styles.wishlistCountContainer, { opacity: (item.wishlistCount || 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="heart" size={18} color="#D4A574" />
+                <Ionicons name="heart" size={18} color={colors.accent} />
                 <Text style={styles.wishlistCountText}>{item.wishlistCount || 0}</Text>
               </View>
             </View>

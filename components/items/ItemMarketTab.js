@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
+import { colors, accentWithOpacity } from '../../constants/theme';
 
 export default function ItemMarketTab({
   item,
@@ -107,7 +108,7 @@ export default function ItemMarketTab({
         datasets: [
           {
             data: prices,
-            color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
+            color: (opacity = 1) => accentWithOpacity(opacity),
             strokeWidth: 2,
           },
         ],
@@ -233,7 +234,7 @@ export default function ItemMarketTab({
         
         {isLoadingMarket ? (
           <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#D4A574" />
+            <ActivityIndicator size="large" color={colors.accent} />
             <Text style={[styles.noDataText, { marginTop: 12 }]}>Loading market data...</Text>
           </View>
         ) : chartData ? (
@@ -262,7 +263,7 @@ export default function ItemMarketTab({
                       top: 8,
                       bottom: 0,
                       width: 1,
-                      backgroundColor: 'rgba(212, 165, 116, 0.5)',
+                      backgroundColor: colors.accentMuted,
                       zIndex: 5,
                       pointerEvents: 'none',
                     }} />
@@ -273,7 +274,7 @@ export default function ItemMarketTab({
                       width: 9,
                       height: 9,
                       borderRadius: 5,
-                      backgroundColor: '#D4A574',
+                      backgroundColor: colors.accent,
                       zIndex: 6,
                       pointerEvents: 'none',
                     }} />
@@ -282,22 +283,22 @@ export default function ItemMarketTab({
                       top: 10,
                       left: tooltipLeft,
                       width: tooltipWidth,
-                      backgroundColor: '#1C2430',
+                      backgroundColor: colors.surfaceElevated,
                       paddingVertical: 8,
                       paddingHorizontal: 10,
                       borderRadius: 8,
                       borderWidth: 1,
-                      borderColor: '#D4A574',
+                      borderColor: colors.accent,
                       zIndex: 10,
                       alignItems: 'center',
-                      shadowColor: '#000',
+                      shadowColor: colors.shadow,
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.5,
                       shadowRadius: 4,
                       elevation: 5,
                       pointerEvents: 'none',
                     }}>
-                      <Text style={{ color: '#8B9CB6', fontSize: 12, marginBottom: 2 }}>
+                      <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 2 }}>
                         {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -305,7 +306,7 @@ export default function ItemMarketTab({
                         })}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ color: '#E8E8E8', fontSize: 18, fontWeight: '600', marginRight: 4 }}>
+                        <Text style={{ color: colors.textLight, fontSize: 18, fontWeight: '600', marginRight: 4 }}>
                           {Math.round(rawChartData[selectedPointIndex].avg_price)}
                         </Text>
                         <Image
@@ -325,13 +326,13 @@ export default function ItemMarketTab({
                 withVerticalLines={false}
                 withDots={false}
                 chartConfig={{
-                  backgroundGradientFrom: '#0A0E1A',
-                  backgroundGradientTo: '#0A0E1A',
+                  backgroundGradientFrom: colors.background,
+                  backgroundGradientTo: colors.background,
                   decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(212, 165, 116, ${opacity})`,
-                  fillShadowGradientFrom: '#D4A574',
-                  fillShadowGradientTo: '#D4A574',
+                  color: (opacity = 1) => accentWithOpacity(opacity),
+                  labelColor: (opacity = 1) => accentWithOpacity(opacity),
+                  fillShadowGradientFrom: colors.accent,
+                  fillShadowGradientTo: colors.accent,
                   fillShadowGradientFromOpacity: 0.3,
                   fillShadowGradientToOpacity: 0.05,
                   paddingLeft: 0,
@@ -356,7 +357,7 @@ export default function ItemMarketTab({
                     paddingHorizontal: 14,
                     borderRadius: 8,
                     borderWidth: 1,
-                    borderColor: '#D4A574',
+                    borderColor: colors.accent,
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -364,13 +365,13 @@ export default function ItemMarketTab({
                   onPress={() => setIsRankDropdownOpen(!isRankDropdownOpen)}
                   activeOpacity={0.8}
                 >
-                  <Text style={{ color: '#D4A574', fontWeight: '600', flex: 1, textAlign: 'center', fontSize: 16 }}>
+                  <Text style={{ color: colors.accent, fontWeight: '600', flex: 1, textAlign: 'center', fontSize: 16 }}>
                     {selectedRankLabel}
                   </Text>
                   <Ionicons
                     name={isRankDropdownOpen ? 'chevron-up' : 'chevron-down'}
                     size={18}
-                    color="#D4A574"
+                    color={colors.accent}
                   />
                 </TouchableOpacity>
 
@@ -380,9 +381,9 @@ export default function ItemMarketTab({
                       marginTop: 8,
                       borderRadius: 8,
                       borderWidth: 1,
-                      borderColor: '#2C3545',
+                      borderColor: colors.borderChart,
                       overflow: 'hidden',
-                      backgroundColor: '#10151C',
+                      backgroundColor: colors.surfaceChart,
                     }}
                   >
                     {availableModRanks.map((rank, index) => (
@@ -397,13 +398,13 @@ export default function ItemMarketTab({
                           paddingVertical: 10,
                           paddingHorizontal: 14,
                           borderTopWidth: index === 0 ? 0 : 1,
-                          borderTopColor: '#1C2430',
-                          backgroundColor: selectedModRank === rank ? '#D4A574' : 'transparent',
+                          borderTopColor: colors.surfaceElevated,
+                          backgroundColor: selectedModRank === rank ? colors.accent : 'transparent',
                         }}
                       >
                         <Text
                           style={{
-                            color: selectedModRank === rank ? '#1a1a1a' : '#D4A574',
+                            color: selectedModRank === rank ? colors.chartTooltipBg : colors.accent,
                             fontWeight: '600',
                             textAlign: 'center',
                             fontSize: 16,
@@ -431,13 +432,13 @@ export default function ItemMarketTab({
                     paddingHorizontal: 16,
                     borderRadius: 8,
                     borderWidth: 1,
-                    borderColor: '#2C3545',
-                    backgroundColor: '#10151C',
+                    borderColor: colors.borderChart,
+                    backgroundColor: colors.surfaceChart,
                   }}
                 >
                   <Text
                     style={{
-                      color: '#D4A574',
+                      color: colors.accent,
                       fontWeight: '600',
                       fontSize: 16,
                       marginRight: 8,
@@ -448,7 +449,7 @@ export default function ItemMarketTab({
                   <Ionicons
                     name={isSubtypeDropdownOpen ? 'chevron-up' : 'chevron-down'}
                     size={18}
-                    color="#D4A574"
+                    color={colors.accent}
                   />
                 </TouchableOpacity>
 
@@ -458,9 +459,9 @@ export default function ItemMarketTab({
                       marginTop: 8,
                       borderRadius: 8,
                       borderWidth: 1,
-                      borderColor: '#2C3545',
+                      borderColor: colors.borderChart,
                       overflow: 'hidden',
-                      backgroundColor: '#10151C',
+                      backgroundColor: colors.surfaceChart,
                     }}
                   >
                     {availableSubtypes.map((subtype, index) => (
@@ -475,13 +476,13 @@ export default function ItemMarketTab({
                           paddingVertical: 10,
                           paddingHorizontal: 14,
                           borderTopWidth: index === 0 ? 0 : 1,
-                          borderTopColor: '#1C2430',
-                          backgroundColor: selectedSubtype === subtype ? '#D4A574' : 'transparent',
+                          borderTopColor: colors.surfaceElevated,
+                          backgroundColor: selectedSubtype === subtype ? colors.accent : 'transparent',
                         }}
                       >
                         <Text
                           style={{
-                            color: selectedSubtype === subtype ? '#1a1a1a' : '#D4A574',
+                            color: selectedSubtype === subtype ? colors.chartTooltipBg : colors.accent,
                             fontWeight: '600',
                             textAlign: 'center',
                             fontSize: 16,
@@ -506,10 +507,10 @@ export default function ItemMarketTab({
 
         {(latestPrice || marketStats) && (
           <View style={{
-            backgroundColor: '#10151C',
+            backgroundColor: colors.surfaceChart,
             borderRadius: 12,
             borderWidth: 1,
-            borderColor: '#2C3545',
+            borderColor: colors.borderChart,
             marginTop: 12,
             overflow: 'hidden',
           }}>
@@ -522,14 +523,14 @@ export default function ItemMarketTab({
                 paddingHorizontal: 16,
               }}>
                 <Text style={{
-                  color: '#8B9CB6',
+                  color: colors.textSecondary,
                   fontSize: 15,
                 }}>
                   Average Price (Today)
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{
-                    color: '#E8E8E8',
+                    color: colors.textLight,
                     fontSize: 18,
                     fontWeight: '600',
                     marginRight: 6,
@@ -549,7 +550,7 @@ export default function ItemMarketTab({
                 {latestPrice && (
                   <View style={{
                     height: 1,
-                    backgroundColor: '#1C2430',
+                    backgroundColor: colors.surfaceElevated,
                     marginHorizontal: 16,
                   }} />
                 )}
@@ -562,14 +563,14 @@ export default function ItemMarketTab({
                   paddingHorizontal: 16,
                 }}>
                   <Text style={{
-                    color: '#8B9CB6',
+                    color: colors.textSecondary,
                     fontSize: 15,
                   }}>
                     Max Price (60d)
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={{
-                      color: '#E8E8E8',
+                      color: colors.textLight,
                       fontSize: 18,
                       fontWeight: '600',
                       marginRight: 6,
@@ -585,7 +586,7 @@ export default function ItemMarketTab({
 
                 <View style={{
                   height: 1,
-                  backgroundColor: '#1C2430',
+                  backgroundColor: colors.surfaceElevated,
                   marginHorizontal: 16,
                 }} />
 
@@ -597,14 +598,14 @@ export default function ItemMarketTab({
                   paddingHorizontal: 16,
                 }}>
                   <Text style={{
-                    color: '#8B9CB6',
+                    color: colors.textSecondary,
                     fontSize: 15,
                   }}>
                     Min Price (60d)
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={{
-                      color: '#E8E8E8',
+                      color: colors.textLight,
                       fontSize: 18,
                       fontWeight: '600',
                       marginRight: 6,
@@ -620,7 +621,7 @@ export default function ItemMarketTab({
 
                 <View style={{
                   height: 1,
-                  backgroundColor: '#1C2430',
+                  backgroundColor: colors.surfaceElevated,
                   marginHorizontal: 16,
                 }} />
 
@@ -632,13 +633,13 @@ export default function ItemMarketTab({
                   paddingHorizontal: 16,
                 }}>
                   <Text style={{
-                    color: '#8B9CB6',
+                    color: colors.textSecondary,
                     fontSize: 15,
                   }}>
                     Total Sold (60d)
                   </Text>
                   <Text style={{
-                    color: '#E8E8E8',
+                    color: colors.textLight,
                     fontSize: 18,
                     fontWeight: '600',
                   }}>

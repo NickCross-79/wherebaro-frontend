@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { decodeHtmlEntities } from '../../utils/htmlDecode';
+import { colors } from '../../constants/theme';
 
 function ReviewCard({
   review,
@@ -31,7 +32,7 @@ function ReviewCard({
     >
       <View style={styles.reviewHeader}>
         <View style={styles.reviewerInfo}>
-          <Ionicons name="person-circle" size={32} color="#D4A574" />
+          <Ionicons name="person-circle" size={32} color={colors.accent} />
           <Text style={styles.reviewerName}>{review.user}</Text>
         </View>
         <View style={styles.reviewHeaderRight}>
@@ -42,7 +43,7 @@ function ReviewCard({
               onPress={() => onReportReview(review, index)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="flag" size={16} color="#D23B35" />
+              <Ionicons name="flag" size={16} color={colors.danger} />
             </TouchableOpacity>
           )}
         </View>
@@ -91,14 +92,14 @@ function ReviewCard({
             <Ionicons
               name="pencil"
               size={22}
-              color="#D4A574"
+              color={colors.accent}
             />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.reviewActionButton}
             onPress={() => confirmDeleteReview(review, index)}
           >
-            <Ionicons name="trash" size={22} color="#D23B35" />
+            <Ionicons name="trash" size={22} color={colors.danger} />
           </TouchableOpacity>
         </View>
       )}

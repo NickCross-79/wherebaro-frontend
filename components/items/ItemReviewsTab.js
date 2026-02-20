@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewCard from './ReviewCard';
+import { colors } from '../../constants/theme';
 
 export default function ItemReviewsTab({
   bottomSpacer,
@@ -42,7 +43,7 @@ export default function ItemReviewsTab({
     >
       {isLoadingReviews ? (
         <View style={styles.loadingReviews}>
-          <ActivityIndicator size="large" color="#D4A574" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingReviewsText}>Loading reviews and likes...</Text>
         </View>
       ) : (
@@ -57,7 +58,7 @@ export default function ItemReviewsTab({
               <Ionicons
                 name={userLiked ? 'thumbs-up' : 'thumbs-up-outline'}
                 size={24}
-                color={userLiked ? '#D4A574' : '#8B9DC3'}
+                color={userLiked ? colors.accent : colors.textSecondary}
               />
               <Text style={[styles.likeText, userLiked && styles.likeTextActive]}>
                 {likeCount} Likes
@@ -72,7 +73,7 @@ export default function ItemReviewsTab({
               <TextInput
                 style={styles.reviewInput}
                 placeholder="Share your thoughts about this item..."
-                placeholderTextColor="#5A6B8C"
+                placeholderTextColor={colors.textDim}
                 multiline
                 numberOfLines={4}
                 value={newReview}
@@ -105,7 +106,7 @@ export default function ItemReviewsTab({
             </Text>
             {visibleReviews.length === 0 ? (
               <View style={styles.emptyReviews}>
-                <Ionicons name="chatbubbles-outline" size={48} color="#5A6B8C" />
+                <Ionicons name="chatbubbles-outline" size={48} color={colors.textDim} />
                 <Text style={styles.emptyReviewsText}>No reviews yet</Text>
                 <Text style={styles.emptyReviewsSubtext}>Be the first to review this item!</Text>
               </View>

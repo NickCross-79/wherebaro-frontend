@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../constants/theme';
 
 const styles = StyleSheet.create({
   timerContainer: {
     marginTop: 15,
     padding: 14,
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#D4A574',
+    borderLeftColor: colors.accent,
     borderWidth: 1,
-    borderColor: '#1A2332',
-    shadowColor: '#000',
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -39,14 +40,14 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     fontSize: 12,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
     fontWeight: '600',
   },
   locationText: {
     fontSize: 12,
-    color: '#D4A574',
+    color: colors.accent,
     fontWeight: '700',
   },
   centeredText: {
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   timerValue: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '700',
   },
 });

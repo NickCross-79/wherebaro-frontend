@@ -5,6 +5,7 @@ import EarthIcon from '../assets/icons/icon_earth.svg';
 import TimeIcon from '../assets/icons/icon_time.svg';
 import BaroIcon from '../assets/icons/icon_baro.svg';
 import styles from '../styles/screens/BaroAbsentScreen.styles';
+import { colors } from '../constants/theme';
 
 export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
   const cycleAnim = useRef(new Animated.Value(0)).current;
@@ -90,7 +91,7 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
             <BaroIcon
               width={80}
               height={80}
-              color="#F0EFF4"
+              color={colors.textOffWhite}
             />
           </View>
 

@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/theme';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#D4A574',
+    color: colors.accent,
     marginBottom: 10,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
   },
   iconLabel: {
     fontSize: 12,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     fontWeight: '600',
   },
   travelPath: {
@@ -59,13 +60,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     top: '50%',
     marginTop: -4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9BA5B8',
+    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: 40,
     fontWeight: '500',
@@ -95,17 +96,17 @@ const styles = StyleSheet.create({
   timerValue: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   locationText: {
     fontSize: 18,
-    color: '#D4A574',
+    color: colors.accent,
     fontWeight: '700',
     marginTop: 4,
   },
   hint: {
     fontSize: 14,
-    color: '#5A6B8C',
+    color: colors.textDim,
     fontStyle: 'italic',
   },
 });
