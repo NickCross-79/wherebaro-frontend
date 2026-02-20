@@ -3,7 +3,7 @@ import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
 import { useAllItems } from './AllItemsContext';
-import { fetchBaroStatus, fetchBaroData, isBaroActive } from '../services/api';
+import { fetchBaroStatus, fetchBaroDataWithFallback, isBaroActive } from '../services/api';
 import logger from '../utils/logger';
 
 /**
@@ -159,7 +159,7 @@ export const InventoryProvider = ({ children }) => {
 
       // Fetch Baro data from API (or mock in simulation mode)
       logger.debug('Baro', 'Fetching fresh Baro data from API...');
-      const baroData = await fetchBaroData();
+      const baroData = await fetchBaroDataWithFallback();
 
       const now = new Date();
       const isBaroCurrentlyActive = isBaroActive(baroData.activation, baroData.expiry);

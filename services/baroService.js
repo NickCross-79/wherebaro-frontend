@@ -1,12 +1,14 @@
 /**
  * Baro Ki'Teer API service
  * Handles fetching Baro status from warframestat.us API
- * with optional simulation mode for testing arrivals.
+ * with fallback to our backend's current document,
+ * and optional simulation mode for testing arrivals.
  */
 import { buildUrl } from './apiConfig';
 import logger from '../utils/logger';
 
 const BARO_API_URL = 'https://api.warframestat.us/pc/voidTraders/';
+const GET_CURRENT_URL = buildUrl('getCurrent');
 
 // ─── SIMULATION MODE ───────────────────────────────────────────────
 // SIMULATE_BARO_ARRIVAL: First fetch returns mock "absent" data with
@@ -78,8 +80,42 @@ export const fetchBaroData = async () => {
   }
   const json = await response.json();
   const data = Array.isArray(json) ? json[0] : json;
+  if (!data) {
+    throw new Error('Empty response from voidTraders endpoint');
+  }
   logger.debug('BaroService', `Response: active=${isBaroActive(data.activation, data.expiry)}, inventory=${data.inventory?.length || 0}, location=${data.location}`);
   return data;
+};
+
+/**
+ * Fetch Baro data with automatic fallback.
+ * Tries warframestat.us first, falls back to our backend's current document.
+ * @returns {Promise<Object>} Baro data with { activation, expiry, inventory, location }
+ */
+export const fetchBaroDataWithFallback = async () => {
+  try {
+    return await fetchBaroData();
+  } catch (error) {
+    logger.warn('BaroService', `Warframestat API failed: ${error.message}, falling back to backend...`);
+    try {
+      const response = await fetch(GET_CURRENT_URL);
+      if (!response.ok) {
+        throw new Error(`Backend getCurrent failed: ${response.status}`);
+      }
+      const current = await response.json();
+      logger.debug('BaroService', `Backend fallback: isActive=${current.isActive}, items=${current.items?.length || 0}`);
+      // Normalize shape: backend returns "items", consumers expect "inventory"
+      return {
+        activation: current.activation,
+        expiry: current.expiry,
+        location: current.location,
+        inventory: current.items || [],
+      };
+    } catch (fallbackError) {
+      logger.error('BaroService', `Backend fallback also failed: ${fallbackError.message}`);
+      throw error; // Re-throw original error
+    }
+  }
 };
 
 /**
