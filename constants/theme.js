@@ -48,11 +48,11 @@ export const colors = {
   /** Slightly dimmed — price values */
   textLight: '#EBEBEB',
   /** Muted — labels, subtitles */
-  textMuted: '#888888',
+  textMuted: '#AAAAAA',
   /** Secondary muted — descriptions, price labels, inactive tabs */
-  textSecondary: '#606060',
+  textSecondary: '#888888',
   /** Dimmed — hints, empty states, placeholders */
-  textDim: '#383838',
+  textDim: '#555555',
   /** Near-black text on accent backgrounds */
   textOnAccent: '#0C0C0E',
   /** Off-white — alternate light text */
