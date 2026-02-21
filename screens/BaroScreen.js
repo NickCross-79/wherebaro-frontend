@@ -8,6 +8,7 @@ import LoadingScreen from './LoadingScreen';
 import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
+import { useWishlist } from '../contexts/WishlistContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
@@ -19,8 +20,9 @@ export default function BaroScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const { items, loading, syncing, nextArrival, nextLocation, isHere } = useInventory();
+  const { isInWishlist } = useWishlist();
 
-  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
 
   const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });

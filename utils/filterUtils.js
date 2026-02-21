@@ -56,10 +56,11 @@ const getMostRecentOfferingDate = (item) => {
 /**
  * Sorts items by popularity, reviews, wishlists, or last brought date
  * @param {Array} items - Items to sort
- * @param {string} sortType - Sort type: 'all', 'popular', 'unpopular', 'most-reviews', 'least-reviews', 'most-wishlisted', 'least-wishlisted', 'last-brought'
+ * @param {string} sortType - Sort type
+ * @param {Function} [isInWishlist] - Optional function (item) => bool for wishlist-aware default sort
  * @returns {Array} Sorted items
  */
-export const sortByPopularity = (items, sortType) => {
+export const sortByPopularity = (items, sortType, isInWishlist) => {
   const sorted = [...items];
   
   const alpha = (a, b) => (a.name || '').localeCompare(b.name || '');
@@ -90,12 +91,14 @@ export const sortByPopularity = (items, sortType) => {
       return (dateB.getTime() - dateA.getTime()) || alpha(a, b);
     });
   } else {
-    // Default: new items first, then alphabetically
+    // Default: new items first, then wishlisted alphabetically, then remaining alphabetically
     sorted.sort((a, b) => {
       const aNew = !!a.isNew;
       const bNew = !!b.isNew;
-      if (aNew && !bNew) return -1;
-      if (!aNew && bNew) return 1;
+      const aWish = isInWishlist ? !!isInWishlist(a.id || a._id) : false;
+      const bWish = isInWishlist ? !!isInWishlist(b.id || b._id) : false;
+      if (aNew !== bNew) return aNew ? -1 : 1;
+      if (!aNew && !bNew && aWish !== bWish) return aWish ? -1 : 1;
       return (a.name || '').localeCompare(b.name || '');
     });
   }
@@ -108,10 +111,11 @@ export const sortByPopularity = (items, sortType) => {
  * @param {Array} items - Items to filter
  * @param {string} searchQuery - Search query
  * @param {Object} filters - Filter object { categories: [], popularity: 'all' }
+ * @param {Function} [isInWishlist] - Optional function (id) => bool for wishlist-aware default sort
  * @returns {Array} Filtered and sorted items
  */
-export const applyAllFilters = (items, searchQuery, filters) => {
+export const applyAllFilters = (items, searchQuery, filters, isInWishlist) => {
   let filtered = filterBySearch(items, searchQuery);
   filtered = filterByCategories(filtered, filters.categories);
-  return sortByPopularity(filtered, filters.popularity);
+  return sortByPopularity(filtered, filters.popularity, isInWishlist);
 };

@@ -30,7 +30,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
     PARTICLE_DIRECTIONS.map(() => new Animated.Value(0))
   ).current;
   const ribbonSlide       = useRef(new Animated.Value(inWishlist ? 0 : -160)).current;
-  const glowOpacity       = useRef(new Animated.Value(inWishlist ? 1 : 0)).current;
+  const glowOpacity       = useRef(new Animated.Value(inWishlist && !hideWishlistBadge ? 1 : 0)).current;
   const prevInWishlist    = useRef(inWishlist);
   const internalToggleRef = useRef(false);
   const [ribbonVisible, setRibbonVisible] = useState(inWishlist);
@@ -39,19 +39,22 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
     if (inWishlist && !prevInWishlist.current) {
       setRibbonVisible(true);
       ribbonSlide.setValue(-160);
-      Animated.parallel([
+      const animations = [
         Animated.spring(ribbonSlide, {
           toValue: 0,
           friction: 7,
           tension: 180,
           useNativeDriver: true,
         }),
-        Animated.timing(glowOpacity, {
+      ];
+      if (!hideWishlistBadge) {
+        animations.push(Animated.timing(glowOpacity, {
           toValue: 1,
           duration: 400,
           useNativeDriver: false,
-        }),
-      ]).start();
+        }));
+      }
+      Animated.parallel(animations).start();
     } else if (!inWishlist && prevInWishlist.current && !internalToggleRef.current) {
       // Removed externally (e.g. from item detail screen) — play remove animation
       Animated.parallel([
@@ -94,9 +97,13 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
   };
 
   const playRemoveAnimation = () => {
+    if (hideWishlistBadge) {
+      setRibbonVisible(false);
+      return;
+    }
     Animated.parallel([
       Animated.timing(ribbonSlide, { toValue: -160, duration: 350, useNativeDriver: true }),
-      Animated.timing(glowOpacity, { toValue: 0,    duration: 600, useNativeDriver: false }),
+      Animated.timing(glowOpacity, { toValue: 0, duration: 600, useNativeDriver: false }),
     ]).start(() => setRibbonVisible(false));
   };
 
