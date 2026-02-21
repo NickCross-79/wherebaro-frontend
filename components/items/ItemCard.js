@@ -29,7 +29,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
   const particleProgress = useRef(
     PARTICLE_DIRECTIONS.map(() => new Animated.Value(0))
   ).current;
-  const ribbonSlide    = useRef(new Animated.Value(inWishlist ? 0 : -120)).current;
+  const ribbonSlide    = useRef(new Animated.Value(inWishlist ? 0 : -160)).current;
   const glowOpacity    = useRef(new Animated.Value(inWishlist ? 1 : 0)).current;
   const prevInWishlist = useRef(inWishlist);
   const [ribbonVisible, setRibbonVisible] = useState(inWishlist);
@@ -37,7 +37,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
   useEffect(() => {
     if (inWishlist && !prevInWishlist.current) {
       setRibbonVisible(true);
-      ribbonSlide.setValue(-120);
+      ribbonSlide.setValue(-160);
     Animated.parallel([
         Animated.spring(ribbonSlide, {
           toValue: 0,
@@ -87,8 +87,8 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
 
   const playRemoveAnimation = () => {
     Animated.parallel([
-      Animated.timing(ribbonSlide, { toValue: -120, duration: 400, useNativeDriver: true }),
-      Animated.timing(glowOpacity, { toValue: 0,    duration: 400, useNativeDriver: false }),
+      Animated.timing(ribbonSlide, { toValue: -160, duration: 350, useNativeDriver: true }),
+      Animated.timing(glowOpacity, { toValue: 0,    duration: 600, useNativeDriver: false }),
     ]).start(() => setRibbonVisible(false));
   };
 
@@ -131,11 +131,6 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
           <Ionicons name="heart" size={22} color={colors.accent} />
         </Animated.View>
       ))}
-      {isNew && (
-        <View style={styles.newBadge}>
-          <Text style={styles.newBadgeText}>NEW ITEM</Text>
-        </View>
-      )}
       <Animated.View style={{ transform: [{ scale: cardScale }, { translateX: cardShakeX }] }}>
           <Animated.View style={[styles.cardWrapper, {
             opacity: pressOpacity,
@@ -151,6 +146,13 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
           >
         {showFlash && (
           <Animated.View pointerEvents="none" style={[styles.flashOverlay, { opacity: flashOpacity }]} />
+        )}
+        {isNew && (
+          <View style={styles.newRibbon} pointerEvents="none">
+            <View style={styles.newRibbonFoldLeft} />
+            <View style={styles.newRibbonFoldRight} />
+            <Text style={styles.newRibbonText}>NEW</Text>
+          </View>
         )}
         {ribbonVisible && !hideWishlistBadge && (
           <Animated.View
