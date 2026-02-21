@@ -56,7 +56,7 @@ export default function FeedbackScreen({ navigation }) {
           onPress={handleSubmit}
           disabled={!message.trim()}
         >
-          <Text style={styles.submitButtonText}>Send Feedback</Text>
+          <Text style={[styles.submitButtonText, !message.trim() && styles.submitButtonTextDisabled]}>Send Feedback</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

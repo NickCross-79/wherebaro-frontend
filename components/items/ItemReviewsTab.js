@@ -94,7 +94,7 @@ export default function ItemReviewsTab({
                 onPress={handlePostReview}
                 disabled={!newReview.trim() || isPostingReview}
               >
-                <Text style={styles.postButtonText}>Post Review</Text>
+                <Text style={[styles.postButtonText, (!newReview.trim() || isPostingReview) && styles.postButtonTextDisabled]}>Post Review</Text>
               </TouchableOpacity>
             </View>
           )}

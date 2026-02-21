@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   postButtonDisabled: {
     backgroundColor: colors.controlDisabled,
-    opacity: 0.5,
+    opacity: 0.6,
   },
   postButtonText: {
     color: colors.textOnAccent,
@@ -321,6 +321,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  postButtonTextDisabled: {
+    color: colors.textSecondary,
   },
   reviewsListSection: {
     marginBottom: 24,
