@@ -12,12 +12,12 @@ const styles = StyleSheet.create({
   },
   menuContent: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderColor: colors.accent,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
     maxHeight: '70%',
   },
   header: {
