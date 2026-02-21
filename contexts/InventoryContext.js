@@ -232,8 +232,8 @@ export const InventoryProvider = ({ children }) => {
   // Re-match inventory items when allItems count actually changes (not just reference)
   useEffect(() => {
     if (!allItemsLoading && allItems.length > 0 && rawInventoryRef.current && rawInventoryRef.current.length > 0) {
-      // Only re-match if item count changed (new items added/removed, not just likes updated)
-      if (allItems.length === prevAllItemsCountRef.current) return;
+      // Skip re-match if count is unchanged, UNLESS we're syncing (need to clear syncing state)
+      if (allItems.length === prevAllItemsCountRef.current && !syncing) return;
       prevAllItemsCountRef.current = allItems.length;
 
       logger.debug('Baro', `Re-match triggered: allItems=${allItems.length}, rawInventory=${rawInventoryRef.current.length}`);
@@ -247,15 +247,19 @@ export const InventoryProvider = ({ children }) => {
         const delay = unmatchedRetryRef.current * 30_000; // 30s, 60s, 90s, 120s, 150s
         logger.log(`${matchedItems.filter(i => i._unmatched).length} unmatched items remain, retrying allItems refresh in ${delay / 1000}s (attempt ${unmatchedRetryRef.current}/5)`);
         unmatchedTimerRef.current = setTimeout(() => refreshInBackground(), delay);
-      } else if (!hasUnmatched) {
-        unmatchedRetryRef.current = 0; // Reset on full match
+      } else {
+        // Either fully matched, or retries exhausted — clear syncing either way
+        if (hasUnmatched) {
+          logger.log(`Retries exhausted with ${matchedItems.filter(i => i._unmatched).length} unmatched items remaining, clearing syncing state`);
+        }
+        unmatchedRetryRef.current = 0;
         setSyncing(false);
       }
     }
     return () => {
       if (unmatchedTimerRef.current) clearTimeout(unmatchedTimerRef.current);
     };
-  }, [allItems, allItemsLoading, refreshInBackground]);
+  }, [allItems, allItemsLoading, refreshInBackground, syncing]);
 
   // Auto-refresh when timer expires
   useEffect(() => {
