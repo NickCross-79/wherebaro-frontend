@@ -26,10 +26,11 @@ const buildSuffixMap = (cachedItems) => {
   return map;
 };
 
-const matchInventoryItems = (inventory, cachedItems, visitDate) => {
+const { PERMANENT_BARO_ITEMS } = require('../../constants/items');
+
+const matchInventoryItems = (inventory, cachedItems) => {
   const suffixMap = buildSuffixMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
-  const visitDay = visitDate ? new Date(visitDate).toISOString().split('T')[0] : null;
 
   const results = inventory.map(invItem => {
     const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
@@ -58,10 +59,9 @@ const matchInventoryItems = (inventory, cachedItems, visitDate) => {
       creditPrice: invItem.credits,
       ducatPrice: invItem.ducats,
     };
-    merged.isNew = visitDay
-      && Array.isArray(merged.offeringDates)
+    merged.isNew = Array.isArray(merged.offeringDates)
       && merged.offeringDates.length === 1
-      && merged.offeringDates[0] === visitDay;
+      && !PERMANENT_BARO_ITEMS.includes(merged.name?.toLowerCase());
     return merged;
   });
 
@@ -250,12 +250,12 @@ describe('matchInventoryItems', () => {
     expect(result[0].name).toBe('Primed Flow');
   });
 
-  it('marks item as new when it has exactly one offering date matching the visit', () => {
+  it('marks item as new when it has exactly one offering date', () => {
     const inventory = [
       { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
     ];
-    // Prisma Grinlok has offeringDates: ['2025-06-20'], visit is 2025-06-20
-    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
+    // Prisma Grinlok has offeringDates: ['2025-06-20'] (length 1)
+    const result = matchInventoryItems(inventory, cachedItems);
     expect(result[0].isNew).toBe(true);
   });
 
@@ -263,17 +263,8 @@ describe('matchInventoryItems', () => {
     const inventory = [
       { item: 'Primed Flow', uniqueName: '/Lotus/PrimedFlow', credits: 100000, ducats: 300 },
     ];
-    // Primed Flow has offeringDates: ['2025-01-10', '2025-06-20']
-    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
-    expect(result[0].isNew).toBe(false);
-  });
-
-  it('does not mark item as new when its single date does not match the visit', () => {
-    const inventory = [
-      { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
-    ];
-    // Prisma Grinlok has offeringDates: ['2025-06-20'], but visit is a different date
-    const result = matchInventoryItems(inventory, cachedItems, '2025-07-04T14:00:00.000Z');
+    // Primed Flow has offeringDates: ['2025-01-10', '2025-06-20'] (length 2)
+    const result = matchInventoryItems(inventory, cachedItems);
     expect(result[0].isNew).toBe(false);
   });
 
@@ -282,15 +273,29 @@ describe('matchInventoryItems', () => {
       { item: "Ki'Teer Syandana", uniqueName: '/Lotus/KiTeerSyandana', credits: 50000, ducats: 200 },
     ];
     // Ki'Teer Syandana has offeringDates: []
-    const result = matchInventoryItems(inventory, cachedItems, '2025-06-20T14:00:00.000Z');
+    const result = matchInventoryItems(inventory, cachedItems);
     expect(result[0].isNew).toBe(false);
   });
 
-  it('does not mark item as new when no visitDate is provided', () => {
-    const inventory = [
-      { item: 'Prisma Grinlok', uniqueName: '/Lotus/PrismaGrinlok', credits: 125000, ducats: 500 },
+  it('does not mark item as new when offeringDates is missing', () => {
+    const itemsWithoutDates = [
+      { _id: '99', name: 'No Dates Item', uniqueName: '/Lotus/NoDates', image: '', type: 'Mod', likes: 0, reviews: [] },
     ];
-    const result = matchInventoryItems(inventory, cachedItems);
-    expect(result[0].isNew).toBeFalsy();
+    const inventory = [
+      { item: 'No Dates Item', uniqueName: '/Lotus/NoDates', credits: 10000, ducats: 50 },
+    ];
+    const result = matchInventoryItems(inventory, itemsWithoutDates);
+    expect(result[0].isNew).toBe(false);
+  });
+
+  it('does not mark permanent Baro item as new even with one offering date', () => {
+    const permanentItems = [
+      { _id: '10', name: 'Void Surplus', uniqueName: '/Lotus/VoidSurplus', image: '', type: 'Resource', likes: 0, reviews: [], offeringDates: ['2026-02-20'] },
+    ];
+    const inventory = [
+      { item: 'Void Surplus', uniqueName: '/Lotus/VoidSurplus', credits: 25000, ducats: 0 },
+    ];
+    const result = matchInventoryItems(inventory, permanentItems);
+    expect(result[0].isNew).toBe(false);
   });
 });

@@ -4,6 +4,7 @@ import { parseLocation } from '../utils/dateUtils';
 import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
 import { useAllItems } from './AllItemsContext';
 import { fetchBaroStatus, fetchBaroDataWithFallback, isBaroActive } from '../services/api';
+import { PERMANENT_BARO_ITEMS } from '../constants/items';
 import logger from '../utils/logger';
 
 /**
@@ -36,11 +37,9 @@ const buildSuffixMap = (cachedItems) => {
  * Match Baro API inventory items to cached all-items using uniqueName suffix.
  * Falls back to name matching if uniqueName is not available.
  */
-const matchInventoryItems = (inventory, cachedItems, visitDate) => {
+const matchInventoryItems = (inventory, cachedItems) => {
   const suffixMap = buildSuffixMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
-  // Extract YYYY-MM-DD from the activation ISO string for comparison with offeringDates
-  const visitDay = visitDate ? new Date(visitDate).toISOString().split('T')[0] : null;
 
   let matchedBySuffix = 0, matchedByName = 0, unmatched = 0;
 
@@ -78,11 +77,11 @@ const matchInventoryItems = (inventory, cachedItems, visitDate) => {
       creditPrice: invItem.credits,
       ducatPrice: invItem.ducats
     };
-    // New = exactly one offering date that matches this Baro visit
-    merged.isNew = visitDay
-      && Array.isArray(merged.offeringDates)
+    // New = has exactly one offering date (first time Baro has ever brought it)
+    // Permanent items are never new
+    merged.isNew = Array.isArray(merged.offeringDates)
       && merged.offeringDates.length === 1
-      && merged.offeringDates[0] === visitDay;
+      && !PERMANENT_BARO_ITEMS.includes(merged.name?.toLowerCase());
     return merged;
   });
 
@@ -109,7 +108,6 @@ export const InventoryProvider = ({ children }) => {
   const [isHere, setIsHere] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const rawInventoryRef = useRef(null);
-  const activationRef = useRef(null);
   const unmatchedRetryRef = useRef(0);
   const unmatchedTimerRef = useRef(null);
   const pollTimerRef = useRef(null);
@@ -141,12 +139,11 @@ export const InventoryProvider = ({ children }) => {
             
             // Store raw inventory for re-matching when allItems loads
             rawInventoryRef.current = cachedBaroResponse.inventory;
-            activationRef.current = cachedBaroResponse.activation;
             
             // Match Baro inventory with all items from context (or SQLite fallback)
             const itemsToMatch = await dbHelpers.getCachedItems();
             logger.debug('Baro', `Matching ${cachedBaroResponse.inventory.length} cached inventory items against ${itemsToMatch.length} items (source: SQLite)`);
-            const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch, cachedBaroResponse.activation);
+            const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
             
             setItems(matchedItems);
             setIsHere(cachedBaroResponse.isActive);
@@ -186,12 +183,11 @@ export const InventoryProvider = ({ children }) => {
 
       // Store raw inventory for re-matching when allItems loads
       rawInventoryRef.current = baroData.inventory;
-      activationRef.current = baroData.activation;
       
       // Match Baro inventory with freshly cached items from SQLite
       const itemsToMatch = await dbHelpers.getCachedItems();
       logger.debug('Baro', `Matching ${baroData.inventory?.length || 0} inventory items against ${itemsToMatch.length} items (source: SQLite)`);
-      const matchedItems = matchInventoryItems(baroData.inventory, itemsToMatch, baroData.activation);
+      const matchedItems = matchInventoryItems(baroData.inventory, itemsToMatch);
 
       setItems(matchedItems);
       setIsHere(isBaroCurrentlyActive);
@@ -210,9 +206,8 @@ export const InventoryProvider = ({ children }) => {
           logger.log('Using cached Baro response on error');
           
           rawInventoryRef.current = cachedBaroResponse.inventory;
-          activationRef.current = cachedBaroResponse.activation;
           const itemsToMatch = await dbHelpers.getCachedItems();
-          const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch, cachedBaroResponse.activation);
+          const matchedItems = matchInventoryItems(cachedBaroResponse.inventory, itemsToMatch);
           
           setItems(matchedItems);
           setIsHere(cachedBaroResponse.isActive);
@@ -242,7 +237,7 @@ export const InventoryProvider = ({ children }) => {
       prevAllItemsCountRef.current = allItems.length;
 
       logger.debug('Baro', `Re-match triggered: allItems=${allItems.length}, rawInventory=${rawInventoryRef.current.length}`);
-      const matchedItems = matchInventoryItems(rawInventoryRef.current, allItems, activationRef.current);
+      const matchedItems = matchInventoryItems(rawInventoryRef.current, allItems);
       setItems(matchedItems);
 
       // Check if unmatched items remain and retry if needed
