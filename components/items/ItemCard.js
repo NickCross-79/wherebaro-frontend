@@ -1,4 +1,4 @@
-import { Text, View, Image, Pressable, Animated, Dimensions } from 'react-native';
+import { Text, View, Image, Pressable, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BaroIcon from '../../assets/icons/icon_baro.svg';
 import { useWishlist } from '../../contexts/WishlistContext';
@@ -8,38 +8,97 @@ import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
 import { colors } from '../../constants/theme';
 
+const PARTICLE_DIRECTIONS = [
+  { dx:   0, dy: -60 },
+  { dx:  48, dy: -38 },
+  { dx:  54, dy:  18 },
+  { dx:  22, dy:  56 },
+  { dx: -40, dy:  44 },
+  { dx: -54, dy: -14 },
+];
+
 function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
-  const [showHeart, setShowHeart] = useState(false);
-  const heartOpacity = useRef(new Animated.Value(1)).current;
-  const heartScale = useRef(new Animated.Value(0.5)).current;
   const inWishlist = isInWishlist(item?.id || item?._id);
 
-  const handleLongPress = () => {
-    // Only show heart animation if adding to wishlist (not already in wishlist)
-    if (!inWishlist) {
-      setShowHeart(true);
-      heartOpacity.setValue(1);
-      heartScale.setValue(0.5);
+  const cardScale    = useRef(new Animated.Value(1)).current;
+  const cardShakeX   = useRef(new Animated.Value(0)).current;
+  const flashOpacity = useRef(new Animated.Value(0)).current;
+  const particleProgress = useRef(
+    PARTICLE_DIRECTIONS.map(() => new Animated.Value(0))
+  ).current;
+  const ribbonSlide    = useRef(new Animated.Value(inWishlist ? 0 : -120)).current;
+  const glowOpacity    = useRef(new Animated.Value(inWishlist ? 1 : 0)).current;
+  const prevInWishlist = useRef(inWishlist);
+  const [ribbonVisible, setRibbonVisible] = useState(inWishlist);
 
-      Animated.parallel([
-        Animated.timing(heartOpacity, {
+  useEffect(() => {
+    if (inWishlist && !prevInWishlist.current) {
+      setRibbonVisible(true);
+      ribbonSlide.setValue(-120);
+    Animated.parallel([
+        Animated.spring(ribbonSlide, {
           toValue: 0,
-          duration: 1000,
+          friction: 7,
+          tension: 180,
           useNativeDriver: true,
         }),
-        Animated.timing(heartScale, {
-          toValue: 1.5,
-          duration: 1000,
-          useNativeDriver: true,
+        Animated.timing(glowOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: false,
         }),
-      ]).start(() => {
-        setShowHeart(false);
-      });
+      ]).start();
     }
-    
+    prevInWishlist.current = inWishlist;
+  }, [inWishlist]);
+
+  const [showParticles, setShowParticles] = useState(false);
+  const [showFlash,     setShowFlash]     = useState(false);
+  const pressOpacity = useRef(new Animated.Value(1)).current;
+
+  const playAddAnimation = () => {
+    cardScale.setValue(1);
+    flashOpacity.setValue(0);
+    particleProgress.forEach(p => p.setValue(0));
+    setShowParticles(true);
+    setShowFlash(true);
+
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(cardScale, { toValue: 0.94, duration: 80,  useNativeDriver: true }),
+        Animated.spring(cardScale,  { toValue: 1.05, friction: 4, tension: 220, useNativeDriver: true }),
+        Animated.spring(cardScale,  { toValue: 1,    friction: 6, tension: 200, useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.timing(flashOpacity, { toValue: 0.28, duration: 100, useNativeDriver: true }),
+        Animated.timing(flashOpacity, { toValue: 0,    duration: 450, useNativeDriver: true }),
+      ]),
+      Animated.stagger(50, particleProgress.map(p =>
+        Animated.timing(p, { toValue: 1, duration: 750, useNativeDriver: true })
+      )),
+    ]).start(() => {
+      setShowParticles(false);
+      setShowFlash(false);
+    });
+  };
+
+  const playRemoveAnimation = () => {
+    Animated.parallel([
+      Animated.timing(ribbonSlide, { toValue: -120, duration: 400, useNativeDriver: true }),
+      Animated.timing(glowOpacity, { toValue: 0,    duration: 400, useNativeDriver: false }),
+    ]).start(() => setRibbonVisible(false));
+  };
+
+  const handleLongPress = () => {
+    pressOpacity.setValue(1);
+    if (!inWishlist) {
+      playAddAnimation();
+    } else {
+      playRemoveAnimation();
+    }
     const itemId = item?.id || item?._id;
     const delta = inWishlist ? -1 : 1;
     updateAllItemsWishlistCount(itemId, delta);
@@ -49,35 +108,63 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
 
   return (
     <View>
-      {showHeart && (
-        <Animated.View 
+      {/* Particle hearts burst */}
+      {showParticles && PARTICLE_DIRECTIONS.map(({ dx, dy }, i) => (
+        <Animated.View
+          key={i}
+          pointerEvents="none"
           style={[
             styles.heartPopup,
             {
-              opacity: heartOpacity,
-              transform: [{ scale: heartScale }],
-            }
+              opacity: particleProgress[i].interpolate({
+                inputRange: [0, 0.15, 0.85, 1],
+                outputRange: [0, 1, 1, 0],
+              }),
+              transform: [
+                { translateX: particleProgress[i].interpolate({ inputRange: [0, 1], outputRange: [0, dx] }) },
+                { translateY: particleProgress[i].interpolate({ inputRange: [0, 1], outputRange: [0, dy] }) },
+                { scale: particleProgress[i].interpolate({ inputRange: [0, 0.35, 1], outputRange: [0.2, 1.1, 0.7] }) },
+              ],
+            },
           ]}
-          pointerEvents="none"
         >
-          <Ionicons name="heart" size={80} color={colors.accent} />
+          <Ionicons name="heart" size={22} color={colors.accent} />
         </Animated.View>
-      )}
+      ))}
       {isNew && (
         <View style={styles.newBadge}>
           <Text style={styles.newBadgeText}>NEW ITEM</Text>
         </View>
       )}
-      {inWishlist && !hideWishlistBadge && (
-        <View style={styles.wishlistBadge}>
-          <Text style={styles.wishlistBadgeText}>WISHLIST</Text>
-        </View>
-      )}
-      <Pressable 
-        style={({ pressed }) => [styles.itemCard, isNew && styles.itemCardNew, inWishlist && !hideWishlistBorder && styles.itemCardWishlist, { opacity: pressed ? 0.7 : 1 }]} 
-        onPress={onPress}
-        onLongPress={handleLongPress}
-      >
+      <Animated.View style={{ transform: [{ scale: cardScale }, { translateX: cardShakeX }] }}>
+          <Animated.View style={[styles.cardWrapper, {
+            opacity: pressOpacity,
+            shadowOpacity: glowOpacity.interpolate({ inputRange: [0, 1], outputRange: [0, 0.55] }),
+            elevation: glowOpacity.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }),
+          }]}>
+            <Pressable 
+            style={[styles.itemCard, isNew && styles.itemCardNew]}
+            onPress={onPress}
+            onLongPress={handleLongPress}
+            onPressIn={() => Animated.timing(pressOpacity, { toValue: 0.7, duration: 80, useNativeDriver: false }).start()}
+            onPressOut={() => Animated.timing(pressOpacity, { toValue: 1,   duration: 80, useNativeDriver: false }).start()}
+          >
+        {showFlash && (
+          <Animated.View pointerEvents="none" style={[styles.flashOverlay, { opacity: flashOpacity }]} />
+        )}
+        {ribbonVisible && !hideWishlistBadge && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.wishlistRibbon,
+              { transform: [{ rotate: '-45deg' }, { translateX: ribbonSlide }] },
+            ]}
+          >
+            <View style={styles.wishlistRibbonFoldLeft} />
+            <View style={styles.wishlistRibbonFoldRight} />
+            <Text style={styles.wishlistRibbonText}>WISHLIST</Text>
+          </Animated.View>
+        )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
           {item?.image ? (
@@ -135,7 +222,9 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
           </View>
         </View>
       </View>
-    </Pressable>
+          </Pressable>
+          </Animated.View>
+        </Animated.View>
     </View>
   );
 }
