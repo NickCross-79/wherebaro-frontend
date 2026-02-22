@@ -78,7 +78,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     });
   }, [navigation]);
   const { toggleWishlist, isInWishlist, updateWishlistLikes, updateWishlistReviewCount } = useWishlist();
-  const { items: inventoryItems, updateItemLikes: updateInventoryLikes, updateItemReviewCount: updateInventoryReviewCount, updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
+  const { items: inventoryItems, isHere: isBaroHere, updateItemLikes: updateInventoryLikes, updateItemReviewCount: updateInventoryReviewCount, updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
   const { items: allItems, updateItemLikes: updateAllItemsLikes, updateItemReviewCount: updateAllItemsReviewCount, updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
@@ -238,9 +238,11 @@ export default function ItemDetailScreen({ route, navigation }) {
   }
 
   const offeringDates = item.offeringDates || [];
-  const lastBrought = offeringDates.length >= 1 
-    ? offeringDates[offeringDates.length - 1]
-    : null;
+  // When Baro is active, the last date is this week's visit — show the previous one instead.
+  // When Baro is inactive, show the normal last date.
+  const lastBrought = isBaroHere
+    ? (offeringDates.length >= 2 ? offeringDates[offeringDates.length - 2] : null)
+    : (offeringDates.length >= 1 ? offeringDates[offeringDates.length - 1] : null);
 
   const handleWishlist = () => {
     const id = item.id || item._id;
