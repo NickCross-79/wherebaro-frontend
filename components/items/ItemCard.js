@@ -80,7 +80,6 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
 
     Animated.parallel([
       Animated.sequence([
-        Animated.timing(cardScale, { toValue: 0.94, duration: 80,  useNativeDriver: true }),
         Animated.spring(cardScale,  { toValue: 1.05, friction: 4, tension: 220, useNativeDriver: true }),
         Animated.spring(cardScale,  { toValue: 1,    friction: 6, tension: 200, useNativeDriver: true }),
       ]),
