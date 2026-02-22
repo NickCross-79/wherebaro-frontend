@@ -94,7 +94,7 @@ export default function ItemDetailsTab({
       {!isPermanentItem && (
       <View style={styles.dateContainer}>
         <Text style={styles.dateLabel}>Last Brought</Text>
-        <Text style={styles.dateValue}>{formatDate(lastBrought)}</Text>
+        <Text style={styles.dateValue}>{lastBrought ? formatDate(lastBrought) : 'Never'}</Text>
       </View>
       )}
 
