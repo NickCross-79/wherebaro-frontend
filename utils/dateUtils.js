@@ -1,6 +1,7 @@
 export const formatDate = (dateString) => {
   if (!dateString) return 'Unknown';
-  const date = new Date(dateString);
+  const [year, month, day] = dateString.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
