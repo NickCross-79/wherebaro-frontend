@@ -245,12 +245,14 @@ export const InventoryProvider = ({ children }) => {
       if (hasUnmatched && unmatchedRetryRef.current < 5) {
         unmatchedRetryRef.current += 1;
         const delay = unmatchedRetryRef.current * 30_000; // 30s, 60s, 90s, 120s, 150s
-        logger.log(`${matchedItems.filter(i => i._unmatched).length} unmatched items remain, retrying allItems refresh in ${delay / 1000}s (attempt ${unmatchedRetryRef.current}/5)`);
+        const unmatchedItems = matchedItems.filter(i => i._unmatched);
+        logger.log(`${unmatchedItems.length} unmatched items remain, retrying allItems refresh in ${delay / 1000}s (attempt ${unmatchedRetryRef.current}/5): ${unmatchedItems.map(i => i.name).join(', ')}`);
         unmatchedTimerRef.current = setTimeout(() => refreshInBackground(), delay);
       } else {
         // Either fully matched, or retries exhausted — clear syncing either way
         if (hasUnmatched) {
-          logger.log(`Retries exhausted with ${matchedItems.filter(i => i._unmatched).length} unmatched items remaining, clearing syncing state`);
+          const exhaustedItems = matchedItems.filter(i => i._unmatched);
+          logger.log(`Retries exhausted with ${exhaustedItems.length} unmatched items remaining, clearing syncing state: ${exhaustedItems.map(i => i.name).join(', ')}`);
         }
         unmatchedRetryRef.current = 0;
         setSyncing(false);
