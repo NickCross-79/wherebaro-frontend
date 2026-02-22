@@ -33,6 +33,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
   const glowOpacity       = useRef(new Animated.Value(inWishlist && !hideWishlistBadge ? 1 : 0)).current;
   const prevInWishlist    = useRef(inWishlist);
   const internalToggleRef = useRef(false);
+  const longPressActivated = useRef(false);
   const [ribbonVisible, setRibbonVisible] = useState(inWishlist);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
   const pressOpacity = useRef(new Animated.Value(1)).current;
 
   const playAddAnimation = () => {
-    cardScale.setValue(1);
+    // Don't reset cardScale — let it animate from whatever pressed state it's already in
     flashOpacity.setValue(0);
     particleProgress.forEach(p => p.setValue(0));
     setShowParticles(true);
@@ -96,30 +97,51 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
     });
   };
 
-  const playRemoveAnimation = () => {
+  const playRemoveAnimation = (onDone) => {
     if (hideWishlistBadge) {
-      setRibbonVisible(false);
+      // Wishlist screen: shrink + fade out, then let parent remove from list
+      Animated.parallel([
+        Animated.timing(pressOpacity, { toValue: 0, duration: 200, useNativeDriver: false }),
+        Animated.timing(cardScale,    { toValue: 0.85, duration: 200, useNativeDriver: true }),
+      ]).start(() => onDone?.());
       return;
     }
     Animated.parallel([
       Animated.timing(ribbonSlide, { toValue: -160, duration: 350, useNativeDriver: true }),
       Animated.timing(glowOpacity, { toValue: 0, duration: 600, useNativeDriver: false }),
-    ]).start(() => setRibbonVisible(false));
+    ]).start(() => {
+      setRibbonVisible(false);
+      onDone?.();
+    });
   };
 
   const handleLongPress = () => {
-    pressOpacity.setValue(1);
-    if (!inWishlist) {
-      playAddAnimation();
-    } else {
-      playRemoveAnimation();
-    }
-    internalToggleRef.current = true; // mark as internal so useEffect skips the animation
+    longPressActivated.current = true;
+    internalToggleRef.current = true;
     const itemId = item?.id || item?._id;
     const delta = inWishlist ? -1 : 1;
-    updateAllItemsWishlistCount(itemId, delta);
-    updateInventoryWishlistCount(itemId, delta);
-    toggleWishlist(item);
+
+    if (!inWishlist) {
+      pressOpacity.setValue(1);
+      playAddAnimation();
+      updateAllItemsWishlistCount(itemId, delta);
+      updateInventoryWishlistCount(itemId, delta);
+      toggleWishlist(item);
+    } else if (hideWishlistBadge) {
+      // Wishlist screen: animate out first, then remove from context
+      playRemoveAnimation(() => {
+        updateAllItemsWishlistCount(itemId, delta);
+        updateInventoryWishlistCount(itemId, delta);
+        toggleWishlist(item);
+      });
+    } else {
+      pressOpacity.setValue(1);
+      Animated.spring(cardScale, { toValue: 1, friction: 6, tension: 200, useNativeDriver: true }).start();
+      playRemoveAnimation();
+      updateAllItemsWishlistCount(itemId, delta);
+      updateInventoryWishlistCount(itemId, delta);
+      toggleWishlist(item);
+    }
   };
 
   return (
@@ -157,8 +179,16 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
             style={[styles.itemCard, isNew && styles.itemCardNew]}
             onPress={onPress}
             onLongPress={handleLongPress}
-            onPressIn={() => Animated.timing(pressOpacity, { toValue: 0.7, duration: 80, useNativeDriver: false }).start()}
-            onPressOut={() => Animated.timing(pressOpacity, { toValue: 1,   duration: 80, useNativeDriver: false }).start()}
+            onPressIn={() => {
+              longPressActivated.current = false;
+              Animated.timing(pressOpacity, { toValue: 0.7, duration: 80, useNativeDriver: false }).start();
+              Animated.timing(cardScale,    { toValue: 0.97, duration: 80, useNativeDriver: true }).start();
+            }}
+            onPressOut={() => {
+              if (longPressActivated.current) return;
+              Animated.timing(pressOpacity, { toValue: 1, duration: 80, useNativeDriver: false }).start();
+              Animated.timing(cardScale,    { toValue: 1,   duration: 80, useNativeDriver: true }).start();
+            }}
           >
         {showFlash && (
           <Animated.View pointerEvents="none" style={[styles.flashOverlay, { opacity: flashOpacity }]} />
