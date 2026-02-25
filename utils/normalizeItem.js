@@ -2,8 +2,8 @@ import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE, PRIMED_DISAPPOINTMENT_IMAGE } f
 
 const buildImageUrl = (image) => {
   if (!image) return PLACEHOLDER_IMAGE;
-  // If already a full URL (e.g. CDN link for new items), use as-is
-  if (image.startsWith('http://') || image.startsWith('https://')) return image;
+  // Full URLs (CDN links, data URIs for generated mod images) — use as-is
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) return image;
   const trimmed = String(image).replace(/^\/+/, '');
   return `${WARFRAME_IMAGE_BASE}/${trimmed}`;
 };
