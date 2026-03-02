@@ -294,9 +294,11 @@ export const InventoryProvider = ({ children }) => {
             const status = await fetchBaroStatus();
             logger.debug('Baro', `Poll response: isActive=${status.isActive}, items=${status.items?.length || 0}`);
             if (status.isActive) {
-              logger.debug('Baro', 'Backend confirms Baro is active! Refreshing allItems then inventory...');
-              await refreshInBackground();
-              await fetchBaroInventory(true);
+              logger.debug('Baro', 'Backend confirms Baro is active! Refreshing allItems and inventory in parallel...');
+              await Promise.all([
+                refreshInBackground(),
+                fetchBaroInventory(true),
+              ]);
               setSyncing(false);
               return; // Stop polling
             }
