@@ -7,7 +7,7 @@
 import { buildUrl } from './apiConfig';
 import logger from '../utils/logger';
 
-const BARO_API_URL = 'https://api.warframestat.us/pc/voidTraders/';
+const BARO_API_URL = 'https://api.warframestat.us/pc/voidTraders/?language=en';
 const GET_CURRENT_URL = buildUrl('getCurrent');
 
 // ─── SIMULATION MODE ───────────────────────────────────────────────
@@ -23,7 +23,7 @@ const GET_CURRENT_URL = buildUrl('getCurrent');
 //   how many seconds until the mock Baro "leaves".
 //
 // Only enable ONE at a time!
-const SIMULATE_BARO_ARRIVAL = true; // Simulate Baro arrival on first fetch
+const SIMULATE_BARO_ARRIVAL = false; // Simulate Baro arrival on first fetch
 const SIMULATE_BARO_DEPARTURE = false; // Simulate Baro departure on first fetch
 const SIMULATE_DEPARTURE_SECONDS = 30; // How soon mock Baro leaves
 const SIMULATE_MOCK_URL = buildUrl('mockBaroAbsent'); // Phase 1: absent
