@@ -112,6 +112,7 @@ export const InventoryProvider = ({ children }) => {
   const unmatchedTimerRef = useRef(null);
   const pollTimerRef = useRef(null);
   const prevAllItemsCountRef = useRef(0);
+  const coldStartCheckedRef = useRef(false); // only fire the cold-start check once
   const { items: allItems, loading: allItemsLoading, refreshInBackground } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
@@ -258,10 +259,16 @@ export const InventoryProvider = ({ children }) => {
         setSyncing(false);
       }
     }
+  }, [allItems, allItemsLoading, refreshInBackground, syncing]);
+
+  // Cancel the unmatched-retry timer only on unmount, never on re-render.
+  // This prevents the arrival flow completing (syncing → false) from silently
+  // killing a pending retry that would resolve a new item's missing image.
+  useEffect(() => {
     return () => {
       if (unmatchedTimerRef.current) clearTimeout(unmatchedTimerRef.current);
     };
-  }, [allItems, allItemsLoading, refreshInBackground, syncing]);
+  }, []);
 
   // Auto-refresh when timer expires
   useEffect(() => {
@@ -294,11 +301,9 @@ export const InventoryProvider = ({ children }) => {
             const status = await fetchBaroStatus();
             logger.debug('Baro', `Poll response: isActive=${status.isActive}, items=${status.items?.length || 0}`);
             if (status.isActive) {
-              logger.debug('Baro', 'Backend confirms Baro is active! Refreshing allItems and inventory in parallel...');
-              await Promise.all([
-                refreshInBackground(),
-                fetchBaroInventory(true),
-              ]);
+              logger.debug('Baro', 'Backend confirms Baro is active! Refreshing allItems first, then fetching inventory...');
+              await refreshInBackground();
+              await fetchBaroInventory(true);
               setSyncing(false);
               return; // Stop polling
             }
@@ -329,9 +334,15 @@ export const InventoryProvider = ({ children }) => {
     };
   }, [nextArrival, fetchBaroInventory, isHere, refreshInBackground]);
 
-  // On cold start: if Baro is here and there are unmatched items, enter syncing state
+  // On cold start: if Baro is here and there are unmatched items, enter syncing state.
+  // Guard with a ref so this only fires on the very first load transition, not after
+  // fetchBaroInventory(true) completes during the arrival flow.
   useEffect(() => {
-    if (!loading && isHere && items.length > 0) {
+    if (loading) return;
+    if (coldStartCheckedRef.current) return;
+    coldStartCheckedRef.current = true;
+
+    if (isHere && items.length > 0) {
       const hasUnmatched = items.some(item => item._unmatched);
       if (hasUnmatched) {
         logger.log('Cold start: Baro is here with unmatched items, entering syncing state');

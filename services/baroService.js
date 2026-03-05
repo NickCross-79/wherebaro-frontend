@@ -11,8 +11,11 @@ const BARO_API_URL = 'https://api.warframestat.us/pc/voidTraders/';
 const GET_CURRENT_URL = buildUrl('getCurrent');
 
 // ─── SIMULATION MODE ───────────────────────────────────────────────
-// SIMULATE_BARO_ARRIVAL: First fetch returns mock "absent" data with
-//   a near-future arrival. Timer expires → polls real API for active Baro.
+// SIMULATE_BARO_ARRIVAL: First fetch returns mock "absent" data from
+//   mockBaroAbsent (activation = now + 30 s). Timer expires → polls
+//   real getCurrent until isActive=true (requires mockBaroArrival to
+//   have been triggered on the backend to write the current doc) →
+//   final inventory fetch reads from the real current doc via getCurrent.
 //
 // SIMULATE_BARO_DEPARTURE: First fetch returns mock "active" data with
 //   inventory and a near-future expiry. Timer expires → fetches real API
@@ -20,13 +23,16 @@ const GET_CURRENT_URL = buildUrl('getCurrent');
 //   how many seconds until the mock Baro "leaves".
 //
 // Only enable ONE at a time!
-const SIMULATE_BARO_ARRIVAL = false; // Simulate Baro arrival on first fetch
+const SIMULATE_BARO_ARRIVAL = true; // Simulate Baro arrival on first fetch
 const SIMULATE_BARO_DEPARTURE = false; // Simulate Baro departure on first fetch
 const SIMULATE_DEPARTURE_SECONDS = 30; // How soon mock Baro leaves
-const SIMULATE_MOCK_URL = buildUrl('mockBaroAbsent');
+const SIMULATE_MOCK_URL = buildUrl('mockBaroAbsent'); // Phase 1: absent
 // ────────────────────────────────────────────────────────────────────
 
 let simulationUsed = false;
+// True after the first (absent) sim fetch; routes subsequent fetchBaroData
+// calls to fetchFromBackend (getCurrent) instead of the warframestat API.
+let simulationActive = false;
 
 /**
  * Fetch raw Baro data from the warframestat.us API.
@@ -65,12 +71,21 @@ export const fetchBaroData = async () => {
     };
   }
 
-  // Arrival simulation: first call returns mock "absent" data
+  // Arrival simulation — phase 2: countdown fired, poll confirmed active.
+  // Fetch inventory from the real current document so the simulation reads
+  // whatever mockBaroArrival wrote to the DB — no warframestat call needed.
+  if (SIMULATE_BARO_ARRIVAL && simulationActive) {
+    logger.debug('BaroService', 'Arrival sim (active phase): fetching inventory from backend current doc');
+    return await fetchFromBackend();
+  }
+
+  // Arrival simulation — phase 1: first call returns mock "absent" data
   let fetchUrl = BARO_API_URL;
   if (SIMULATE_BARO_ARRIVAL && !simulationUsed) {
     fetchUrl = SIMULATE_MOCK_URL;
     simulationUsed = true;
-    logger.debug('BaroService', 'Arrival sim: using mock absent endpoint');
+    simulationActive = true; // arm phase-2 for the post-arrival fetch
+    logger.debug('BaroService', 'Arrival sim (absent phase): using mockBaroAbsent');
   }
 
   logger.debug('BaroService', `Fetching: ${fetchUrl}`);
@@ -168,4 +183,5 @@ export const isBaroActive = (activation, expiry) => {
  */
 export const resetSimulation = () => {
   simulationUsed = false;
+  simulationActive = false;
 };

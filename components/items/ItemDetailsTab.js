@@ -40,7 +40,7 @@ export default function ItemDetailsTab({
         />
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.image }}
+            source={item.image && item.image !== 'temp:modImage' && !item.image.endsWith('/temp:modImage') ? { uri: item.image } : require('../../assets/imgs/background_newItem.png')}
             style={styles.itemImage}
             resizeMode="contain"
           />

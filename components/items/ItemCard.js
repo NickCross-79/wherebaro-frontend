@@ -214,7 +214,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
         )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
-          {item?.image ? (
+          {item?.image && item.image !== 'temp:modImage' && !item.image.endsWith('/temp:modImage') ? (
             <Image
               source={{ uri: item.image }}
               style={styles.itemImage}
