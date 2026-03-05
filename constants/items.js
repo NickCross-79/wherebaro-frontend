@@ -29,4 +29,3 @@ export const WISHLIST_THROTTLE_MS = 2000; // 2 seconds — collapses rapid toggl
 // Image URLs
 export const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images';
 export const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150';
-export const PRIMED_DISAPPOINTMENT_IMAGE = 'https://i.imgur.com/ZYakUku.png';

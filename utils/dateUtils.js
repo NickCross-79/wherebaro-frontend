@@ -41,6 +41,33 @@ export const getRelativeTime = (dateString) => {
 };
 
 /**
+ * Format a countdown from now until the given date.
+ * @param {Date} date - Target date
+ * @param {string} [expiredText='Arriving Soon'] - Text to show when diff <= 0
+ * @returns {string}
+ */
+export const formatTimeRemaining = (date, expiredText = 'Arriving Soon') => {
+  if (!date) return 'Unknown';
+  const now = new Date();
+  const diff = date - now;
+
+  if (diff <= 0) return expiredText;
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  } else {
+    return `${minutes}m ${seconds}s`;
+  }
+};
+
+/**
  * Parse location string into name and planet components
  * Handles formats: "Name (Planet)" or "Name, Planet"
  */

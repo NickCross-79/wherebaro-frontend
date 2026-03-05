@@ -48,7 +48,3 @@ export const fetchMarketData = async (itemName) => {
   marketCache.set(slug, { data: result, timestamp: Date.now() });
   return result;
 };
-
-export default {
-  fetchMarketData,
-};

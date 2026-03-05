@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import EarthIcon from '../assets/icons/icon_earth.svg';
 import TimeIcon from '../assets/icons/icon_time.svg';
 import BaroIcon from '../assets/icons/icon_baro.svg';
+import { formatTimeRemaining } from '../utils/dateUtils';
 import styles from '../styles/screens/BaroAbsentScreen.styles';
 import { colors } from '../constants/theme';
 
@@ -15,27 +16,6 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
   const PAUSE = 300; // ms pause at end
   const NUM_DOTS = 8;
   const TOTAL_CYCLE = STAGGER_DELAY * (NUM_DOTS - 1) + ANIMATION_DURATION + PAUSE; // 2550ms
-
-  const formatTimeRemaining = (date) => {
-    if (!date) return 'Unknown';
-    const now = new Date();
-    const diff = date - now;
-    
-    if (diff <= 0) return 'Arriving Soon';
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    if (days > 0) {
-      return `${days}d ${hours}h ${minutes}m`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`;
-    } else {
-      return `${minutes}m ${seconds}s`;
-    }
-  };
 
   useEffect(() => {
     // Update timer immediately

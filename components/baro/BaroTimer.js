@@ -1,46 +1,30 @@
 import { Text, View, Image } from 'react-native';
 import { useState, useEffect, memo } from 'react';
 import TimeIcon from '../../assets/icons/icon_time.svg';
+import { formatTimeRemaining } from '../../utils/dateUtils';
 import styles from '../../styles/components/baro/BaroTimer.styles';
 
 function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
   const [timeRemaining, setTimeRemaining] = useState('');
 
-  const formatTimeRemaining = (date) => {
-    if (!date) return 'Unknown';
-    const now = new Date();
-    const diff = date - now;
-    
-    if (diff <= 0) return expiredText;
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    if (days > 0) {
-      return `${days}d ${hours}h ${minutes}m`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`;
-    } else {
-      return `${minutes}m ${seconds}s`;
-    }
-  };
-
   useEffect(() => {
     // Update timer immediately
-    setTimeRemaining(formatTimeRemaining(nextArrival));
+    setTimeRemaining(formatTimeRemaining(nextArrival, expiredText));
     
     // Update every second for accurate countdown
     const interval = setInterval(() => {
-      setTimeRemaining(formatTimeRemaining(nextArrival));
+      setTimeRemaining(formatTimeRemaining(nextArrival, expiredText));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [nextArrival]);
+  }, [nextArrival, expiredText]);
 
   return (
-    <View style={[styles.timerContainer, centered && styles.centered]}>
+    <View
+      style={[styles.timerContainer, centered && styles.centered]}
+      accessibilityRole="timer"
+      accessibilityLabel={`${label}: ${timeRemaining}${location ? `, at ${location.name}, ${location.planet}` : ''}`}
+    >
       <View style={[styles.headerRow, centered && styles.centeredRow]}>
         <Text style={[styles.timerLabel, centered && styles.centeredText]}>{label}</Text>
         {location && (

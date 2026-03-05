@@ -2,35 +2,27 @@ import React from 'react';
 import { ScrollView, View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewCard from './ReviewCard';
+import { useReviewContext } from '../../contexts/ReviewContext';
 import { colors } from '../../constants/theme';
 
-export default function ItemReviewsTab({
-  bottomSpacer,
-  isLoadingReviews,
-  likeCount,
-  userLiked,
-  isLiking,
-  handleLike,
-  hasUserReview,
-  newReview,
-  setNewReview,
-  isPostingReview,
-  handlePostReview,
-  reviews,
-  CURRENT_UID,
-  getRelativeTime,
-  editingReviewKey,
-  getReviewKey,
-  editingReviewText,
-  setEditingReviewText,
-  saveEditingReview,
-  cancelEditingReview,
-  startEditingReview,
-  confirmDeleteReview,
-  onReportReview,
-  reportedReviewKeys = [],
-  styles,
-}) {
+export default function ItemReviewsTab({ bottomSpacer }) {
+  const {
+    isLoadingReviews,
+    likeCount,
+    userLiked,
+    isLiking,
+    handleLike,
+    hasUserReview,
+    newReview,
+    setNewReview,
+    isPostingReview,
+    handlePostReview,
+    reviews,
+    getReviewKey,
+    reportedReviewKeys,
+    styles,
+  } = useReviewContext();
+
   const visibleReviews = reviews.filter((review, index) => {
     const key = getReviewKey(review, index);
     return !reportedReviewKeys.includes(key);
@@ -54,6 +46,9 @@ export default function ItemReviewsTab({
               style={[styles.likeButton, userLiked && styles.likeButtonActive, isLiking && styles.likeButtonLoading]}
               onPress={handleLike}
               disabled={isLiking}
+              accessibilityRole="button"
+              accessibilityLabel={`${userLiked ? 'Unlike' : 'Like'} this item, ${likeCount} likes`}
+              accessibilityState={{ selected: userLiked, disabled: isLiking }}
             >
               <Ionicons
                 name={userLiked ? 'thumbs-up' : 'thumbs-up-outline'}
@@ -80,6 +75,7 @@ export default function ItemReviewsTab({
                 onChangeText={setNewReview}
                 textAlignVertical="top"
                 maxLength={250}
+                accessibilityLabel="Write a review"
               />
               {(250 - newReview.length) <= 50 && (
                 <Text style={[styles.characterCount, (250 - newReview.length) <= 10 && styles.characterCountWarning]}>
@@ -93,6 +89,9 @@ export default function ItemReviewsTab({
                 ]}
                 onPress={handlePostReview}
                 disabled={!newReview.trim() || isPostingReview}
+                accessibilityRole="button"
+                accessibilityLabel="Post Review"
+                accessibilityState={{ disabled: !newReview.trim() || isPostingReview }}
               >
                 <Text style={[styles.postButtonText, (!newReview.trim() || isPostingReview) && styles.postButtonTextDisabled]}>Post Review</Text>
               </TouchableOpacity>
@@ -116,18 +115,6 @@ export default function ItemReviewsTab({
                   key={getReviewKey(review, index)}
                   review={review}
                   index={index}
-                  currentUid={CURRENT_UID}
-                  editingReviewKey={editingReviewKey}
-                  getReviewKey={getReviewKey}
-                  editingReviewText={editingReviewText}
-                  setEditingReviewText={setEditingReviewText}
-                  saveEditingReview={saveEditingReview}
-                  cancelEditingReview={cancelEditingReview}
-                  startEditingReview={startEditingReview}
-                  confirmDeleteReview={confirmDeleteReview}
-                  getRelativeTime={getRelativeTime}
-                  onReportReview={onReportReview}
-                  styles={styles}
                 />
               ))
             )}

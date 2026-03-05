@@ -157,25 +157,6 @@ export const storageHelpers = {
     }
   },
 
-  // Settings
-  setTheme: async (theme) => {
-    await secureStorage.setItem('theme', theme);
-  },
-
-  getTheme: async () => {
-    const value = await secureStorage.getItem('theme');
-    return value || 'dark';
-  },
-
-  setLanguage: async (language) => {
-    await secureStorage.setItem('language', language);
-  },
-
-  getLanguage: async () => {
-    const value = await secureStorage.getItem('language');
-    return value || 'en';
-  },
-
   // Generic get/set
   set: async (key, value) => {
     await secureStorage.setItem(key, value.toString());

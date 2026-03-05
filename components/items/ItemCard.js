@@ -17,14 +17,13 @@ const PARTICLE_DIRECTIONS = [
   { dx: -54, dy: -14 },
 ];
 
-function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlistBorder = false }) {
+function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
   const inWishlist = isInWishlist(item?.id || item?._id);
 
   const cardScale    = useRef(new Animated.Value(1)).current;
-  const cardShakeX   = useRef(new Animated.Value(0)).current;
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const particleProgress = useRef(
     PARTICLE_DIRECTIONS.map(() => new Animated.Value(0))
@@ -168,7 +167,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
           <Ionicons name="heart" size={22} color={colors.accent} />
         </Animated.View>
       ))}
-      <Animated.View style={{ transform: [{ scale: cardScale }, { translateX: cardShakeX }] }}>
+      <Animated.View style={{ transform: [{ scale: cardScale }] }}>
           <Animated.View style={[styles.cardWrapper, {
             opacity: pressOpacity,
             shadowOpacity: glowOpacity.interpolate({ inputRange: [0, 1], outputRange: [0, 0.55] }),
@@ -178,6 +177,9 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, hideWishlis
             style={[styles.itemCard, isNew && styles.itemCardNew]}
             onPress={onPress}
             onLongPress={handleLongPress}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}, ${item.type}, ${item.creditPrice.toLocaleString()} credits, ${item.ducatPrice} ducats${inWishlist ? ', in wishlist' : ''}`}
+            accessibilityHint="Tap to view details, long press to toggle wishlist"
             onPressIn={() => {
               longPressActivated.current = false;
               Animated.timing(pressOpacity, { toValue: 0.7, duration: 80, useNativeDriver: false }).start();
@@ -294,7 +296,6 @@ export default memo(ItemCard, (prevProps, nextProps) => {
     (prevItem?.wishlistCount || 0) === (nextItem?.wishlistCount || 0) &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.isNew === nextProps.isNew &&
-    prevProps.hideWishlistBadge === nextProps.hideWishlistBadge &&
-    prevProps.hideWishlistBorder === nextProps.hideWishlistBorder
+    prevProps.hideWishlistBadge === nextProps.hideWishlistBadge
   );
 });

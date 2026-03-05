@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder } from 'react-native';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { colors, accentWithOpacity } from '../../constants/theme';
@@ -35,7 +35,6 @@ export default function ItemMarketTab({
   const selectedPointRef = useRef(null);
   const rafRef = useRef(null);
   const chartContainerRef = useRef(null);
-  const sectionStyle = { marginBottom: 20 };
   
   const selectedRankLabel = selectedModRank === maxModRank
     ? 'Max'
@@ -71,12 +70,11 @@ export default function ItemMarketTab({
     return subtype.charAt(0).toUpperCase() + subtype.slice(1);
   };
 
-  // Chart data from statistics_closed 90days
-  const getChartData = () => {
+  // Single memoized filter for the 90-day data — all chart/price/stats derive from this
+  const filteredData = useMemo(() => {
     const arr = marketData?.statistics_closed?.['90days'] || [];
-    if (!arr.length) return null;
+    if (!arr.length) return [];
 
-    // Only keep points at 00:00 (midnight UTC) each day, limited to last 60 days
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 60);
     let filtered = arr.filter(d => {
@@ -84,42 +82,52 @@ export default function ItemMarketTab({
       return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
     });
 
-    // If item is a mod, filter by selected mod_rank
     if (isMod) {
       filtered = filtered.filter(d => d.mod_rank === selectedModRank);
     }
-    // If item is a void relic, filter by selected subtype
     if (isVoidRelic && selectedSubtype) {
       filtered = filtered.filter(d => d.subtype === selectedSubtype);
     }
-    if (!filtered.length) return null;
 
-    // Sort by datetime ascending
-    filtered = filtered.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+    return filtered.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+  }, [marketData, isMod, selectedModRank, isVoidRelic, selectedSubtype]);
 
-    // Use every data point
-    const prices = filtered.map(d => d.avg_price);
-    // Remove all x-axis labels (no dates)
-    const labels = filtered.map(() => '');
-    
+  // Derive chart data from the single filtered dataset
+  const chartData = useMemo(() => {
+    if (!filteredData.length) return null;
+    const prices = filteredData.map(d => d.avg_price);
+    const labels = filteredData.map(() => '');
     return {
-      chartData: {
-        labels,
-        datasets: [
-          {
-            data: prices,
-            color: (opacity = 1) => accentWithOpacity(opacity),
-            strokeWidth: 2,
-          },
-        ],
-      },
-      rawData: filtered,
+      labels,
+      datasets: [
+        {
+          data: prices,
+          color: (opacity = 1) => accentWithOpacity(opacity),
+          strokeWidth: 2,
+        },
+      ],
     };
-  };
+  }, [filteredData]);
 
-  const chartResult = getChartData();
-  const chartData = chartResult?.chartData;
-  const rawChartData = chartResult?.rawData || [];
+  const rawChartData = filteredData;
+
+  // Derive latest price (last entry in ascending-sorted data)
+  const latestPrice = useMemo(() => {
+    if (!filteredData.length) return null;
+    return filteredData[filteredData.length - 1]?.avg_price ?? null;
+  }, [filteredData]);
+
+  // Derive market stats
+  const marketStats = useMemo(() => {
+    if (!filteredData.length) return null;
+    const prices = filteredData.map(d => d.avg_price);
+    const volumes = filteredData.map(d => d.volume || 0);
+    return {
+      maxPrice: Math.max(...prices),
+      minPrice: Math.min(...prices),
+      totalVolume: volumes.reduce((sum, v) => sum + v, 0),
+    };
+  }, [filteredData]);
 
   // react-native-chart-kit positions data points as:
   //   x_i = paddingRight + (i * (width - paddingRight)) / dataLength
@@ -170,85 +178,31 @@ export default function ItemMarketTab({
     selectedPointRef.current = { dataLength: rawChartData.length };
   }, [rawChartData.length]);
 
-  // Get latest average price (from statistics_closed 90days, limited to last 60)
-  const getLatestPrice = () => {
-    const arr = marketData?.statistics_closed?.['90days'] || [];
-    if (!arr.length) return null;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 60);
-    let filtered = arr.filter(d => {
-      const date = new Date(d.datetime);
-      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
-    });
-    if (isMod) {
-      filtered = filtered.filter(d => d.mod_rank === selectedModRank);
-    }
-    if (isVoidRelic && selectedSubtype) {
-      filtered = filtered.filter(d => d.subtype === selectedSubtype);
-    }
-    if (!filtered.length) return null;
-    // Sort by datetime descending to get the latest
-    filtered = filtered.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
-    return filtered[0]?.avg_price ?? null;
-  };
-
-  // Get market stats for the last 60 days
-  const getMarketStats = () => {
-    const arr = marketData?.statistics_closed?.['90days'] || [];
-    if (!arr.length) return null;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 60);
-    let filtered = arr.filter(d => {
-      const date = new Date(d.datetime);
-      return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date >= cutoff;
-    });
-    if (isMod) {
-      filtered = filtered.filter(d => d.mod_rank === selectedModRank);
-    }
-    if (isVoidRelic && selectedSubtype) {
-      filtered = filtered.filter(d => d.subtype === selectedSubtype);
-    }
-    if (!filtered.length) return null;
-    
-    const prices = filtered.map(d => d.avg_price);
-    const volumes = filtered.map(d => d.volume || 0);
-    
-    return {
-      maxPrice: Math.max(...prices),
-      minPrice: Math.min(...prices),
-      totalVolume: volumes.reduce((sum, v) => sum + v, 0),
-    };
-  };
-
-  const latestPrice = getLatestPrice();
-  const marketStats = getMarketStats();
-
   return (
     <ScrollView
       style={styles.scrollContent}
-      contentContainerStyle={[styles.tabContent, { paddingBottom: bottomSpacer, paddingHorizontal: 16, paddingTop: 16 }]}
+      contentContainerStyle={[styles.tabContent, marketStyles.scrollContent, { paddingBottom: bottomSpacer }]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={sectionStyle}>
+      <View style={marketStyles.section}>
         <Text style={styles.sectionTitle}>Price History (60 Days)</Text>
         
         {isLoadingMarket ? (
-          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+          <View style={marketStyles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={[styles.noDataText, { marginTop: 12 }]}>Loading market data...</Text>
+            <Text style={[styles.noDataText, marketStyles.loadingText]}>Loading market data...</Text>
           </View>
         ) : chartData ? (
-          <View style={{ width: '100%', alignItems: 'flex-end' }}>
+          <View style={marketStyles.chartOuterWrapper}>
             <View
               ref={chartContainerRef}
-              style={{ position: 'relative', width: chartWidth }}
+              style={[marketStyles.chartContainer, { width: chartWidth }]}
               {...panResponder.panHandlers}
             >
               {selectedPointIndex !== null && rawChartData[selectedPointIndex] && (() => {
                 const chartArea = chartWidth - CHART_LEFT_OFFSET;
                 const pointSpacing = chartArea / rawChartData.length;
                 const cursorX = CHART_LEFT_OFFSET + (selectedPointIndex * pointSpacing);
-                // Position tooltip on opposite side of the line from center
                 const tooltipWidth = 130;
                 const tooltipGap = 8;
                 const isLeftHalf = cursorX < chartWidth / 2;
@@ -257,61 +211,23 @@ export default function ItemMarketTab({
                   : cursorX - tooltipWidth - tooltipGap;
                 return (
                   <>
-                    <View style={{
-                      position: 'absolute',
-                      left: cursorX,
-                      top: 8,
-                      bottom: 0,
-                      width: 1,
-                      backgroundColor: colors.accentMuted,
-                      zIndex: 5,
-                      pointerEvents: 'none',
-                    }} />
-                    <View style={{
-                      position: 'absolute',
-                      left: cursorX - 4,
-                      top: 8,
-                      width: 9,
-                      height: 9,
-                      borderRadius: 5,
-                      backgroundColor: colors.accent,
-                      zIndex: 6,
-                      pointerEvents: 'none',
-                    }} />
-                    <View style={{
-                      position: 'absolute',
-                      top: 10,
-                      left: tooltipLeft,
-                      width: tooltipWidth,
-                      backgroundColor: colors.surfaceElevated,
-                      paddingVertical: 8,
-                      paddingHorizontal: 10,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: colors.accent,
-                      zIndex: 10,
-                      alignItems: 'center',
-                      shadowColor: colors.shadow,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.5,
-                      shadowRadius: 4,
-                      elevation: 5,
-                      pointerEvents: 'none',
-                    }}>
-                      <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 2 }}>
+                    <View style={[marketStyles.cursorLine, { left: cursorX }]} />
+                    <View style={[marketStyles.cursorDot, { left: cursorX - 4 }]} />
+                    <View style={[marketStyles.tooltip, { left: tooltipLeft, width: tooltipWidth }]}>
+                      <Text style={marketStyles.tooltipDate}>
                         {new Date(rawChartData[selectedPointIndex].datetime).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
                         })}
                       </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ color: colors.textLight, fontSize: 18, fontWeight: '600', marginRight: 4 }}>
+                      <View style={marketStyles.priceRow}>
+                        <Text style={marketStyles.tooltipPrice}>
                           {Math.round(rawChartData[selectedPointIndex].avg_price)}
                         </Text>
                         <Image
                           source={require('../../assets/imgs/img_platinum.png')}
-                          style={{ width: 18, height: 18 }}
+                          style={marketStyles.platIcon}
                         />
                       </View>
                     </View>
@@ -336,36 +252,20 @@ export default function ItemMarketTab({
                   fillShadowGradientFromOpacity: 0.3,
                   fillShadowGradientToOpacity: 0.05,
                   paddingLeft: 0,
-                  style: {
-                    borderRadius: 16,
-                  },
+                  style: { borderRadius: 16 },
                 }}
                 bezier
-                style={{
-                  marginTop: 8,
-                  marginBottom: -8,
-                  borderRadius: 16,
-                  backgroundColor: 'transparent',
-                }}
+                style={marketStyles.chart}
               />
             </View>
             {isMod && availableModRanks.length > 0 && (
-              <View style={{ marginTop: 0, width: '100%' }}>
+              <View style={marketStyles.selectorContainer}>
                 <TouchableOpacity
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 14,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: colors.accent,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
+                  style={marketStyles.dropdownButton}
                   onPress={() => setIsRankDropdownOpen(!isRankDropdownOpen)}
                   activeOpacity={0.8}
                 >
-                  <Text style={{ color: colors.accent, fontWeight: '600', flex: 1, textAlign: 'center', fontSize: 16 }}>
+                  <Text style={marketStyles.dropdownButtonText}>
                     {selectedRankLabel}
                   </Text>
                   <Ionicons
@@ -376,16 +276,7 @@ export default function ItemMarketTab({
                 </TouchableOpacity>
 
                 {isRankDropdownOpen && (
-                  <View
-                    style={{
-                      marginTop: 8,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: colors.borderChart,
-                      overflow: 'hidden',
-                      backgroundColor: colors.surfaceChart,
-                    }}
-                  >
+                  <View style={marketStyles.dropdownList}>
                     {availableModRanks.map((rank, index) => (
                       <TouchableOpacity
                         key={rank}
@@ -394,21 +285,17 @@ export default function ItemMarketTab({
                           setSelectedPointIndex(null);
                           setIsRankDropdownOpen(false);
                         }}
-                        style={{
-                          paddingVertical: 10,
-                          paddingHorizontal: 14,
-                          borderTopWidth: index === 0 ? 0 : 1,
-                          borderTopColor: colors.surfaceElevated,
-                          backgroundColor: selectedModRank === rank ? colors.accent : 'transparent',
-                        }}
+                        style={[
+                          marketStyles.dropdownItem,
+                          index > 0 && marketStyles.dropdownItemBorder,
+                          selectedModRank === rank && marketStyles.dropdownItemSelected,
+                        ]}
                       >
                         <Text
-                          style={{
-                            color: selectedModRank === rank ? colors.chartTooltipBg : colors.accent,
-                            fontWeight: '600',
-                            textAlign: 'center',
-                            fontSize: 16,
-                          }}
+                          style={[
+                            marketStyles.dropdownItemText,
+                            selectedModRank === rank && marketStyles.dropdownItemTextSelected,
+                          ]}
                         >
                           {rank === maxModRank ? 'Max' : `Rank ${rank}`}
                         </Text>
@@ -421,29 +308,12 @@ export default function ItemMarketTab({
 
             {/* Subtype Selector for Void Relics */}
             {isVoidRelic && availableSubtypes.length > 0 && (
-              <View style={{ marginTop: 12, width: '100%' }}>
+              <View style={marketStyles.subtypeSelectorContainer}>
                 <TouchableOpacity
                   onPress={() => setIsSubtypeDropdownOpen(!isSubtypeDropdownOpen)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: colors.borderChart,
-                    backgroundColor: colors.surfaceChart,
-                  }}
+                  style={marketStyles.subtypeDropdownButton}
                 >
-                  <Text
-                    style={{
-                      color: colors.accent,
-                      fontWeight: '600',
-                      fontSize: 16,
-                      marginRight: 8,
-                    }}
-                  >
+                  <Text style={marketStyles.subtypeDropdownText}>
                     {formatSubtypeLabel(selectedSubtype)}
                   </Text>
                   <Ionicons
@@ -454,16 +324,7 @@ export default function ItemMarketTab({
                 </TouchableOpacity>
 
                 {isSubtypeDropdownOpen && (
-                  <View
-                    style={{
-                      marginTop: 8,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: colors.borderChart,
-                      overflow: 'hidden',
-                      backgroundColor: colors.surfaceChart,
-                    }}
-                  >
+                  <View style={marketStyles.dropdownList}>
                     {availableSubtypes.map((subtype, index) => (
                       <TouchableOpacity
                         key={subtype}
@@ -472,21 +333,17 @@ export default function ItemMarketTab({
                           setSelectedPointIndex(null);
                           setIsSubtypeDropdownOpen(false);
                         }}
-                        style={{
-                          paddingVertical: 10,
-                          paddingHorizontal: 14,
-                          borderTopWidth: index === 0 ? 0 : 1,
-                          borderTopColor: colors.surfaceElevated,
-                          backgroundColor: selectedSubtype === subtype ? colors.accent : 'transparent',
-                        }}
+                        style={[
+                          marketStyles.dropdownItem,
+                          index > 0 && marketStyles.dropdownItemBorder,
+                          selectedSubtype === subtype && marketStyles.dropdownItemSelected,
+                        ]}
                       >
                         <Text
-                          style={{
-                            color: selectedSubtype === subtype ? colors.chartTooltipBg : colors.accent,
-                            fontWeight: '600',
-                            textAlign: 'center',
-                            fontSize: 16,
-                          }}
+                          style={[
+                            marketStyles.dropdownItemText,
+                            selectedSubtype === subtype && marketStyles.dropdownItemTextSelected,
+                          ]}
                         >
                           {formatSubtypeLabel(subtype)}
                         </Text>
@@ -502,44 +359,23 @@ export default function ItemMarketTab({
         )}
       </View>
 
-      <View style={sectionStyle}>
+      <View style={marketStyles.section}>
         <Text style={styles.sectionTitle}>Market Information</Text>
 
         {(latestPrice || marketStats) && (
-          <View style={{
-            backgroundColor: colors.surfaceChart,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: colors.borderChart,
-            marginTop: 12,
-            overflow: 'hidden',
-          }}>
+          <View style={marketStyles.infoCard}>
             {latestPrice && (
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-              }}>
-                <Text style={{
-                  color: colors.textSecondary,
-                  fontSize: 15,
-                }}>
+              <View style={marketStyles.infoRow}>
+                <Text style={marketStyles.infoLabel}>
                   Average Price (Today)
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{
-                    color: colors.textLight,
-                    fontSize: 18,
-                    fontWeight: '600',
-                    marginRight: 6,
-                  }}>
+                <View style={marketStyles.priceRow}>
+                  <Text style={marketStyles.infoValue}>
                     {Math.round(latestPrice)}
                   </Text>
                   <Image
                     source={require('../../assets/imgs/img_platinum.png')}
-                    style={{ width: 18, height: 18 }}
+                    style={marketStyles.platIcon}
                   />
                 </View>
               </View>
@@ -547,102 +383,47 @@ export default function ItemMarketTab({
 
             {marketStats && (
               <>
-                {latestPrice && (
-                  <View style={{
-                    height: 1,
-                    backgroundColor: colors.surfaceElevated,
-                    marginHorizontal: 16,
-                  }} />
-                )}
+                {latestPrice && <View style={marketStyles.divider} />}
                 
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                }}>
-                  <Text style={{
-                    color: colors.textSecondary,
-                    fontSize: 15,
-                  }}>
+                <View style={marketStyles.infoRow}>
+                  <Text style={marketStyles.infoLabel}>
                     Max Price (60d)
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{
-                      color: colors.textLight,
-                      fontSize: 18,
-                      fontWeight: '600',
-                      marginRight: 6,
-                    }}>
+                  <View style={marketStyles.priceRow}>
+                    <Text style={marketStyles.infoValue}>
                       {Math.round(marketStats.maxPrice)}
                     </Text>
                     <Image
                       source={require('../../assets/imgs/img_platinum.png')}
-                      style={{ width: 18, height: 18 }}
+                      style={marketStyles.platIcon}
                     />
                   </View>
                 </View>
 
-                <View style={{
-                  height: 1,
-                  backgroundColor: colors.surfaceElevated,
-                  marginHorizontal: 16,
-                }} />
+                <View style={marketStyles.divider} />
 
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                }}>
-                  <Text style={{
-                    color: colors.textSecondary,
-                    fontSize: 15,
-                  }}>
+                <View style={marketStyles.infoRow}>
+                  <Text style={marketStyles.infoLabel}>
                     Min Price (60d)
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{
-                      color: colors.textLight,
-                      fontSize: 18,
-                      fontWeight: '600',
-                      marginRight: 6,
-                    }}>
+                  <View style={marketStyles.priceRow}>
+                    <Text style={marketStyles.infoValue}>
                       {Math.round(marketStats.minPrice)}
                     </Text>
                     <Image
                       source={require('../../assets/imgs/img_platinum.png')}
-                      style={{ width: 18, height: 18 }}
+                      style={marketStyles.platIcon}
                     />
                   </View>
                 </View>
 
-                <View style={{
-                  height: 1,
-                  backgroundColor: colors.surfaceElevated,
-                  marginHorizontal: 16,
-                }} />
+                <View style={marketStyles.divider} />
 
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                }}>
-                  <Text style={{
-                    color: colors.textSecondary,
-                    fontSize: 15,
-                  }}>
+                <View style={marketStyles.infoRow}>
+                  <Text style={marketStyles.infoLabel}>
                     Total Sold (60d)
                   </Text>
-                  <Text style={{
-                    color: colors.textLight,
-                    fontSize: 18,
-                    fontWeight: '600',
-                  }}>
+                  <Text style={marketStyles.infoValue}>
                     {marketStats.totalVolume.toLocaleString()}
                   </Text>
                 </View>
@@ -654,3 +435,190 @@ export default function ItemMarketTab({
     </ScrollView>
   );
 }
+
+const marketStyles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+  },
+  chartOuterWrapper: {
+    width: '100%',
+    alignItems: 'flex-end',
+  },
+  chartContainer: {
+    position: 'relative',
+  },
+  chart: {
+    marginTop: 8,
+    marginBottom: -8,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+  },
+  cursorLine: {
+    position: 'absolute',
+    top: 8,
+    bottom: 0,
+    width: 1,
+    backgroundColor: colors.accentMuted,
+    zIndex: 5,
+    pointerEvents: 'none',
+  },
+  cursorDot: {
+    position: 'absolute',
+    top: 8,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: colors.accent,
+    zIndex: 6,
+    pointerEvents: 'none',
+  },
+  tooltip: {
+    position: 'absolute',
+    top: 10,
+    backgroundColor: colors.surfaceElevated,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    zIndex: 10,
+    alignItems: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+    pointerEvents: 'none',
+  },
+  tooltipDate: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  tooltipPrice: {
+    color: colors.textLight,
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  platIcon: {
+    width: 18,
+    height: 18,
+  },
+  selectorContainer: {
+    marginTop: 0,
+    width: '100%',
+  },
+  dropdownButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownButtonText: {
+    color: colors.accent,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  dropdownList: {
+    marginTop: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderChart,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceChart,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  dropdownItemBorder: {
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceElevated,
+  },
+  dropdownItemSelected: {
+    backgroundColor: colors.accent,
+  },
+  dropdownItemText: {
+    color: colors.accent,
+    fontWeight: '600',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  dropdownItemTextSelected: {
+    color: colors.chartTooltipBg,
+  },
+  subtypeSelectorContainer: {
+    marginTop: 12,
+    width: '100%',
+  },
+  subtypeDropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderChart,
+    backgroundColor: colors.surfaceChart,
+  },
+  subtypeDropdownText: {
+    color: colors.accent,
+    fontWeight: '600',
+    fontSize: 16,
+    marginRight: 8,
+  },
+  infoCard: {
+    backgroundColor: colors.surfaceChart,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderChart,
+    marginTop: 12,
+    overflow: 'hidden',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  infoLabel: {
+    color: colors.textSecondary,
+    fontSize: 15,
+  },
+  infoValue: {
+    color: colors.textLight,
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.surfaceElevated,
+    marginHorizontal: 16,
+  },
+});

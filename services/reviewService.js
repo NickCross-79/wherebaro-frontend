@@ -84,12 +84,3 @@ export const deleteReview = async (reviewId, uid) => {
 export const reportReview = async (reviewId) => {
   return apiPost(ENDPOINTS.REPORT_REVIEW, { review_id: reviewId });
 };
-
-export default {
-  fetchReviews,
-  postReview,
-  updateReview,
-  deleteReview,
-  reportReview,
-  invalidateReviewsCache,
-};

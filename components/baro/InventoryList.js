@@ -1,29 +1,34 @@
-import { forwardRef } from 'react';
-import { ScrollView } from 'react-native';
+import { forwardRef, useCallback } from 'react';
+import { FlatList } from 'react-native';
 import ItemCard from '../items/ItemCard';
 import EmptyState from '../ui/EmptyState';
 import styles from '../../styles/components/baro/InventoryList.styles';
 
 const InventoryList = forwardRef(({ items, onItemPress }, ref) => {
+  const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
+
+  const renderItem = useCallback(({ item }) => (
+    <ItemCard
+      item={item}
+      onPress={() => onItemPress && onItemPress(item)}
+      isNew={item.isNew}
+    />
+  ), [onItemPress]);
+
   return (
-    <ScrollView
+    <FlatList
       ref={ref}
+      data={items}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
-    >
-      {items.length === 0 ? (
-        <EmptyState />
-      ) : (
-        items.map((item, index) => (
-          <ItemCard
-            key={item.id || item._id || `item-${index}`}
-            item={item}
-            onPress={() => onItemPress && onItemPress(item)}
-            isNew={item.isNew}
-          />
-        ))
-      )}
-    </ScrollView>
+      ListEmptyComponent={EmptyState}
+      initialNumToRender={10}
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      removeClippedSubviews={true}
+    />
   );
 });
 

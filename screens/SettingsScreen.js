@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking, Clipboard } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -179,6 +180,8 @@ export default function SettingsScreen({ navigation }) {
               onValueChange={handleNotificationsChange}
               trackColor={{ false: colors.controlOff, true: colors.accent }}
               thumbColor={notifications ? colors.text : colors.textSecondary}
+              accessibilityLabel="Baro Alerts"
+              accessibilityRole="switch"
             />
           </View>
 
@@ -194,6 +197,8 @@ export default function SettingsScreen({ navigation }) {
               onValueChange={handleWishlistAlertsChange}
               trackColor={{ false: colors.controlOff, true: colors.accent }}
               thumbColor={wishlistAlerts ? colors.text : colors.textSecondary}
+              accessibilityLabel="Wishlist Alerts"
+              accessibilityRole="switch"
             />
           </View>
         </View>
@@ -216,6 +221,7 @@ export default function SettingsScreen({ navigation }) {
               placeholder="Enter display name"
               placeholderTextColor={colors.textDim}
               maxLength={24}
+              accessibilityLabel="Display Name"
             />
           </View>
           
@@ -231,6 +237,8 @@ export default function SettingsScreen({ navigation }) {
               onValueChange={handleAutoRefreshChange}
               trackColor={{ false: colors.controlOff, true: colors.accent }}
               thumbColor={autoRefresh ? colors.text : colors.textSecondary}
+              accessibilityLabel="Auto Refresh"
+              accessibilityRole="switch"
             />
           </View>
         </View>
@@ -239,18 +247,20 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity style={styles.settingItem} accessibilityLabel="Version 1.0.0">
             <Text style={styles.settingLabel}>Version</Text>
             <Text style={styles.settingValue}>1.0.0</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.settingItem}
+            accessibilityLabel="Device ID"
+            accessibilityRole="button"
             onPress={() => Alert.alert(
               'Device ID',
               deviceId,
               [
-                { text: 'Copy', onPress: () => Clipboard.setString(deviceId) },
+                { text: 'Copy', onPress: () => Clipboard.setStringAsync(deviceId) },
                 { text: 'OK' }
               ]
             )}
@@ -262,6 +272,8 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => navigation.navigate('Feedback')}
+            accessibilityLabel="Feedback"
+            accessibilityRole="button"
           >
             <Text style={styles.settingLabel}>Feedback</Text>
             <Text style={styles.settingValue}>›</Text>
@@ -270,6 +282,8 @@ export default function SettingsScreen({ navigation }) {
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => Linking.openURL('https://privacy.whenbaro.app')}
+            accessibilityLabel="Privacy Policy"
+            accessibilityRole="link"
           >
             <Text style={styles.settingLabel}>Privacy Policy</Text>
             <Text style={styles.settingValue}>›</Text>

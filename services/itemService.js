@@ -27,8 +27,3 @@ export const fetchBaroStatus = async () => {
 export const fetchAllItems = async () => {
   return apiFetch(ENDPOINTS.GET_ALL_ITEMS);
 };
-
-export default {
-  fetchAllItems,
-  fetchBaroStatus,
-};

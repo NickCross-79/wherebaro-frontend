@@ -58,9 +58,3 @@ export const unlikeItem = async (itemId, uid) => {
   invalidateLikesCache(itemId);
   return apiPost(ENDPOINTS.UNLIKE_ITEM, { item_oid: itemId, uid });
 };
-
-export default {
-  fetchLikes,
-  likeItem,
-  unlikeItem,
-};

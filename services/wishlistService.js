@@ -52,9 +52,3 @@ export const bulkSyncWishlistPushToken = async (itemIds, pushToken, action) => {
     action,
   });
 };
-
-export default {
-  addWishlistPushToken,
-  removeWishlistPushToken,
-  bulkSyncWishlistPushToken,
-};

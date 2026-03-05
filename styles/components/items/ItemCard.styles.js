@@ -22,12 +22,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 5,
   },
-  newBadge: {
-    display: 'none',
-  },
-  newBadgeText: {
-    display: 'none',
-  },
+
   newRibbon: {
     position: 'absolute',
     top: 12,
@@ -145,7 +140,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   itemCardNew: {},
-  itemCardWishlist: {},
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

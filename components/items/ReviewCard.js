@@ -2,24 +2,25 @@ import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { decodeHtmlEntities } from '../../utils/htmlDecode';
+import { useReviewContext } from '../../contexts/ReviewContext';
 import { colors } from '../../constants/theme';
 
-function ReviewCard({
-  review,
-  index,
-  currentUid,
-  editingReviewKey,
-  getReviewKey,
-  editingReviewText,
-  setEditingReviewText,
-  saveEditingReview,
-  cancelEditingReview,
-  startEditingReview,
-  confirmDeleteReview,
-  getRelativeTime,
-  onReportReview,
-  styles,
-}) {
+function ReviewCard({ review, index }) {
+  const {
+    CURRENT_UID: currentUid,
+    editingReviewKey,
+    getReviewKey,
+    editingReviewText,
+    setEditingReviewText,
+    saveEditingReview,
+    cancelEditingReview,
+    startEditingReview,
+    confirmDeleteReview,
+    getRelativeTime,
+    onReportReview,
+    styles,
+  } = useReviewContext();
+
   const isOwnReview = review?.uid === currentUid;
   const isEditing = isOwnReview && editingReviewKey === getReviewKey(review, index);
 
@@ -42,6 +43,8 @@ function ReviewCard({
               style={styles.reportButton}
               onPress={() => onReportReview(review, index)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Report review by ${review.user}`}
             >
               <Ionicons name="flag" size={16} color={colors.danger} />
             </TouchableOpacity>
@@ -70,12 +73,16 @@ function ReviewCard({
             <TouchableOpacity
               style={[styles.reviewEditButton, styles.reviewEditSave]}
               onPress={() => saveEditingReview(index)}
+              accessibilityRole="button"
+              accessibilityLabel="Save edited review"
             >
               <Text style={styles.reviewEditButtonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.reviewEditButton, styles.reviewEditCancel]}
               onPress={cancelEditingReview}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel editing review"
             >
               <Text style={styles.reviewEditButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -88,6 +95,8 @@ function ReviewCard({
           <TouchableOpacity
             style={styles.reviewActionButton}
             onPress={() => startEditingReview(review, index)}
+            accessibilityRole="button"
+            accessibilityLabel="Edit review"
           >
             <Ionicons
               name="pencil"
@@ -98,6 +107,8 @@ function ReviewCard({
           <TouchableOpacity
             style={styles.reviewActionButton}
             onPress={() => confirmDeleteReview(review, index)}
+            accessibilityRole="button"
+            accessibilityLabel="Delete review"
           >
             <Ionicons name="trash" size={22} color={colors.danger} />
           </TouchableOpacity>

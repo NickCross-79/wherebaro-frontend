@@ -19,6 +19,7 @@ import { useLike } from '../hooks/useLike';
 import { useReviewManagement } from '../hooks/useReviewManagement';
 import { formatDate, getRelativeTime } from '../utils/dateUtils';
 import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
+import { ReviewProvider } from '../contexts/ReviewContext';
 import styles from '../styles/screens/ItemDetailScreen.styles';
 
 export default function ItemDetailScreen({ route, navigation }) {
@@ -322,6 +323,44 @@ export default function ItemDetailScreen({ route, navigation }) {
     if (idx !== -1) updateTabIndex(idx);
   }, [routes, updateTabIndex]);
 
+  // Bundle review/like state into context to avoid prop-drilling
+  const handleLike = useCallback(() => handleLikeClick(itemId, CURRENT_UID), [handleLikeClick, itemId, CURRENT_UID]);
+  const boundSaveEditing = useCallback((index) => saveEditingReview(index, CURRENT_UID), [saveEditingReview, CURRENT_UID]);
+  const boundConfirmDelete = useCallback((review, index) => confirmDeleteReview(review, index, CURRENT_UID), [confirmDeleteReview, CURRENT_UID]);
+  const hasReview = CURRENT_UID ? hasUserReview(CURRENT_UID) : false;
+
+  const reviewContextValue = useMemo(() => ({
+    isLoadingReviews,
+    likeCount,
+    userLiked,
+    isLiking,
+    handleLike,
+    hasUserReview: hasReview,
+    newReview,
+    setNewReview,
+    isPostingReview,
+    handlePostReview: handlePostReviewWrapper,
+    reviews,
+    CURRENT_UID,
+    getRelativeTime,
+    editingReviewKey,
+    getReviewKey,
+    editingReviewText,
+    setEditingReviewText,
+    saveEditingReview: boundSaveEditing,
+    cancelEditingReview,
+    startEditingReview,
+    confirmDeleteReview: boundConfirmDelete,
+    onReportReview: handleReportReview,
+    reportedReviewKeys,
+    styles,
+  }), [
+    isLoadingReviews, likeCount, userLiked, isLiking, handleLike,
+    hasReview, newReview, isPostingReview, reviews, CURRENT_UID,
+    editingReviewKey, editingReviewText, boundSaveEditing,
+    boundConfirmDelete, reportedReviewKeys,
+  ]);
+
   return (
     <GestureDetector gesture={panGesture}>
       <View style={styles.container}>
@@ -346,68 +385,44 @@ export default function ItemDetailScreen({ route, navigation }) {
         />
 
         {/* Swipeable tab content */}
-        <View style={{ flex: 1, overflow: 'hidden' }}>
-          <RNAnimated.View
-            style={{
-              flexDirection: 'row',
-              width: screenWidth * tabCount,
-              flex: 1,
-              transform: [{ translateX }],
-            }}
-          >
-            <View style={{ width: screenWidth, flex: 1 }}>
-              <ItemDetailsTab
-                item={displayItem}
-                bottomSpacer={bottomSpacer}
-                showOfferings={showOfferings}
-                setShowOfferings={setShowOfferings}
-                formatDate={formatDate}
-                lastBrought={lastBrought}
-                styles={styles}
-              />
-            </View>
-            <View style={{ width: screenWidth, flex: 1 }}>
-              <ItemReviewsTab
-                bottomSpacer={bottomSpacer}
-                isLoadingReviews={isLoadingReviews}
-                likeCount={likeCount}
-                userLiked={userLiked}
-                isLiking={isLiking}
-                handleLike={() => handleLikeClick(itemId, CURRENT_UID)}
-                hasUserReview={CURRENT_UID ? hasUserReview(CURRENT_UID) : false}
-                newReview={newReview}
-                setNewReview={setNewReview}
-                isPostingReview={isPostingReview}
-                handlePostReview={handlePostReviewWrapper}
-                reviews={reviews}
-                CURRENT_UID={CURRENT_UID}
-                getRelativeTime={getRelativeTime}
-                editingReviewKey={editingReviewKey}
-                getReviewKey={getReviewKey}
-                editingReviewText={editingReviewText}
-                setEditingReviewText={setEditingReviewText}
-                saveEditingReview={(index) => saveEditingReview(index, CURRENT_UID)}
-                cancelEditingReview={cancelEditingReview}
-                startEditingReview={startEditingReview}
-                confirmDeleteReview={(review, index) => confirmDeleteReview(review, index, CURRENT_UID)}
-                onReportReview={handleReportReview}
-                reportedReviewKeys={reportedReviewKeys}
-                styles={styles}
-              />
-            </View>
-            {hasMarketTab && (
+        <ReviewProvider value={reviewContextValue}>
+          <View style={{ flex: 1, overflow: 'hidden' }}>
+            <RNAnimated.View
+              style={{
+                flexDirection: 'row',
+                width: screenWidth * tabCount,
+                flex: 1,
+                transform: [{ translateX }],
+              }}
+            >
               <View style={{ width: screenWidth, flex: 1 }}>
-                <ItemMarketTab
+                <ItemDetailsTab
                   item={displayItem}
                   bottomSpacer={bottomSpacer}
+                  showOfferings={showOfferings}
+                  setShowOfferings={setShowOfferings}
+                  formatDate={formatDate}
+                  lastBrought={lastBrought}
                   styles={styles}
-                  marketData={marketData}
-                  isLoadingMarket={isLoadingMarket}
                 />
               </View>
-            )}
-          </RNAnimated.View>
-        </View>
+              <View style={{ width: screenWidth, flex: 1 }}>
+                <ItemReviewsTab bottomSpacer={bottomSpacer} />
+              </View>
+              {hasMarketTab && (
+                <View style={{ width: screenWidth, flex: 1 }}>
+                  <ItemMarketTab
+                    item={displayItem}
+                    bottomSpacer={bottomSpacer}
+                    styles={styles}
+                    marketData={marketData}
+                    isLoadingMarket={isLoadingMarket}
+                  />
+                </View>
+              )}
+            </RNAnimated.View>
+          </View>
+        </ReviewProvider>
       </View>
     </GestureDetector>
   );

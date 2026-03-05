@@ -1,4 +1,4 @@
-import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE, PRIMED_DISAPPOINTMENT_IMAGE } from '../constants/items';
+import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE } from '../constants/items';
 
 /**
  * Sentinel value used on the backend to indicate a generated mod image is pending

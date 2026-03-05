@@ -25,7 +25,7 @@ export default function WishlistScreen({ navigation }) {
       item={item}
       onPress={() => navigation.navigate('ItemDetail', { item })}
       hideWishlistBadge={true}
-      hideWishlistBorder={true}
+
     />
   ), [navigation]);
 

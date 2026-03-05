@@ -36,28 +36,6 @@ export const getLastDataRefresh = async () => {
 };
 
 /**
- * Get app settings
- */
-export const getAppSettings = async () => {
-  return {
-    theme: await storageHelpers.getTheme(),
-    language: await storageHelpers.getLanguage(),
-  };
-};
-
-/**
- * Update app settings
- */
-export const updateAppSettings = async (settings) => {
-  if (settings.theme) {
-    await storageHelpers.setTheme(settings.theme);
-  }
-  if (settings.language) {
-    await storageHelpers.setLanguage(settings.language);
-  }
-};
-
-/**
  * Get notification-related settings
  */
 export const getNotificationSettings = async () => {
@@ -95,8 +73,6 @@ export default {
   setCurrentUsername,
   isFirstLaunch,
   getLastDataRefresh,
-  getAppSettings,
-  updateAppSettings,
   getNotificationSettings,
   updateNotificationSettings,
 };

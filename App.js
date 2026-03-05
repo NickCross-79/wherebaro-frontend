@@ -30,11 +30,6 @@ export default function App() {
     const initializeApp = async () => {
       try {
         await initializeDatabase();
-        const isFirst = await storageHelpers.getIsFirstLaunch();
-        if (isFirst) {
-          await storageHelpers.setIsFirstLaunch(false);
-          logger.log('App initialized for first time');
-        }
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         logger.log('Device UID:', deviceUID.substring(0, 12) + '...');
