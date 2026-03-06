@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/imgs/logo_baro_icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0E1A"
+      "backgroundColor": "#0C0C0E"
     },
     "ios": {
       "supportsTablet": true
@@ -21,7 +21,7 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/imgs/logo_baro_icon.png",
-        "backgroundColor": "#0A0E1A"
+        "backgroundColor": "#0C0C0E"
       }
     },
     "web": {
