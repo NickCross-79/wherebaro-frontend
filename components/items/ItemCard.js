@@ -265,20 +265,20 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
           <View style={styles.priceContainer}>
             <View style={styles.priceRow}>
               <Image
-                source={require('../../assets/imgs/img_credit.png')}
-                style={styles.creditIcon}
-              />
-              <Text style={styles.priceValue}>
-                {item.creditPrice.toLocaleString()}
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Image
                 source={require('../../assets/imgs/img_ducat.png')}
                 style={styles.ducatIcon}
               />
               <Text style={styles.ducatValue}>
                 {item.ducatPrice ?? 0}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Image
+                source={require('../../assets/imgs/img_credit.png')}
+                style={styles.creditIcon}
+              />
+              <Text style={styles.priceValue}>
+                {item.creditPrice.toLocaleString()}
               </Text>
             </View>
           </View>

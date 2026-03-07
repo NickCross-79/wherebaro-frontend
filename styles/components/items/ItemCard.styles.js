@@ -226,7 +226,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   priceContainer: {
-    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   priceRow: {
     flexDirection: 'row',
