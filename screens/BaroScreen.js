@@ -10,10 +10,23 @@ import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useUserActions } from '../contexts/UserActionsContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
 import { colors } from '../constants/theme';
+
+const BARO_SORT_OPTIONS = [
+  { label: 'Default',      value: 'all' },
+  { label: 'Buy Votes',    value: 'buy-votes' },
+  { label: 'Skip Votes',   value: 'skip-votes' },
+  { label: 'Likes',        value: 'popular' },
+  { label: 'Wishlists',    value: 'most-wishlisted' },
+  { label: 'Reviews',      value: 'most-reviews' },
+  { label: 'Last Brought', value: 'last-brought' },
+  { label: 'Credits',      value: 'credits' },
+  { label: 'Ducats',       value: 'ducats' },
+];
 
 export default function BaroScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -25,6 +38,7 @@ export default function BaroScreen({ navigation }) {
   const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
   const { items, loading, syncing, nextArrival, nextLocation, isHere } = useInventory();
   const { isInWishlist } = useWishlist();
+  const { getItemVoteData } = useUserActions();
 
   const scrollDistance = Math.max(expandedHeaderHeight - COLLAPSED_HEADER_HEIGHT, 1);
 
@@ -34,7 +48,7 @@ export default function BaroScreen({ navigation }) {
     extrapolate: 'clamp',
   });
 
-  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist, getItemVoteData), [items, searchQuery, filters, isInWishlist, getItemVoteData]);
 
   const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });
@@ -98,6 +112,7 @@ export default function BaroScreen({ navigation }) {
               onChangeText={setSearchQuery}
               filters={filters}
               onApplyFilters={setFilters}
+              sortOptions={BARO_SORT_OPTIONS}
               containerStyle={{ marginTop: 0, ...styles.searchBar }}
             />
           </LinearGradient>

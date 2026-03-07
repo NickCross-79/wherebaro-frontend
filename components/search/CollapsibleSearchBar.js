@@ -16,7 +16,7 @@ const SORT_OPTIONS = [
   { label: 'Ducats', value: 'ducats' },
 ];
 
-export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, titleColor = colors.text, titleStyle, filters, onApplyFilters, containerStyle }) {
+export default function CollapsibleSearchBar({ value, onChangeText, placeholder = "Search items...", title, titleColor = colors.text, titleStyle, filters, onApplyFilters, containerStyle, sortOptions: sortOptionsProp }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -50,7 +50,8 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
 
   const hasActiveFilters = filters && ((filters.categories || []).length > 0 || filters.popularity !== 'all');
   const activeFilterCount = filters ? (filters.categories || []).length : 0;
-  const currentSort = SORT_OPTIONS.find(o => o.value === (filters?.popularity ?? 'all')) ?? SORT_OPTIONS[0];
+  const activeSortOptions = sortOptionsProp ?? SORT_OPTIONS;
+  const currentSort = activeSortOptions.find(o => o.value === (filters?.popularity ?? 'all')) ?? activeSortOptions[0];
   const sortDir = filters?.sortDir ?? 'desc';
   const showDirButton = filters?.popularity && filters.popularity !== 'all';
 
@@ -112,7 +113,7 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
               </TouchableOpacity>
               {showSortDropdown && (
                 <View style={styles.sortDropdown}>
-                  {SORT_OPTIONS.map(opt => (
+                  {activeSortOptions.map(opt => (
                     <TouchableOpacity
                       key={opt.value}
                       style={[styles.sortOption, filters.popularity === opt.value && styles.sortOptionActive]}
