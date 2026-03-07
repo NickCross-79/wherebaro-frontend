@@ -86,8 +86,10 @@ export default function ItemDetailScreen({ route, navigation }) {
   const bottomSpacer = insets.bottom + 90;
 
   // Check if market tab should be shown
-  const hasMarketTab = item && ['Mod', 'Weapon', 'Void Relic'].some(
-    category => item.type.toLowerCase().startsWith(category.toLowerCase())
+  const hasMarketTab = item && (
+    item.type.toLowerCase().includes('mod') ||
+    item.type.toLowerCase().startsWith('weapon') ||
+    item.type.toLowerCase().startsWith('void relic')
   ) && !MARKET_EXCLUDED_ITEMS.includes(item.name.toLowerCase());
 
   const tabCount = hasMarketTab ? 3 : 2;
@@ -239,9 +241,12 @@ export default function ItemDetailScreen({ route, navigation }) {
   }
 
   const offeringDates = item.offeringDates || [];
-  // When Baro is active, the last date is this week's visit — show the previous one instead.
-  // When Baro is inactive, show the normal last date.
-  const lastBrought = isBaroHere
+  // Only skip the last offering date if Baro is active AND this item is in the current inventory.
+  // Items from the archive not in the current visit should always show their actual last date.
+  const isInCurrentInventory = isBaroHere && inventoryItems.some(
+    (inv) => String(inv._id?.$oid || inv._id || inv.id) === String(item._id?.$oid || item._id || item.id)
+  );
+  const lastBrought = isInCurrentInventory
     ? (offeringDates.length >= 2 ? offeringDates[offeringDates.length - 2] : null)
     : (offeringDates.length >= 1 ? offeringDates[offeringDates.length - 1] : null);
 

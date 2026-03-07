@@ -3,12 +3,12 @@ import { colors } from '../../../constants/theme';
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 32,

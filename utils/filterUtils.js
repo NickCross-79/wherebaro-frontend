@@ -43,14 +43,8 @@ const getMostRecentOfferingDate = (item) => {
   if (!item.offeringDates || !Array.isArray(item.offeringDates) || item.offeringDates.length === 0) {
     return null;
   }
-  
-  const dates = item.offeringDates
-    .map(dateStr => new Date(dateStr))
-    .filter(date => !isNaN(date.getTime()));
-  
-  if (dates.length === 0) return null;
-  
-  return new Date(Math.max(...dates.map(d => d.getTime())));
+  const last = new Date(item.offeringDates[item.offeringDates.length - 1]);
+  return isNaN(last.getTime()) ? null : last;
 };
 
 /**
@@ -60,36 +54,37 @@ const getMostRecentOfferingDate = (item) => {
  * @param {Function} [isInWishlist] - Optional function (item) => bool for wishlist-aware default sort
  * @returns {Array} Sorted items
  */
-export const sortByPopularity = (items, sortType, isInWishlist) => {
+export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc') => {
   const sorted = [...items];
-  
+  const dir = sortDir === 'asc' ? 1 : -1;
+
   const alpha = (a, b) => (a.name || '').localeCompare(b.name || '');
 
   if (sortType === 'popular') {
-    sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0) || alpha(a, b));
+    sorted.sort((a, b) => dir * ((b.likes || 0) - (a.likes || 0)) || alpha(a, b));
   } else if (sortType === 'unpopular') {
     sorted.sort((a, b) => (a.likes || 0) - (b.likes || 0) || alpha(a, b));
   } else if (sortType === 'most-reviews') {
-    sorted.sort((a, b) => ((b.reviews || []).length) - ((a.reviews || []).length) || alpha(a, b));
+    sorted.sort((a, b) => dir * (((b.reviews || []).length) - ((a.reviews || []).length)) || alpha(a, b));
   } else if (sortType === 'least-reviews') {
     sorted.sort((a, b) => ((a.reviews || []).length) - ((b.reviews || []).length) || alpha(a, b));
   } else if (sortType === 'most-wishlisted') {
-    sorted.sort((a, b) => (b.wishlistCount || 0) - (a.wishlistCount || 0) || alpha(a, b));
+    sorted.sort((a, b) => dir * ((b.wishlistCount || 0) - (a.wishlistCount || 0)) || alpha(a, b));
   } else if (sortType === 'least-wishlisted') {
     sorted.sort((a, b) => (a.wishlistCount || 0) - (b.wishlistCount || 0) || alpha(a, b));
   } else if (sortType === 'last-brought') {
     sorted.sort((a, b) => {
       const dateA = getMostRecentOfferingDate(a);
       const dateB = getMostRecentOfferingDate(b);
-      
-      // Items without dates go to the end
       if (!dateA && !dateB) return alpha(a, b);
       if (!dateA) return 1;
       if (!dateB) return -1;
-      
-      // Most recent first (descending order), then alphabetical
-      return (dateB.getTime() - dateA.getTime()) || alpha(a, b);
+      return dir * (dateB.getTime() - dateA.getTime()) || alpha(a, b);
     });
+  } else if (sortType === 'credits') {
+    sorted.sort((a, b) => dir * ((b.creditPrice ?? 0) - (a.creditPrice ?? 0)) || alpha(a, b));
+  } else if (sortType === 'ducats') {
+    sorted.sort((a, b) => dir * ((b.ducatPrice ?? 0) - (a.ducatPrice ?? 0)) || alpha(a, b));
   } else {
     // Default: new items first, then wishlisted alphabetically, then remaining alphabetically
     sorted.sort((a, b) => {
@@ -117,5 +112,5 @@ export const sortByPopularity = (items, sortType, isInWishlist) => {
 export const applyAllFilters = (items, searchQuery, filters, isInWishlist) => {
   let filtered = filterBySearch(items, searchQuery);
   filtered = filterByCategories(filtered, filters.categories);
-  return sortByPopularity(filtered, filters.popularity, isInWishlist);
+  return sortByPopularity(filtered, filters.popularity, isInWishlist, filters.sortDir ?? 'desc');
 };

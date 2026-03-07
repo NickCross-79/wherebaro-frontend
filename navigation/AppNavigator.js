@@ -67,7 +67,7 @@ function CustomTabBar({ state, navigation, insets, badgeCount }) {
     <View
       style={[
         styles.tabBar,
-        { paddingBottom: insets.bottom + 10, height: insets.bottom + 70 },
+        { paddingBottom: insets.bottom + 6, height: insets.bottom + 54 },
       ]}
     >
       <LinearGradient
@@ -78,7 +78,7 @@ function CustomTabBar({ state, navigation, insets, badgeCount }) {
       <View style={styles.tabBarContent}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
-          const color = focused ? colors.accent : colors.textDim;
+          const color = focused ? colors.accent : colors.textSecondary;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -100,11 +100,11 @@ function CustomTabBar({ state, navigation, insets, badgeCount }) {
             >
               <View style={styles.iconWrapper}>
                 {route.name === 'Baro' ? (
-                  <BaroIcon width={28} height={28} color={color} />
+                  <BaroIcon width={22} height={22} color={color} />
                 ) : (
                   <Ionicons
                     name={ICON_MAP[route.name] || 'ellipse'}
-                    size={24}
+                    size={20}
                     color={color}
                   />
                 )}

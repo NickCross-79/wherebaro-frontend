@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     elevation: 0,
     backgroundColor: 'transparent',
-    paddingTop: 10,
+    paddingTop: 6,
   },
   tabBarContent: {
     flex: 1,
@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 28,
-    height: 28,
+    width: 22,
+    height: 22,
   },
   badge: {
     position: 'absolute',
@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   tabBarLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 3,
   },
 });
 

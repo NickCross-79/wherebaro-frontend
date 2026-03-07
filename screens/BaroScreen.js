@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
-import Header from '../components/ui/Header';
+import { LinearGradient } from 'expo-linear-gradient';
+import AnimatedBaroHeader, { COLLAPSED_HEADER_HEIGHT } from '../components/baro/AnimatedBaroHeader';
 import InventoryList from '../components/baro/InventoryList';
 import LoadingScreen from './LoadingScreen';
 import BaroAbsentScreen from './BaroAbsentScreen';
@@ -16,11 +17,22 @@ import { colors } from '../constants/theme';
 
 export default function BaroScreen({ navigation }) {
   const scrollRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
+  const [searchBarHeight, setSearchBarHeight] = useState(75);
+  const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
   const { items, loading, syncing, nextArrival, nextLocation, isHere } = useInventory();
   const { isInWishlist } = useWishlist();
+
+  const scrollDistance = Math.max(expandedHeaderHeight - COLLAPSED_HEADER_HEIGHT, 1);
+
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, scrollDistance],
+    outputRange: [0, -scrollDistance],
+    extrapolate: 'clamp',
+  });
 
   const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
 
@@ -28,9 +40,13 @@ export default function BaroScreen({ navigation }) {
     navigation.navigate('ItemDetail', { item });
   }, [navigation]);
 
+  const onScroll = useMemo(() => Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: true }
+  ), [scrollY]);
+
   logger.debug('BaroScreen', `Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}`);
 
-  // Show syncing screen when transitioning to Baro active state (check first — takes priority)
   if (syncing) {
     logger.debug('BaroScreen', '→ Showing syncing screen');
     return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
@@ -41,38 +57,52 @@ export default function BaroScreen({ navigation }) {
     return <LoadingScreen />;
   }
 
-  // Show absent screen when Baro is not here
   if (!isHere) {
     logger.debug('BaroScreen', `→ Showing BaroAbsentScreen (nextArrival=${nextArrival})`);
     return <BaroAbsentScreen nextArrival={nextArrival} nextLocation={nextLocation} />;
   }
 
-  // Show inventory when Baro is here
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <Header 
-        nextArrival={nextArrival} 
-        nextLocation={nextLocation} 
-        isHere={isHere} 
-        showTitle={false}
-      >
-        <CollapsibleSearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          title="This Week's Items"
-          titleColor={colors.textSecondary}
-          titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
-          filters={filters}
-          onApplyFilters={setFilters}
-        />
-      </Header>
-      <InventoryList
-        ref={scrollRef}
-        items={finalItems}
-        onItemPress={handleItemPress}
+      <AnimatedBaroHeader
+        scrollY={scrollY}
+        nextArrival={nextArrival}
+        nextLocation={nextLocation}
+        onHeightMeasured={setExpandedHeaderHeight}
       />
+      <View style={{ flex: 1 }}>
+        <InventoryList
+          ref={scrollRef}
+          items={finalItems}
+          onItemPress={handleItemPress}
+          contentContainerStyle={{ paddingTop: expandedHeaderHeight + searchBarHeight }}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+        />
+        <Animated.View
+          style={[
+            styles.searchBarGradient,
+            { top: expandedHeaderHeight, transform: [{ translateY: headerTranslateY }] },
+          ]}
+          pointerEvents="box-none"
+          onLayout={(e) => setSearchBarHeight(e.nativeEvent.layout.height)}
+        >
+          <LinearGradient
+            colors={[colors.background, colors.background, 'transparent']}
+            locations={[0, 0.6, 1]}
+            style={{ paddingBottom: 28 }}
+          >
+            <CollapsibleSearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              filters={filters}
+              onApplyFilters={setFilters}
+              containerStyle={{ marginTop: 0, ...styles.searchBar }}
+            />
+          </LinearGradient>
+        </Animated.View>
+      </View>
     </View>
   );
 }
-

@@ -1,10 +1,10 @@
-import { Text, View, Image } from 'react-native';
+import { Text, View, Animated } from 'react-native';
 import { useState, useEffect, memo } from 'react';
 import TimeIcon from '../../assets/icons/icon_time.svg';
 import { formatTimeRemaining } from '../../utils/dateUtils';
 import styles from '../../styles/components/baro/BaroTimer.styles';
 
-function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon' }) {
+function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon', detailsStyle, containerStyle }) {
   const [timeRemaining, setTimeRemaining] = useState('');
 
   useEffect(() => {
@@ -21,18 +21,18 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
 
   return (
     <View
-      style={[styles.timerContainer, centered && styles.centered]}
+      style={[styles.timerContainer, centered && styles.centered, containerStyle]}
       accessibilityRole="timer"
       accessibilityLabel={`${label}: ${timeRemaining}${location ? `, at ${location.name}, ${location.planet}` : ''}`}
     >
-      <View style={[styles.headerRow, centered && styles.centeredRow]}>
+      <Animated.View style={[styles.headerRow, centered && styles.centeredRow, detailsStyle]}>
         <Text style={[styles.timerLabel, centered && styles.centeredText]}>{label}</Text>
         {location && (
           <Text style={[styles.locationText, centered && styles.centeredText]}>
             {location.name}, ({location.planet})
           </Text>
         )}
-      </View>
+      </Animated.View>
       <View style={styles.timerValueRow}>
         <TimeIcon width={20} height={20} />
         <Text style={[styles.timerValue, centered && styles.centeredText]}>{timeRemaining}</Text>

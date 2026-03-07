@@ -241,10 +241,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   likeSection: {
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   likeButton: {
     flexDirection: 'row',

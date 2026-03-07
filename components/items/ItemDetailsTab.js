@@ -85,7 +85,7 @@ export default function ItemDetailsTab({
             <Text style={styles.priceLabel}>Ducats</Text>
           </View>
           <Text style={styles.ducatValue}>
-            {item.ducatPrice != null ? item.ducatPrice.toLocaleString() : 'N/A'}
+            {(item.ducatPrice ?? 0).toLocaleString()}
           </Text>
         </View>
       </View>

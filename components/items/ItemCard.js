@@ -265,7 +265,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
                 style={styles.ducatIcon}
               />
               <Text style={styles.ducatValue}>
-                {item.ducatPrice}
+                {item.ducatPrice ?? 0}
               </Text>
             </View>
           </View>

@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList } from 'react-native';
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
@@ -14,6 +15,7 @@ export default function WishlistScreen({ navigation }) {
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
+  const [searchBarHeight, setSearchBarHeight] = useState(75);
   const { wishlistItems } = useWishlist();
 
   const finalItems = useMemo(() => applyAllFilters(wishlistItems, searchQuery, filters), [wishlistItems, searchQuery, filters]);
@@ -35,41 +37,55 @@ export default function WishlistScreen({ navigation }) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>WISHLIST</Text>
-        <CollapsibleSearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          title="Items you're waiting for"
-          titleColor={colors.textSecondary}
-          titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
-          filters={filters}
-          onApplyFilters={setFilters}
-        />
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>WISHLIST</Text>
+          <Text style={styles.headerSubtitle}>{wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} on your wishlist</Text>
+        </View>
       </View>
 
-      <FlatList
-        ref={scrollRef}
-        data={finalItems}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        contentContainerStyle={styles.scrollContent}
-        ListEmptyComponent={() => (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {wishlistItems.length === 0
-                ? 'Tap the heart (or long-press an item) to add it here'
-                : 'Try a different search term'}
-            </Text>
-          </View>
-        )}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews={true}
-      />
+      {/* Content area with floating search bar */}
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={scrollRef}
+          data={finalItems}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: searchBarHeight }]}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {wishlistItems.length === 0 ? 'Your wishlist is empty' : 'No items found'}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {wishlistItems.length === 0
+                  ? 'Tap the heart (or long-press an item) to add it here'
+                  : 'Try a different search term'}
+              </Text>
+            </View>
+          )}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
+        />
+
+        {/* Floating gradient search bar */}
+        <LinearGradient
+          colors={[colors.background, colors.background, 'transparent']}
+          locations={[0, 0.6, 1]}
+          style={styles.searchBarGradient}
+          pointerEvents="box-none"
+          onLayout={(e) => setSearchBarHeight(e.nativeEvent.layout.height)}
+        >
+          <CollapsibleSearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            filters={filters}
+            onApplyFilters={setFilters}
+            containerStyle={styles.searchBar}
+          />
+        </LinearGradient>
+      </View>
     </View>
   );
 }

@@ -7,7 +7,6 @@ import { colors } from '../../constants/theme';
 
 export default function FilterMenu({ visible, onClose, filters, onApplyFilters }) {
   const [localFilters, setLocalFilters] = useState(filters);
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
   const insets = useSafeAreaInsets();
   
   // Sync local state when filters change from parent
@@ -16,13 +15,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   }, [filters, visible]);
   
   const categories = ['Mod', 'Weapon', 'Cosmetic', 'Booster', 'Somachord', 'Consumable', 'Decoration', 'Glyph', 'Void Relic', 'Captura Scene', 'Emote', 'Color Palette'];
-  const popularityOptions = [
-    { label: 'Default', value: 'all' },
-    { label: 'Most Liked', value: 'popular' },
-    { label: 'Most Wishlisted', value: 'most-wishlisted' },
-    { label: 'Most Reviewed', value: 'most-reviews' },
-    { label: 'Last Brought', value: 'last-brought' },
-  ];
 
   const toggleCategory = (category) => {
     const newCategories = (localFilters.categories || []).includes(category)
@@ -31,13 +23,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     const updatedFilters = { ...localFilters, categories: newCategories };
     setLocalFilters(updatedFilters);
     onApplyFilters(updatedFilters);
-  };
-
-  const setPopularity = (value) => {
-    const updatedFilters = { ...localFilters, popularity: value };
-    setLocalFilters(updatedFilters);
-    onApplyFilters(updatedFilters);
-    setShowSortDropdown(false);
   };
 
   const clearFilters = () => {
@@ -76,48 +61,6 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
           </View>
 
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Sort By */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sort By</Text>
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => setShowSortDropdown(!showSortDropdown)}
-              >
-                <Text style={styles.dropdownText}>
-                  {popularityOptions.find(opt => opt.value === localFilters.popularity)?.label || 'Default'}
-                </Text>
-                <Ionicons 
-                  name={showSortDropdown ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={colors.textSecondary} 
-                />
-              </TouchableOpacity>
-              {showSortDropdown && (
-                <View style={styles.dropdownMenu}>
-                  {popularityOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.dropdownItem,
-                        localFilters.popularity === option.value && styles.dropdownItemActive
-                      ]}
-                      onPress={() => setPopularity(option.value)}
-                    >
-                      <Text style={[
-                        styles.dropdownItemText,
-                        localFilters.popularity === option.value && styles.dropdownItemTextActive
-                      ]}>
-                        {option.label}
-                      </Text>
-                      {localFilters.popularity === option.value && (
-                        <Ionicons name="checkmark" size={20} color={colors.accent} />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categories</Text>

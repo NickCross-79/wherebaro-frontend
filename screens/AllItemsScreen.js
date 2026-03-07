@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
@@ -15,6 +16,7 @@ export default function AllItemsScreen({ navigation }) {
   useScrollToTop(listRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
+  const [searchBarHeight, setSearchBarHeight] = useState(75);
   const { items, loading, error } = useAllItems();
 
   // Load filters on mount
@@ -48,20 +50,15 @@ export default function AllItemsScreen({ navigation }) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ALL ITEMS</Text>
-        
-        <CollapsibleSearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          title={`${finalItems.length} items in archive`}
-          titleColor={colors.textSecondary}
-          titleStyle={{ fontSize: 14, fontWeight: '600', letterSpacing: 1 }}
-          filters={filters}
-          onApplyFilters={setFilters}
-        />
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>ALL ITEMS</Text>
+          <Text style={styles.headerSubtitle}>{finalItems.length} items in archive</Text>
+        </View>
       </View>
 
-      {loading ? (
+      {/* Content area with floating search bar */}
+      <View style={{ flex: 1 }}>
+        {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading Baro's archive...</Text>
@@ -70,7 +67,7 @@ export default function AllItemsScreen({ navigation }) {
         <FlatList
           data={[]}
           renderItem={null}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: searchBarHeight }]}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>Error loading items</Text>
@@ -84,7 +81,7 @@ export default function AllItemsScreen({ navigation }) {
           data={finalItems}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: searchBarHeight }]}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
@@ -101,6 +98,24 @@ export default function AllItemsScreen({ navigation }) {
           removeClippedSubviews={true}
         />
       )}
+
+        {/* Floating gradient search bar */}
+        <LinearGradient
+          colors={[colors.background, colors.background, 'transparent']}
+          locations={[0, 0.6, 1]}
+          style={styles.searchBarGradient}
+          pointerEvents="box-none"
+          onLayout={(e) => setSearchBarHeight(e.nativeEvent.layout.height)}
+        >
+          <CollapsibleSearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            filters={filters}
+            onApplyFilters={setFilters}
+            containerStyle={styles.searchBar}
+          />
+        </LinearGradient>
+      </View>
     </View>
   );
 }

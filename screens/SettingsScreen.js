@@ -20,7 +20,6 @@ export default function SettingsScreen({ navigation }) {
   const { wishlistIds } = useWishlist();
   const [notifications, setNotifications] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const [displayName, setDisplayName] = useState('Anonymous');
   const [deviceId, setDeviceId] = useState('');
   const insets = useSafeAreaInsets();
@@ -33,7 +32,6 @@ export default function SettingsScreen({ navigation }) {
     };
     const loadSettings = async () => {
       const settings = await getNotificationSettings();
-      setAutoRefresh(settings.autoRefresh);
 
       // Check actual permission state — override stored prefs if denied
       if (Device.isDevice) {
@@ -144,19 +142,16 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
-  const handleAutoRefreshChange = async (value) => {
-    setAutoRefresh(value);
-    await updateNotificationSettings({ autoRefresh: value });
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>SETTINGS</Text>
-        <Text style={styles.headerSubtitle}>Customize your experience</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>SETTINGS</Text>
+          <Text style={styles.headerSubtitle}>Customize your experience</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -225,22 +220,6 @@ export default function SettingsScreen({ navigation }) {
             />
           </View>
           
-          <View style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Auto Refresh</Text>
-              <Text style={styles.settingDescription}>
-                Automatically refresh inventory
-              </Text>
-            </View>
-            <Switch
-              value={autoRefresh}
-              onValueChange={handleAutoRefreshChange}
-              trackColor={{ false: colors.controlOff, true: colors.accent }}
-              thumbColor={autoRefresh ? colors.text : colors.textSecondary}
-              accessibilityLabel="Auto Refresh"
-              accessibilityRole="switch"
-            />
-          </View>
         </View>
 
         {/* About Section */}

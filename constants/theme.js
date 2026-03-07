@@ -101,7 +101,7 @@ export const accentWithOpacity = (opacity) =>
  */
 export const gradients = {
   /** Tab-bar fade from transparent to surface */
-  tabBar: ['rgba(12, 12, 14, 0)', 'rgba(12, 12, 14, 0.92)', '#0C0C0E'],
+  tabBar: ['rgba(12, 12, 14, 0.7)', 'rgba(12, 12, 14, 0.98)', '#0C0C0E'],
   /** Image overlay fade from background to transparent */
   imageOverlay: ['rgba(12, 12, 14, 0.97)', 'rgba(12, 12, 14, 0.05)'],
   /** Subtle top-edge sheen on elevated panels */
