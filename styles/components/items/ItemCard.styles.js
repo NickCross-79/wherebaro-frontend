@@ -294,6 +294,9 @@ const styles = StyleSheet.create({
   voteBadgeTextBuy: {
     color: colors.accent,
   },
+  voteBadgeTextSkip: {
+    color: colors.danger,
+  },
 });
 
 export default styles;

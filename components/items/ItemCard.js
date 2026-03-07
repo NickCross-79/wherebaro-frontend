@@ -239,11 +239,12 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
             <Ionicons
               name={voteBadge.winner === 'buy' ? 'cart' : 'close-circle'}
               size={11}
-              color={voteBadge.winner === 'buy' ? colors.accent : colors.textSecondary}
+              color={voteBadge.winner === 'buy' ? colors.accent : colors.danger}
             />
             <Text style={[
               styles.voteBadgeText,
               voteBadge.winner === 'buy' && styles.voteBadgeTextBuy,
+              voteBadge.winner === 'skip' && styles.voteBadgeTextSkip,
             ]}>
               {voteBadge.count} voted to {voteBadge.label}
             </Text>
