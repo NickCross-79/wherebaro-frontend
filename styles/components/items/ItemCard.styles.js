@@ -200,8 +200,9 @@ const styles = StyleSheet.create({
   },
   itemInfo: {
     flex: 1,
+    minWidth: 0,
     justifyContent: 'flex-start',
-    gap: 4,
+    gap: 6,
   },
   nameAndLikes: {
     flexDirection: 'row',
@@ -210,6 +211,7 @@ const styles = StyleSheet.create({
   },
   nameContainer: {
     flex: 1,
+    minWidth: 0,
   },
   itemName: {
     fontSize: 18,
@@ -228,6 +230,7 @@ const styles = StyleSheet.create({
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 12,
   },
   priceRow: {

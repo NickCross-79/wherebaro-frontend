@@ -234,7 +234,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
         <View style={styles.itemInfo}>
           <View style={styles.nameAndLikes}>
             <View style={styles.nameContainer}>
-              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{item.name}</Text>
               <Text style={styles.categoryText}>{item.type}</Text>
             </View>
           </View>
