@@ -20,6 +20,7 @@ import { useReviewManagement } from '../hooks/useReviewManagement';
 import { formatDate, getRelativeTime } from '../utils/dateUtils';
 import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
 import { ReviewProvider } from '../contexts/ReviewContext';
+import { useUserActions } from '../contexts/UserActionsContext';
 import styles from '../styles/screens/ItemDetailScreen.styles';
 
 export default function ItemDetailScreen({ route, navigation }) {
@@ -40,6 +41,8 @@ export default function ItemDetailScreen({ route, navigation }) {
     tabIndexRef.current = newIndex;
     setTabIndex(newIndex);
   }, []);
+
+  const { markLiked, markReviewed } = useUserActions();
 
   // Load reported reviews on mount
   useEffect(() => {
@@ -302,6 +305,16 @@ export default function ItemDetailScreen({ route, navigation }) {
       void fetchReviewsAndLikes(CURRENT_UID);
     }
   }, [CURRENT_UID, itemId]);
+
+  // Persist liked state to UserActionsContext for card display
+  useEffect(() => {
+    if (CURRENT_UID && itemId) markLiked(itemId, userLiked);
+  }, [userLiked, CURRENT_UID, itemId]);
+
+  // Persist reviewed state to UserActionsContext for card display
+  useEffect(() => {
+    if (CURRENT_UID && itemId) markReviewed(itemId, hasUserReview(CURRENT_UID));
+  }, [reviews, CURRENT_UID, itemId]);
 
   useEffect(() => {
     const loadMarketData = async () => {

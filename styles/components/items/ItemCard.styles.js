@@ -160,39 +160,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  statsContainer: {
-    gap: 4,
-    alignItems: 'flex-end',
-  },
-  likesContainer: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 10,
   },
-  likesText: {
-    color: colors.accent,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  reviewsContainer: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
-  reviewsText: {
-    color: colors.accent,
-    fontSize: 15,
+  statText: {
+    color: colors.textSecondary,
+    fontSize: 12,
     fontWeight: '600',
   },
-  wishlistCountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  wishlistCountText: {
+  statTextActive: {
     color: colors.accent,
-    fontSize: 15,
-    fontWeight: '600',
   },
   cardContent: {
     flexDirection: 'row',
@@ -225,7 +210,6 @@ const styles = StyleSheet.create({
   },
   nameContainer: {
     flex: 1,
-    marginRight: 8,
   },
   itemName: {
     fontSize: 18,

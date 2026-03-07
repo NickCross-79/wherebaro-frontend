@@ -7,6 +7,7 @@ import { useInventory } from '../../contexts/InventoryContext';
 import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
 import { colors } from '../../constants/theme';
+import { useUserActions } from '../../contexts/UserActionsContext';
 
 const PARTICLE_DIRECTIONS = [
   { dx:   0, dy: -60 },
@@ -21,7 +22,11 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
-  const inWishlist = isInWishlist(item?.id || item?._id);
+  const { hasLiked, hasReviewed } = useUserActions();
+  const itemId       = item?.id || item?._id;
+  const inWishlist   = isInWishlist(itemId);
+  const userLiked    = hasLiked(itemId);
+  const userReviewed = hasReviewed(itemId);
 
   const cardScale    = useRef(new Animated.Value(1)).current;
   const flashOpacity = useRef(new Animated.Value(0)).current;
@@ -116,7 +121,6 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
   const handleLongPress = () => {
     longPressActivated.current = true;
     internalToggleRef.current = true;
-    const itemId = item?.id || item?._id;
     const delta = inWishlist ? -1 : 1;
 
     if (!inWishlist) {
@@ -233,21 +237,30 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.categoryText}>{item.type}</Text>
             </View>
-            <View style={styles.statsContainer}>
-              <View style={[styles.likesContainer, { opacity: (Array.isArray(item.likes) ? item.likes.length : item.likes || 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="thumbs-up" size={20} color={colors.accent} />
-                <Text style={styles.likesText}>{Array.isArray(item.likes) ? item.likes.length : item.likes || 0}</Text>
-              </View>
-              <View style={[styles.reviewsContainer, { opacity: (Array.isArray(item.reviews) ? item.reviews.length : 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="chatbubbles" size={18} color={colors.accent} />
-                <Text style={styles.reviewsText}>{Array.isArray(item.reviews) ? item.reviews.length : 0}</Text>
-              </View>
-              <View style={[styles.wishlistCountContainer, { opacity: (item.wishlistCount || 0) > 0 ? 1 : 0 }]}>
-                <Ionicons name="heart" size={18} color={colors.accent} />
-                <Text style={styles.wishlistCountText}>{item.wishlistCount || 0}</Text>
-              </View>
-            </View>
           </View>
+
+          {/* Compact stat row — only shows non-zero counts */}
+          {(() => {
+            const likesCount = Array.isArray(item.likes) ? item.likes.length : (item.likes || 0);
+            const reviewsCount = Array.isArray(item.reviews) ? item.reviews.length : 0;
+            const wishlistCount = item.wishlistCount || 0;
+            const stats = [
+              { icon: 'thumbs-up',   count: likesCount,    active: userLiked },
+              { icon: 'chatbubbles', count: reviewsCount,  active: userReviewed },
+              { icon: 'heart',       count: wishlistCount, active: inWishlist },
+            ].filter(s => s.count > 0);
+            if (!stats.length) return null;
+            return (
+              <View style={styles.statsRow}>
+                {stats.map((s, i) => (
+                  <View key={s.icon} style={styles.statItem}>
+                    <Ionicons name={s.icon} size={12} color={s.active ? colors.accent : colors.textSecondary} />
+                    <Text style={[styles.statText, s.active && styles.statTextActive]}>{s.count}</Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })()}
           
           <View style={styles.priceContainer}>
             <View style={styles.priceRow}>
