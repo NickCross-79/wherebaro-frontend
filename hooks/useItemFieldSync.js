@@ -84,3 +84,16 @@ export const useItemWishlistCountSync = (setItems) =>
   useItemFieldSync(setItems, (item, delta) => ({
     wishlistCount: Math.max(0, (item.wishlistCount || 0) + delta),
   }));
+
+// ── Vote arrays ────────────────────────────────────────────────────────
+
+/**
+ * Sync `buy` and `skip` arrays (absolute replacement) across a context's items.
+ * @param {Function} setItems
+ * @returns {Function} updateItemVoteCounts(itemId, buy, skip)
+ */
+export const useItemVoteSync = (setItems) =>
+  useItemFieldSync(setItems, (_item, buy, skip) => ({
+    buy: buy ?? [],
+    skip: skip ?? [],
+  }));

@@ -82,9 +82,9 @@ export default function ItemDetailScreen({ route, navigation }) {
       gestureEnabled: false,
     });
   }, [navigation]);
-  const { toggleWishlist, isInWishlist, updateWishlistLikes, updateWishlistReviewCount } = useWishlist();
-  const { items: inventoryItems, isHere: isBaroHere, updateItemLikes: updateInventoryLikes, updateItemReviewCount: updateInventoryReviewCount, updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
-  const { items: allItems, updateItemLikes: updateAllItemsLikes, updateItemReviewCount: updateAllItemsReviewCount, updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
+  const { toggleWishlist, isInWishlist, updateWishlistLikes, updateWishlistReviewCount, updateWishlistVoteCounts } = useWishlist();
+  const { items: inventoryItems, isHere: isBaroHere, updateItemLikes: updateInventoryLikes, updateItemReviewCount: updateInventoryReviewCount, updateItemWishlistCount: updateInventoryWishlistCount, updateItemVoteCounts: updateInventoryVoteCounts } = useInventory();
+  const { items: allItems, updateItemLikes: updateAllItemsLikes, updateItemReviewCount: updateAllItemsReviewCount, updateItemWishlistCount: updateAllItemsWishlistCount, updateItemVoteCounts: updateAllItemsVoteCounts } = useAllItems();
   const onWishlist = isInWishlist(item.id || item._id);
   const insets = useSafeAreaInsets();
   const bottomSpacer = insets.bottom + 90;
@@ -184,6 +184,14 @@ export default function ItemDetailScreen({ route, navigation }) {
     dbHelpers.updateItemReviewCount(id, delta);
   }, [item, updateInventoryReviewCount, updateAllItemsReviewCount, updateWishlistReviewCount]);
 
+  const syncVoteArrays = useCallback((buy, skip) => {
+    const id = item.id || item._id;
+    updateInventoryVoteCounts(id, buy, skip);
+    updateAllItemsVoteCounts(id, buy, skip);
+    updateWishlistVoteCounts(id, buy, skip);
+    dbHelpers.updateItemVoteCounts(id, buy, skip);
+  }, [item, updateInventoryVoteCounts, updateAllItemsVoteCounts, updateWishlistVoteCounts]);
+
   const {
     userLiked,
     setUserLiked,
@@ -203,7 +211,13 @@ export default function ItemDetailScreen({ route, navigation }) {
     userVote,
     isVoting,
     handleVote,
-  } = useVote(String(item?._id?.$oid || item?._id || item?.id || ''), CURRENT_UID);
+  } = useVote(
+    String(item?._id?.$oid || item?._id || item?.id || ''),
+    CURRENT_UID,
+    syncVoteArrays,
+    item?.buy || [],
+    item?.skip || [],
+  );
 
   const {
     reviews,

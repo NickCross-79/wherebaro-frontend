@@ -3,32 +3,34 @@ import { secureStorage } from '../utils/storage';
 
 const STORAGE_KEY_LIKED    = 'user_liked_items';
 const STORAGE_KEY_REVIEWED = 'user_reviewed_items';
+const STORAGE_KEY_VOTED    = 'user_voted_items'; // { [itemId]: 'buy' | 'skip' }
 
 const UserActionsContext = createContext({
-  hasLiked:         () => false,
-  hasReviewed:      () => false,
-  markLiked:        () => {},
-  markReviewed:     () => {},
-  getItemVoteData:  () => null,
-  setItemVoteData:  () => {},
+  hasLiked:     () => false,
+  hasReviewed:  () => false,
+  markLiked:    () => {},
+  markReviewed: () => {},
+  getVoteType:  () => null,
+  markVoted:    () => {},
 });
 
 export function UserActionsProvider({ children }) {
   const [likedIds,    setLikedIds]    = useState(new Set());
   const [reviewedIds, setReviewedIds] = useState(new Set());
-  // { [itemId]: { buyCount: number, skipCount: number } }
-  const [voteDataMap, setVoteDataMap] = useState({});
+  const [votedMap,    setVotedMap]    = useState({});
 
   // Load persisted sets on mount
   useEffect(() => {
     const load = async () => {
       try {
-        const [likedRaw, reviewedRaw] = await Promise.all([
+        const [likedRaw, reviewedRaw, votedRaw] = await Promise.all([
           secureStorage.getItem(STORAGE_KEY_LIKED),
           secureStorage.getItem(STORAGE_KEY_REVIEWED),
+          secureStorage.getItem(STORAGE_KEY_VOTED),
         ]);
         if (likedRaw)    setLikedIds(new Set(JSON.parse(likedRaw)));
         if (reviewedRaw) setReviewedIds(new Set(JSON.parse(reviewedRaw)));
+        if (votedRaw)    setVotedMap(JSON.parse(votedRaw));
       } catch {}
     };
     load();
@@ -57,22 +59,26 @@ export function UserActionsProvider({ children }) {
   const hasLiked    = useCallback((itemId) => likedIds.has(String(itemId)),    [likedIds]);
   const hasReviewed = useCallback((itemId) => reviewedIds.has(String(itemId)), [reviewedIds]);
 
-  const setItemVoteData = useCallback((itemId, buyCount, skipCount) => {
-    const id = String(itemId);
-    setVoteDataMap(prev => ({
-      ...prev,
-      [id]: { buyCount: buyCount ?? 0, skipCount: skipCount ?? 0 },
-    }));
-  }, []);
+  const getVoteType = useCallback((itemId) => votedMap[String(itemId)] ?? null, [votedMap]);
 
-  const getItemVoteData = useCallback((itemId) => {
-    return voteDataMap[String(itemId)] ?? null;
-  }, [voteDataMap]);
+  const markVoted = useCallback((itemId, voteType) => {
+    const id = String(itemId);
+    setVotedMap(prev => {
+      const next = { ...prev };
+      if (voteType) {
+        next[id] = voteType;
+      } else {
+        delete next[id];
+      }
+      secureStorage.setItem(STORAGE_KEY_VOTED, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+  }, []);
 
   return (
     <UserActionsContext.Provider value={{
       hasLiked, hasReviewed, markLiked, markReviewed,
-      getItemVoteData, setItemVoteData,
+      getVoteType, markVoted,
     }}>
       {children}
     </UserActionsContext.Provider>

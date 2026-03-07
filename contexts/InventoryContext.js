@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { dbHelpers, storageHelpers } from '../utils/storage';
 import { parseLocation } from '../utils/dateUtils';
-import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
+import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync, useItemVoteSync } from '../hooks/useItemFieldSync';
 import { useAllItems } from './AllItemsContext';
 import { fetchBaroStatus, fetchBaroDataWithFallback, isBaroActive } from '../services/api';
 import { PERMANENT_BARO_ITEMS } from '../constants/items';
@@ -383,6 +383,7 @@ export const InventoryProvider = ({ children }) => {
   const updateItemLikes = useItemLikesSync(setItems);
   const updateItemReviewCount = useItemReviewCountSync(setItems);
   const updateItemWishlistCount = useItemWishlistCountSync(setItems);
+  const updateItemVoteCounts = useItemVoteSync(setItems);
 
   const contextValue = useMemo(
     () => ({
@@ -397,8 +398,9 @@ export const InventoryProvider = ({ children }) => {
       updateItemLikes,
       updateItemReviewCount,
       updateItemWishlistCount,
+      updateItemVoteCounts,
     }),
-    [items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes, updateItemReviewCount, updateItemWishlistCount]
+    [items, loading, refreshing, syncing, nextArrival, nextLocation, isHere, onRefresh, updateItemLikes, updateItemReviewCount, updateItemWishlistCount, updateItemVoteCounts]
   );
 
   return (

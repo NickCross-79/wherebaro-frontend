@@ -22,7 +22,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount, items: inventoryItems, isHere: isBaroHere } = useInventory();
-  const { hasLiked, hasReviewed, getItemVoteData } = useUserActions();
+  const { hasLiked, hasReviewed } = useUserActions();
   const itemId       = item?.id || item?._id;
   const inWishlist   = isInWishlist(itemId);
   const userLiked    = hasLiked(itemId);
@@ -33,15 +33,15 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
     (inv) => String(inv._id?.$oid || inv._id || inv.id) === String(item?._id?.$oid || item?._id || item?.id)
   );
 
-  // Vote badge — derived from context (populated when detail screen is visited)
+  // Vote badge — derived from item's buy[]/skip[] arrays
   const voteBadge = (() => {
     if (!isInCurrentInventory) return null;
-    const data = getItemVoteData(itemId);
-    if (!data) return null;
-    const total = (data.buyCount || 0) + (data.skipCount || 0);
-    if (total === 0) return null;
-    const winner = (data.buyCount || 0) >= (data.skipCount || 0) ? 'buy' : 'skip';
-    return { label: winner === 'buy' ? 'Buy' : 'Skip', count: total, winner };
+    const buyCount = Array.isArray(item.buy) ? item.buy.length : 0;
+    const skipCount = Array.isArray(item.skip) ? item.skip.length : 0;
+    if (buyCount === 0 && skipCount === 0) return null;
+    const winner = buyCount >= skipCount ? 'buy' : 'skip';
+    const count = winner === 'buy' ? buyCount : skipCount;
+    return { label: winner === 'buy' ? 'Buy' : 'Skip', count, winner };
   })();
 
   const cardScale    = useRef(new Animated.Value(1)).current;
@@ -338,6 +338,8 @@ export default memo(ItemCard, (prevProps, nextProps) => {
     (prevItem?.likes?.length || prevItem?.likes || 0) === (nextItem?.likes?.length || nextItem?.likes || 0) &&
     (prevItem?.reviews?.length || 0) === (nextItem?.reviews?.length || 0) &&
     (prevItem?.wishlistCount || 0) === (nextItem?.wishlistCount || 0) &&
+    (prevItem?.buy?.length || 0) === (nextItem?.buy?.length || 0) &&
+    (prevItem?.skip?.length || 0) === (nextItem?.skip?.length || 0) &&
     prevProps.onPress === nextProps.onPress &&
     prevProps.isNew === nextProps.isNew &&
     prevProps.hideWishlistBadge === nextProps.hideWishlistBadge

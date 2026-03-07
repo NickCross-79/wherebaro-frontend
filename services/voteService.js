@@ -6,6 +6,7 @@ import { buildUrl, apiFetch, apiPost } from './apiConfig';
 const ENDPOINTS = {
   GET_VOTES: buildUrl('getVotes'),
   VOTE_ITEM: buildUrl('voteItem'),
+  REMOVE_VOTE: buildUrl('removeVote'),
 };
 
 // In-memory cache: { [itemId]: { data, timestamp } }
@@ -43,4 +44,14 @@ export const fetchVotes = async (itemId) => {
 export const voteItem = async (itemId, uid, voteType) => {
   invalidateVotesCache(itemId);
   return apiPost(ENDPOINTS.VOTE_ITEM, { item_oid: itemId, uid, voteType });
+};
+
+/**
+ * Remove a user's vote from an item.
+ * @param {string} itemId
+ * @param {string} uid
+ */
+export const removeVote = async (itemId, uid) => {
+  invalidateVotesCache(itemId);
+  return apiPost(ENDPOINTS.REMOVE_VOTE, { item_oid: itemId, uid });
 };

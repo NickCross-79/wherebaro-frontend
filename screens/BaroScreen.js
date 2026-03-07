@@ -10,7 +10,6 @@ import BaroAbsentScreen from './BaroAbsentScreen';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 import { useWishlist } from '../contexts/WishlistContext';
-import { useUserActions } from '../contexts/UserActionsContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
@@ -38,7 +37,6 @@ export default function BaroScreen({ navigation }) {
   const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
   const { items, loading, syncing, nextArrival, nextLocation, isHere, refreshing, onRefresh } = useInventory();
   const { isInWishlist } = useWishlist();
-  const { getItemVoteData } = useUserActions();
 
   const scrollDistance = Math.max(expandedHeaderHeight - COLLAPSED_HEADER_HEIGHT, 1);
 
@@ -48,7 +46,7 @@ export default function BaroScreen({ navigation }) {
     extrapolate: 'clamp',
   });
 
-  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist, getItemVoteData), [items, searchQuery, filters, isInWishlist, getItemVoteData]);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
 
   const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });

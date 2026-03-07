@@ -83,6 +83,8 @@ const createTables = async () => {
         link TEXT,
         wishlistCount INTEGER DEFAULT 0,
         inWishlist INTEGER DEFAULT 0,
+        buy TEXT DEFAULT '[]',
+        skip TEXT DEFAULT '[]',
         createdAt INTEGER,
         cachedAt INTEGER
       );
@@ -94,6 +96,15 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_wishlist ON items(inWishlist);
     `);
     console.log('Wishlist index created');
+
+    // Migrations: add columns that may not exist on older installs
+    const migrations = [
+      `ALTER TABLE items ADD COLUMN buy TEXT DEFAULT '[]'`,
+      `ALTER TABLE items ADD COLUMN skip TEXT DEFAULT '[]'`,
+    ];
+    for (const sql of migrations) {
+      try { await db.execAsync(sql); } catch (_) { /* column already exists */ }
+    }
   } catch (error) {
     console.error('Error creating tables:', error);
   }
@@ -239,8 +250,8 @@ export const dbHelpers = {
         const createdAt = existingItem?.createdAt || now;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt, wishlistCount)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
@@ -257,6 +268,8 @@ export const dbHelpers = {
             createdAt,
             now,
             item.wishlistCount || 0,
+            JSON.stringify(item.buy || []),
+            JSON.stringify(item.skip || []),
           ]
         );
       } catch (error) {
@@ -293,6 +306,8 @@ export const dbHelpers = {
         reviews: JSON.parse(row.reviews || '[]'),
         offeringDates: JSON.parse(row.offeringDates || '[]'),
         wishlistCount: row.wishlistCount || 0,
+        buy: JSON.parse(row.buy || '[]'),
+        skip: JSON.parse(row.skip || '[]'),
       }));
     } catch (error) {
       console.error('Error getting wishlist items:', error);
@@ -352,8 +367,8 @@ export const dbHelpers = {
             const createdAt = existingItem?.createdAt || now;
 
             await db.runAsync(
-              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt, wishlistCount)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 itemId,
                 item._id || itemId,
@@ -371,6 +386,8 @@ export const dbHelpers = {
                 createdAt,
                 now,
                 item.wishlistCount || 0,
+                JSON.stringify(item.buy || []),
+                JSON.stringify(item.skip || []),
               ]
             );
           }
@@ -394,6 +411,8 @@ export const dbHelpers = {
         reviews: JSON.parse(row.reviews || '[]'),
         offeringDates: JSON.parse(row.offeringDates || '[]'),
         wishlistCount: row.wishlistCount || 0,
+        buy: JSON.parse(row.buy || '[]'),
+        skip: JSON.parse(row.skip || '[]'),
       }));
     } catch (error) {
       console.error('Error getting cached items:', error);
@@ -491,6 +510,24 @@ export const dbHelpers = {
         );
       } catch (error) {
         console.error('Error updating wishlist count:', error);
+      }
+    });
+  },
+
+  /**
+   * Set vote arrays for an item in the SQLite cache.
+   */
+  updateItemVoteCounts: async (itemId, buy, skip) => {
+    return withDbQueue(async () => {
+      try {
+        await ensureDb();
+        if (!db) return;
+        await db.runAsync(
+          `UPDATE items SET buy = ?, skip = ? WHERE id = ? OR _id = ?`,
+          [JSON.stringify(buy || []), JSON.stringify(skip || []), itemId, itemId]
+        );
+      } catch (error) {
+        console.error('Error updating item vote counts:', error);
       }
     });
   },

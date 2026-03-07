@@ -36,6 +36,8 @@ export const normalizeItem = (item, options = {}) => {
     likes: Array.isArray(item?.likes) ? item.likes.length : item?.likes || 0,
     reviews: item?.reviews || [],
     wishlistCount: item?.wishlistCount || 0,
+    buy: Array.isArray(item?.buy) ? item.buy : [],
+    skip: Array.isArray(item?.skip) ? item.skip : [],
   };
 
   if (!includeDateAdded) {

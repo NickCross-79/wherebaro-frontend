@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { dbHelpers } from '../utils/storage';
-import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync } from '../hooks/useItemFieldSync';
+import { useItemLikesSync, useItemReviewCountSync, useItemWishlistCountSync, useItemVoteSync } from '../hooks/useItemFieldSync';
 import { storageHelpers } from '../utils/storage';
 import { addWishlistPushToken, removeWishlistPushToken } from '../services/api';
 import { WISHLIST_THROTTLE_MS } from '../constants/items';
@@ -171,6 +171,7 @@ export const WishlistProvider = ({ children }) => {
   const updateWishlistLikes = useItemLikesSync(setWishlistItems);
   const updateWishlistReviewCount = useItemReviewCountSync(setWishlistItems);
   const updateWishlistItemWishlistCount = useItemWishlistCountSync(setWishlistItems);
+  const updateWishlistVoteCounts = useItemVoteSync(setWishlistItems);
 
   const contextValue = useMemo(
     () => ({
@@ -183,8 +184,9 @@ export const WishlistProvider = ({ children }) => {
       updateWishlistLikes,
       updateWishlistReviewCount,
       updateWishlistItemWishlistCount,
+      updateWishlistVoteCounts,
     }),
-    [wishlistIds, wishlistItems, wishlistLoaded, toggleWishlist, isInWishlist, getWishlistCount, updateWishlistLikes, updateWishlistReviewCount, updateWishlistItemWishlistCount]
+    [wishlistIds, wishlistItems, wishlistLoaded, toggleWishlist, isInWishlist, getWishlistCount, updateWishlistLikes, updateWishlistReviewCount, updateWishlistItemWishlistCount, updateWishlistVoteCounts]
   );
 
   return (

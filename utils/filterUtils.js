@@ -54,7 +54,7 @@ const getMostRecentOfferingDate = (item) => {
  * @param {Function} [isInWishlist] - Optional function (item) => bool for wishlist-aware default sort
  * @returns {Array} Sorted items
  */
-export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc', getVoteData) => {
+export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc') => {
   const sorted = [...items];
   const dir = sortDir === 'asc' ? -1 : 1;
 
@@ -87,15 +87,11 @@ export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc'
     sorted.sort((a, b) => dir * ((b.ducatPrice ?? 0) - (a.ducatPrice ?? 0)) || alpha(a, b));
   } else if (sortType === 'buy-votes') {
     sorted.sort((a, b) => {
-      const vA = getVoteData ? getVoteData(a.id || a._id) : null;
-      const vB = getVoteData ? getVoteData(b.id || b._id) : null;
-      return dir * ((vB?.buyCount ?? 0) - (vA?.buyCount ?? 0)) || alpha(a, b);
+      return dir * ((b.buy?.length ?? 0) - (a.buy?.length ?? 0)) || alpha(a, b);
     });
   } else if (sortType === 'skip-votes') {
     sorted.sort((a, b) => {
-      const vA = getVoteData ? getVoteData(a.id || a._id) : null;
-      const vB = getVoteData ? getVoteData(b.id || b._id) : null;
-      return dir * ((vB?.skipCount ?? 0) - (vA?.skipCount ?? 0)) || alpha(a, b);
+      return dir * ((b.skip?.length ?? 0) - (a.skip?.length ?? 0)) || alpha(a, b);
     });
   } else {
     // Default: new items first, then wishlisted alphabetically, then remaining alphabetically
@@ -121,8 +117,8 @@ export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc'
  * @param {Function} [isInWishlist] - Optional function (id) => bool for wishlist-aware default sort
  * @returns {Array} Filtered and sorted items
  */
-export const applyAllFilters = (items, searchQuery, filters, isInWishlist, getVoteData) => {
+export const applyAllFilters = (items, searchQuery, filters, isInWishlist) => {
   let filtered = filterBySearch(items, searchQuery);
   filtered = filterByCategories(filtered, filters.categories);
-  return sortByPopularity(filtered, filters.popularity, isInWishlist, filters.sortDir ?? 'desc', getVoteData);
+  return sortByPopularity(filtered, filters.popularity, isInWishlist, filters.sortDir ?? 'desc');
 };
