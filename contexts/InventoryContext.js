@@ -113,7 +113,7 @@ export const InventoryProvider = ({ children }) => {
   const pollTimerRef = useRef(null);
   const prevAllItemsCountRef = useRef(0);
   const coldStartCheckedRef = useRef(false); // only fire the cold-start check once
-  const { items: allItems, loading: allItemsLoading, refreshInBackground } = useAllItems();
+  const { items: allItems, loading: allItemsLoading, refreshInBackground, onRefresh: refreshAllItems } = useAllItems();
 
   const fetchBaroInventory = useCallback(async (forceRefresh = false) => {
     try {
@@ -376,8 +376,9 @@ export const InventoryProvider = ({ children }) => {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchBaroInventory(true); // Force refresh
-  }, [fetchBaroInventory]);
+    refreshAllItems(); // Force-refresh all items cache
+    fetchBaroInventory(true); // Force-refresh Baro inventory
+  }, [fetchBaroInventory, refreshAllItems]);
 
   const updateItemLikes = useItemLikesSync(setItems);
   const updateItemReviewCount = useItemReviewCountSync(setItems);

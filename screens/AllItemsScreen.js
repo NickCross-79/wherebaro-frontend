@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,7 +17,7 @@ export default function AllItemsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
-  const { items, loading, error } = useAllItems();
+  const { items, loading, error, refreshing, onRefresh } = useAllItems();
 
   // Load filters on mount
   useEffect(() => {
@@ -96,8 +96,19 @@ export default function AllItemsScreen({ navigation }) {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+              progressBackgroundColor={colors.background}
+              progressViewOffset={searchBarHeight}
+            />
+          }
         />
       )}
+
 
         {/* Floating gradient search bar */}
         <LinearGradient

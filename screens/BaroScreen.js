@@ -36,7 +36,7 @@ export default function BaroScreen({ navigation }) {
   const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
-  const { items, loading, syncing, nextArrival, nextLocation, isHere } = useInventory();
+  const { items, loading, syncing, nextArrival, nextLocation, isHere, refreshing, onRefresh } = useInventory();
   const { isInWishlist } = useWishlist();
   const { getItemVoteData } = useUserActions();
 
@@ -93,6 +93,9 @@ export default function BaroScreen({ navigation }) {
           contentContainerStyle={{ paddingTop: expandedHeaderHeight + searchBarHeight }}
           onScroll={onScroll}
           scrollEventThrottle={16}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          progressViewOffset={expandedHeaderHeight + searchBarHeight}
         />
         <Animated.View
           style={[
