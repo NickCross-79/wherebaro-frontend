@@ -21,12 +21,28 @@ const PARTICLE_DIRECTIONS = [
 function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
-  const { updateItemWishlistCount: updateInventoryWishlistCount } = useInventory();
-  const { hasLiked, hasReviewed } = useUserActions();
+  const { updateItemWishlistCount: updateInventoryWishlistCount, items: inventoryItems, isHere: isBaroHere } = useInventory();
+  const { hasLiked, hasReviewed, getItemVoteData } = useUserActions();
   const itemId       = item?.id || item?._id;
   const inWishlist   = isInWishlist(itemId);
   const userLiked    = hasLiked(itemId);
   const userReviewed = hasReviewed(itemId);
+
+  // Check if this item is in Baro's current inventory
+  const isInCurrentInventory = isBaroHere && inventoryItems.some(
+    (inv) => String(inv._id?.$oid || inv._id || inv.id) === String(item?._id?.$oid || item?._id || item?.id)
+  );
+
+  // Vote badge — derived from context (populated when detail screen is visited)
+  const voteBadge = (() => {
+    if (!isInCurrentInventory) return null;
+    const data = getItemVoteData(itemId);
+    if (!data) return null;
+    const total = (data.buyCount || 0) + (data.skipCount || 0);
+    if (total === 0) return null;
+    const winner = (data.buyCount || 0) >= (data.skipCount || 0) ? 'buy' : 'skip';
+    return { label: winner === 'buy' ? 'Buy' : 'Skip', count: total, winner };
+  })();
 
   const cardScale    = useRef(new Animated.Value(1)).current;
   const flashOpacity = useRef(new Animated.Value(0)).current;
@@ -217,6 +233,21 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
             <View style={styles.wishlistRibbonFoldRight} />
             <Text style={styles.wishlistRibbonText}>WISHLIST</Text>
           </Animated.View>
+        )}
+        {voteBadge && (
+          <View style={styles.voteBadge} pointerEvents="none">
+            <Ionicons
+              name={voteBadge.winner === 'buy' ? 'cart' : 'close-circle'}
+              size={11}
+              color={voteBadge.winner === 'buy' ? colors.accent : colors.textSecondary}
+            />
+            <Text style={[
+              styles.voteBadgeText,
+              voteBadge.winner === 'buy' && styles.voteBadgeTextBuy,
+            ]}>
+              {voteBadge.count} voted to {voteBadge.label}
+            </Text>
+          </View>
         )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>

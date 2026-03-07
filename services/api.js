@@ -12,3 +12,4 @@ export * from './wishlistService';
 export * from './marketService';
 export * from './pushNotificationService';
 export * from './baroService';
+export * from './voteService';

@@ -270,6 +270,30 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontWeight: '700',
   },
+  voteBadge: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -11,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceAlt,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 10,
+  },
+  voteBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  voteBadgeTextBuy: {
+    color: colors.accent,
+  },
 });
 
 export default styles;

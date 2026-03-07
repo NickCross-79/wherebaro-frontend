@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linking } from 'react-native';
+import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PERMANENT_BARO_ITEMS } from '../../constants/items';
@@ -13,6 +13,8 @@ export default function ItemDetailsTab({
   formatDate,
   lastBrought,
   styles,
+  isInCurrentInventory,
+  voteData,
 }) {
   const offeringDates = item.offeringDates || [];
   const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
@@ -90,6 +92,62 @@ export default function ItemDetailsTab({
         </View>
       </View>
 
+      {/* Buy or Skip Vote Section — only for current Baro inventory */}
+      {isInCurrentInventory && voteData && (
+        <View style={voteStyles.container}>
+          <Text style={voteStyles.title}>Buy or Skip?</Text>
+          <View style={voteStyles.buttonRow}>
+            <TouchableOpacity
+              style={[
+                voteStyles.button,
+                voteData.userVote === 'buy' && voteStyles.buttonActiveBuy,
+              ]}
+              onPress={() => voteData.handleVote('buy')}
+              disabled={voteData.isVoting}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="cart"
+                size={20}
+                color={voteData.userVote === 'buy' ? colors.textOnAccent : colors.accent}
+              />
+              <Text
+                style={[
+                  voteStyles.buttonText,
+                  voteData.userVote === 'buy' && voteStyles.buttonTextActive,
+                ]}
+              >
+                Buy ({voteData.buyCount})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                voteStyles.button,
+                voteData.userVote === 'skip' && voteStyles.buttonActiveSkip,
+              ]}
+              onPress={() => voteData.handleVote('skip')}
+              disabled={voteData.isVoting}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={voteData.userVote === 'skip' ? '#fff' : colors.textSecondary}
+              />
+              <Text
+                style={[
+                  voteStyles.buttonText,
+                  voteData.userVote === 'skip' && voteStyles.buttonTextActiveSkip,
+                ]}
+              >
+                Skip ({voteData.skipCount})
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Last Brought Date */}
       {!isPermanentItem && (
       <View style={styles.dateContainer}>
@@ -134,3 +192,58 @@ export default function ItemDetailsTab({
     </ScrollView>
   );
 }
+
+const voteStyles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  title: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    gap: 8,
+  },
+  buttonActiveBuy: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  buttonActiveSkip: {
+    backgroundColor: colors.danger,
+    borderColor: colors.danger,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  buttonTextActive: {
+    color: colors.textOnAccent,
+  },
+  buttonTextActiveSkip: {
+    color: '#fff',
+  },
+});

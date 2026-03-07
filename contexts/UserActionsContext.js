@@ -5,15 +5,19 @@ const STORAGE_KEY_LIKED    = 'user_liked_items';
 const STORAGE_KEY_REVIEWED = 'user_reviewed_items';
 
 const UserActionsContext = createContext({
-  hasLiked:     () => false,
-  hasReviewed:  () => false,
-  markLiked:    () => {},
-  markReviewed: () => {},
+  hasLiked:         () => false,
+  hasReviewed:      () => false,
+  markLiked:        () => {},
+  markReviewed:     () => {},
+  getItemVoteData:  () => null,
+  setItemVoteData:  () => {},
 });
 
 export function UserActionsProvider({ children }) {
   const [likedIds,    setLikedIds]    = useState(new Set());
   const [reviewedIds, setReviewedIds] = useState(new Set());
+  // { [itemId]: { buyCount: number, skipCount: number } }
+  const [voteDataMap, setVoteDataMap] = useState({});
 
   // Load persisted sets on mount
   useEffect(() => {
@@ -53,8 +57,23 @@ export function UserActionsProvider({ children }) {
   const hasLiked    = useCallback((itemId) => likedIds.has(String(itemId)),    [likedIds]);
   const hasReviewed = useCallback((itemId) => reviewedIds.has(String(itemId)), [reviewedIds]);
 
+  const setItemVoteData = useCallback((itemId, buyCount, skipCount) => {
+    const id = String(itemId);
+    setVoteDataMap(prev => ({
+      ...prev,
+      [id]: { buyCount: buyCount ?? 0, skipCount: skipCount ?? 0 },
+    }));
+  }, []);
+
+  const getItemVoteData = useCallback((itemId) => {
+    return voteDataMap[String(itemId)] ?? null;
+  }, [voteDataMap]);
+
   return (
-    <UserActionsContext.Provider value={{ hasLiked, hasReviewed, markLiked, markReviewed }}>
+    <UserActionsContext.Provider value={{
+      hasLiked, hasReviewed, markLiked, markReviewed,
+      getItemVoteData, setItemVoteData,
+    }}>
       {children}
     </UserActionsContext.Provider>
   );

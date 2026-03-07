@@ -16,6 +16,7 @@ import ItemMarketTab from '../components/items/ItemMarketTab';
 import ItemDetailHeader from '../components/items/ItemDetailHeader';
 import ItemDetailTabs from '../components/items/ItemDetailTabs';
 import { useLike } from '../hooks/useLike';
+import { useVote } from '../hooks/useVote';
 import { useReviewManagement } from '../hooks/useReviewManagement';
 import { formatDate, getRelativeTime } from '../utils/dateUtils';
 import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
@@ -195,6 +196,14 @@ export default function ItemDetailScreen({ route, navigation }) {
     item?.likes?.length || 0,
     syncLikeCount
   );
+
+  const {
+    buyCount,
+    skipCount,
+    userVote,
+    isVoting,
+    handleVote,
+  } = useVote(String(item?._id?.$oid || item?._id || item?.id || ''), CURRENT_UID);
 
   const {
     reviews,
@@ -422,6 +431,8 @@ export default function ItemDetailScreen({ route, navigation }) {
                   formatDate={formatDate}
                   lastBrought={lastBrought}
                   styles={styles}
+                  isInCurrentInventory={isInCurrentInventory}
+                  voteData={{ buyCount, skipCount, userVote, isVoting, handleVote }}
                 />
               </View>
               <View style={{ width: screenWidth, flex: 1 }}>
