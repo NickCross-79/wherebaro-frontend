@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Modal, Pressable, Linking, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PERMANENT_BARO_ITEMS } from '../../constants/items';
@@ -18,6 +18,63 @@ export default function ItemDetailsTab({
 }) {
   const offeringDates = item.offeringDates || [];
   const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
+  const [voteInfoVisible, setVoteInfoVisible] = useState(false);
+  const [barMounted, setBarMounted] = useState(false);
+
+  // Vote bar animation
+  const barProgress = useRef(new Animated.Value(0)).current;
+  const barVisible = useRef(new Animated.Value(0)).current;
+  const prevVoteTotal = useRef(null);
+  const voteTotal = (voteData?.buyCount ?? 0) + (voteData?.skipCount ?? 0);
+  const buyPct = voteTotal > 0 ? voteData.buyCount / voteTotal : 0;
+  const skipPct = voteTotal > 0 ? 1 - buyPct : 0;
+
+  useEffect(() => {
+    if (!isInCurrentInventory || !voteData) return;
+
+    const prevTotal = prevVoteTotal.current;
+    const wasZero = prevTotal === 0 || prevTotal === null;
+    prevVoteTotal.current = voteTotal;
+
+    if (voteTotal > 0 && wasZero) {
+      // Mount — entrance animation fires in the effect below after re-render
+      barVisible.setValue(0);
+      barProgress.setValue(0);
+      setBarMounted(true);
+    } else if (voteTotal === 0 && prevTotal > 0) {
+      // Last vote removed — animate out then unmount
+      Animated.timing(barVisible, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: false,
+      }).start(() => setBarMounted(false));
+    } else if (voteTotal > 0 && !wasZero) {
+      // Vote changed — re-fill the bar
+      barProgress.setValue(0);
+      Animated.timing(barProgress, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [voteTotal, isInCurrentInventory]);
+
+  // Entrance animation — runs after barMounted=true causes re-render
+  useEffect(() => {
+    if (!barMounted || voteTotal === 0) return;
+    Animated.sequence([
+      Animated.timing(barVisible, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(barProgress, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [barMounted]);
 
   return (
     <ScrollView
@@ -51,6 +108,25 @@ export default function ItemDetailsTab({
 
       {/* Item Name and Type */}
       <View style={styles.infoSection}>
+        {isInCurrentInventory && voteData && (() => {
+          const buyCount = voteData.buyCount ?? 0;
+          const skipCount = voteData.skipCount ?? 0;
+          if (buyCount === 0 && skipCount === 0) return null;
+          const winner = buyCount >= skipCount ? 'buy' : 'skip';
+          const count = winner === 'buy' ? buyCount : skipCount;
+          return (
+            <View style={voteStyles.detailBadge}>
+              <Ionicons
+                name={winner === 'buy' ? 'cart' : 'close-circle'}
+                size={12}
+                color={winner === 'buy' ? colors.accent : colors.danger}
+              />
+              <Text style={[voteStyles.detailBadgeText, winner === 'buy' ? voteStyles.detailBadgeTextBuy : voteStyles.detailBadgeTextSkip]}>
+                {count} voted to {winner === 'buy' ? 'Buy' : 'Skip'}
+              </Text>
+            </View>
+          );
+        })()}
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.categoryText}>{item.type}</Text>
         {item.link ? (
@@ -69,18 +145,6 @@ export default function ItemDetailsTab({
         <View style={styles.priceBox}>
           <View style={styles.priceLabelRow}>
             <Image
-              source={require('../../assets/imgs/img_credit.png')}
-              style={styles.creditIcon}
-            />
-            <Text style={styles.priceLabel}>Credits</Text>
-          </View>
-          <Text style={styles.creditValue}>
-            {item.creditPrice != null ? item.creditPrice.toLocaleString() : 'N/A'}
-          </Text>
-        </View>
-        <View style={styles.priceBox}>
-          <View style={styles.priceLabelRow}>
-            <Image
               source={require('../../assets/imgs/img_ducat.png')}
               style={styles.ducatIcon}
             />
@@ -90,12 +154,74 @@ export default function ItemDetailsTab({
             {(item.ducatPrice ?? 0).toLocaleString()}
           </Text>
         </View>
+        <View style={styles.priceBox}>
+          <View style={styles.priceLabelRow}>
+            <Image
+              source={require('../../assets/imgs/img_credit.png')}
+              style={styles.creditIcon}
+            />
+            <Text style={styles.priceLabel}>Credits</Text>
+          </View>
+          <Text style={styles.creditValue}>
+            {item.creditPrice != null ? item.creditPrice.toLocaleString() : 'N/A'}
+          </Text>
+        </View>
       </View>
 
       {/* Buy or Skip Vote Section — only for current Baro inventory */}
       {isInCurrentInventory && voteData && (
         <View style={voteStyles.container}>
-          <Text style={voteStyles.title}>Buy or Skip?</Text>
+          <Modal
+            transparent
+            animationType="fade"
+            visible={voteInfoVisible}
+            onRequestClose={() => setVoteInfoVisible(false)}
+          >
+            <Pressable style={voteStyles.modalOverlay} onPress={() => setVoteInfoVisible(false)}>
+              <Pressable style={voteStyles.modalBox} onPress={() => {}}>
+                <Text style={voteStyles.modalTitle}>How Voting Works</Text>
+                <Text style={voteStyles.modalBody}>
+                  {`Vote whether users should buy this item, or save their Ducats.\n\nThe community's results are shown as a badge on the item card. The winning side and its total votes are displayed so you can see what other players think at a glance.\n\nVotes are cleared after each Baro visit, so every visit is a fresh poll.`}
+                </Text>
+                <TouchableOpacity style={voteStyles.modalClose} onPress={() => setVoteInfoVisible(false)}>
+                  <Text style={voteStyles.modalCloseText}>Got it</Text>
+                </TouchableOpacity>
+              </Pressable>
+            </Pressable>
+          </Modal>
+
+          <View style={voteStyles.titleRow}>
+            <Text style={voteStyles.title}>Buy or Skip?</Text>
+            <TouchableOpacity onPress={() => setVoteInfoVisible(true)} hitSlop={8}>
+              <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Split vote bar */}
+          {barMounted && (
+            <Animated.View style={[
+              voteStyles.splitBarWrapper,
+              {
+                opacity: barVisible,
+                maxHeight: barVisible.interpolate({ inputRange: [0, 1], outputRange: [0, 60] }),
+                marginBottom: barVisible.interpolate({ inputRange: [0, 1], outputRange: [0, 14] }),
+              },
+            ]}>
+              <View style={voteStyles.splitBarTrack}>
+                {buyPct > 0 && (
+                  <Animated.View style={[voteStyles.splitBarBuy, { flex: barProgress.interpolate({ inputRange: [0, 1], outputRange: [0, buyPct] }) }]} />
+                )}
+                {skipPct > 0 && (
+                  <Animated.View style={[voteStyles.splitBarSkip, { flex: barProgress.interpolate({ inputRange: [0, 1], outputRange: [0, skipPct] }) }]} />
+                )}
+              </View>
+              <View style={voteStyles.splitBarLabels}>
+                <Text style={voteStyles.splitLabelBuy}>{Math.round(buyPct * 100)}% Buy ({voteData.buyCount})</Text>
+                <Text style={voteStyles.splitLabelSkip}>{Math.round(skipPct * 100)}% Skip ({voteData.skipCount})</Text>
+              </View>
+            </Animated.View>
+          )}
+
           <View style={voteStyles.buttonRow}>
             <TouchableOpacity
               style={[
@@ -117,7 +243,7 @@ export default function ItemDetailsTab({
                   voteData.userVote === 'buy' && voteStyles.buttonTextActive,
                 ]}
               >
-                Buy ({voteData.buyCount})
+                Buy
               </Text>
             </TouchableOpacity>
 
@@ -141,7 +267,7 @@ export default function ItemDetailsTab({
                   voteData.userVote === 'skip' && voteStyles.buttonTextActiveSkip,
                 ]}
               >
-                Skip ({voteData.skipCount})
+                Skip
               </Text>
             </TouchableOpacity>
           </View>
@@ -203,13 +329,57 @@ const voteStyles = StyleSheet.create({
     borderColor: colors.border,
     padding: 16,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 12,
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
     marginBottom: 12,
+  },
+  modalBody: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  modalClose: {
+    alignSelf: 'flex-end',
+    backgroundColor: colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalCloseText: {
+    color: colors.textOnAccent,
+    fontWeight: '700',
+    fontSize: 14,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -245,5 +415,66 @@ const voteStyles = StyleSheet.create({
   },
   buttonTextActiveSkip: {
     color: '#fff',
+  },
+  splitBarWrapper: {
+    overflow: 'hidden',
+  },
+  splitBarTrack: {
+    flexDirection: 'row',
+    height: 8,
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  splitBarBuy: {
+    backgroundColor: colors.accent,
+    opacity: 0.85,
+  },
+  splitBarSkip: {
+    backgroundColor: colors.danger,
+    opacity: 0.75,
+  },
+  splitBarLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  splitLabelBuy: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.accent,
+    opacity: 0.8,
+  },
+  splitLabelSkip: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.danger,
+    opacity: 0.8,
+  },
+  detailBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 5,
+    backgroundColor: colors.surfaceAlt,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  detailBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  detailBadgeTextBuy: {
+    color: colors.accent,
+  },
+  detailBadgeTextSkip: {
+    color: colors.danger,
   },
 });
