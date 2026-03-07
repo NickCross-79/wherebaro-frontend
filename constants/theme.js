@@ -64,7 +64,7 @@ export const colors = {
 
   // ── Status ─────────────────────────────────────────────────────────────────
   /** Danger / error / destructive action */
-  danger: '#E03535',
+  danger: '#8E443D',
   /** Error text */
   error: '#FF5F5F',
 
