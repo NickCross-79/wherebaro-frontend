@@ -18,7 +18,7 @@ const PARTICLE_DIRECTIONS = [
   { dx: -54, dy: -14 },
 ];
 
-function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
+function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailableBadge = false }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount, items: inventoryItems, isHere: isBaroHere } = useInventory();
@@ -233,6 +233,13 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
             <View style={styles.wishlistRibbonFoldRight} />
             <Text style={styles.wishlistRibbonText}>WISHLIST</Text>
           </Animated.View>
+        )}
+        {showAvailableBadge && isInCurrentInventory && (
+          <View style={styles.availableRibbon} pointerEvents="none">
+            <View style={styles.availableRibbonFoldLeft} />
+            <View style={styles.availableRibbonFoldRight} />
+            <Text style={styles.availableRibbonText}>AVAILABLE</Text>
+          </View>
         )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>

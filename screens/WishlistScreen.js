@@ -7,6 +7,7 @@ import ItemCard from '../components/items/ItemCard';
 import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAllItems } from '../contexts/AllItemsContext';
+import { useInventory } from '../contexts/InventoryContext';
 import { applyAllFilters } from '../utils/filterUtils';
 import styles from '../styles/screens/WishlistScreen.styles';
 import { colors } from '../constants/theme';
@@ -19,8 +20,19 @@ export default function WishlistScreen({ navigation }) {
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const { wishlistItems } = useWishlist();
   const { refreshing, onRefresh } = useAllItems();
+  const { items: inventoryItems, isHere: isBaroHere } = useInventory();
 
-  const finalItems = useMemo(() => applyAllFilters(wishlistItems, searchQuery, filters), [wishlistItems, searchQuery, filters]);
+  const finalItems = useMemo(() => {
+    const filtered = applyAllFilters(wishlistItems, searchQuery, filters);
+    if (!isBaroHere || inventoryItems.length === 0) return filtered;
+    const inventoryIds = new Set(inventoryItems.map(inv => String(inv._id?.$oid || inv._id || inv.id)));
+    const isAvailable = (item) => inventoryIds.has(String(item._id?.$oid || item._id || item.id));
+    return [...filtered].sort((a, b) => {
+      const aAvail = isAvailable(a) ? 1 : 0;
+      const bAvail = isAvailable(b) ? 1 : 0;
+      return bAvail - aAvail;
+    });
+  }, [wishlistItems, searchQuery, filters, inventoryItems, isBaroHere]);
 
   const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
 
@@ -29,7 +41,7 @@ export default function WishlistScreen({ navigation }) {
       item={item}
       onPress={() => navigation.navigate('ItemDetail', { item })}
       hideWishlistBadge={true}
-
+      showAvailableBadge={true}
     />
   ), [navigation]);
 
