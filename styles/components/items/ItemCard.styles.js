@@ -271,10 +271,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   voteBadge: {
-    position: 'absolute',
-    top: '50%',
-    marginTop: -11,
-    right: 10,
+    marginLeft: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -284,7 +281,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    zIndex: 10,
   },
   voteBadgeText: {
     fontSize: 10,

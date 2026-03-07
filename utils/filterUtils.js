@@ -87,11 +87,25 @@ export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc'
     sorted.sort((a, b) => dir * ((b.ducatPrice ?? 0) - (a.ducatPrice ?? 0)) || alpha(a, b));
   } else if (sortType === 'buy-votes') {
     sorted.sort((a, b) => {
-      return dir * ((b.buy?.length ?? 0) - (a.buy?.length ?? 0)) || alpha(a, b);
+      const aBuy = a.buy?.length ?? 0;
+      const bBuy = b.buy?.length ?? 0;
+      const aSkip = a.skip?.length ?? 0;
+      const bSkip = b.skip?.length ?? 0;
+      // Items where buy wins come before items where skip wins
+      const aWins = aBuy >= aSkip ? 1 : 0;
+      const bWins = bBuy >= bSkip ? 1 : 0;
+      return (bWins - aWins) || (bBuy - aBuy) || alpha(a, b);
     });
   } else if (sortType === 'skip-votes') {
     sorted.sort((a, b) => {
-      return dir * ((b.skip?.length ?? 0) - (a.skip?.length ?? 0)) || alpha(a, b);
+      const aBuy = a.buy?.length ?? 0;
+      const bBuy = b.buy?.length ?? 0;
+      const aSkip = a.skip?.length ?? 0;
+      const bSkip = b.skip?.length ?? 0;
+      // Items where skip wins come before items where buy wins (ties go to buy, so excluded here)
+      const aWins = aSkip > aBuy ? 1 : 0;
+      const bWins = bSkip > bBuy ? 1 : 0;
+      return (bWins - aWins) || (bSkip - aSkip) || alpha(a, b);
     });
   } else {
     // Default: new items first, then wishlisted alphabetically, then remaining alphabetically

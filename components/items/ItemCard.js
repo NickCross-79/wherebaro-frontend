@@ -234,22 +234,6 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
             <Text style={styles.wishlistRibbonText}>WISHLIST</Text>
           </Animated.View>
         )}
-        {voteBadge && (
-          <View style={styles.voteBadge} pointerEvents="none">
-            <Ionicons
-              name={voteBadge.winner === 'buy' ? 'cart' : 'close-circle'}
-              size={11}
-              color={voteBadge.winner === 'buy' ? colors.accent : colors.danger}
-            />
-            <Text style={[
-              styles.voteBadgeText,
-              voteBadge.winner === 'buy' && styles.voteBadgeTextBuy,
-              voteBadge.winner === 'skip' && styles.voteBadgeTextSkip,
-            ]}>
-              {voteBadge.count} voted to {voteBadge.label}
-            </Text>
-          </View>
-        )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
           {item?.image && item.image !== 'temp:modImage' && !item.image.endsWith('/temp:modImage') ? (
@@ -289,6 +273,22 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
                     <Text style={[styles.statText, s.active && styles.statTextActive]}>{s.count}</Text>
                   </View>
                 ))}
+                {voteBadge && (
+                  <View style={styles.voteBadge} pointerEvents="none">
+                    <Ionicons
+                      name={voteBadge.winner === 'buy' ? 'cart' : 'close-circle'}
+                      size={11}
+                      color={voteBadge.winner === 'buy' ? colors.accent : colors.danger}
+                    />
+                    <Text style={[
+                      styles.voteBadgeText,
+                      voteBadge.winner === 'buy' && styles.voteBadgeTextBuy,
+                      voteBadge.winner === 'skip' && styles.voteBadgeTextSkip,
+                    ]}>
+                      {voteBadge.count} voted to {voteBadge.label}
+                    </Text>
+                  </View>
+                )}
               </View>
             );
           })()}

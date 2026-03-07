@@ -53,7 +53,7 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
   const activeSortOptions = sortOptionsProp ?? SORT_OPTIONS;
   const currentSort = activeSortOptions.find(o => o.value === (filters?.popularity ?? 'all')) ?? activeSortOptions[0];
   const sortDir = filters?.sortDir ?? 'desc';
-  const showDirButton = filters?.popularity && filters.popularity !== 'all';
+  const showDirButton = filters?.popularity && filters.popularity !== 'all' && filters.popularity !== 'buy-votes' && filters.popularity !== 'skip-votes';
 
   // Animate direction button in/out (width + opacity) so the sort button smoothly resizes
   useEffect(() => {
