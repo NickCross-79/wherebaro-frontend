@@ -249,7 +249,6 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false }) {
               { icon: 'chatbubbles', count: reviewsCount,  active: userReviewed },
               { icon: 'heart',       count: wishlistCount, active: inWishlist },
             ].filter(s => s.count > 0);
-            if (!stats.length) return null;
             return (
               <View style={styles.statsRow}>
                 {stats.map((s, i) => (

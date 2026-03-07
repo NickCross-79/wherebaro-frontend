@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 10,
+    minHeight: 18,
   },
   statItem: {
     flexDirection: 'row',
