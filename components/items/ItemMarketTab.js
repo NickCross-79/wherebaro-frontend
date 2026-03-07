@@ -96,7 +96,20 @@ export default function ItemMarketTab({
   const chartData = useMemo(() => {
     if (!filteredData.length) return null;
     const prices = filteredData.map(d => d.avg_price);
-    const labels = filteredData.map(() => '');
+    const labels = filteredData.map((d, i) => {
+      if (i === 0) {
+        const date = new Date(d.datetime);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      }
+      const prevDate = new Date(filteredData[i - 1].datetime);
+      const currDate = new Date(d.datetime);
+      const daysDiff = (currDate - new Date(filteredData[0].datetime)) / (1000 * 60 * 60 * 24);
+      const prevDaysDiff = (prevDate - new Date(filteredData[0].datetime)) / (1000 * 60 * 60 * 24);
+      if (Math.floor(daysDiff / 15) > Math.floor(prevDaysDiff / 15)) {
+        return `${currDate.getMonth() + 1}/${currDate.getDate()}`;
+      }
+      return '';
+    });
     return {
       labels,
       datasets: [
@@ -237,7 +250,7 @@ export default function ItemMarketTab({
               <LineChart
                 data={chartData}
                 width={chartWidth}
-                height={220}
+                height={245}
                 withHorizontalLines={false}
                 withVerticalLines={false}
                 withDots={false}

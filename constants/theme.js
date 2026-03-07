@@ -36,11 +36,11 @@ export const colors = {
   /** Primary accent — Baro gold */
   accent: '#fbeac4',
   /** Accent at 10% — active list items, hover tints */
-  accentFaint: 'rgba(240, 184, 64, 0.10)',
+  accentFaint: 'rgba(251, 234, 196, 0.10)',
   /** Accent at 40% — chart grids */
-  accentMuted: 'rgba(240, 184, 64, 0.40)',
+  accentMuted: 'rgba(251, 234, 196, 0.40)',
   /** Accent glow — shadow halo for accent-lit elements */
-  accentGlow: 'rgba(240, 184, 64, 0.12)',
+  accentGlow: 'rgba(251, 234, 196, 0.12)',
 
   // ── Text ───────────────────────────────────────────────────────────────────
   /** Primary text — pure white */
@@ -93,7 +93,7 @@ export const colors = {
  * @param {number} opacity - 0 to 1
  */
 export const accentWithOpacity = (opacity) =>
-  `rgba(240, 184, 64, ${opacity})`;
+  `rgba(251, 234, 196, ${opacity})`;
 
 /**
  * Gradient stop presets used across the app.
