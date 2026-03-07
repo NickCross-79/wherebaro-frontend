@@ -1,4 +1,4 @@
-import { TextInput, TouchableOpacity, View, Text, Animated, Pressable } from 'react-native';
+import { TextInput, TouchableOpacity, View, Text, Animated, Pressable, Easing } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,7 @@ import { colors } from '../../constants/theme';
 const SORT_OPTIONS = [
   { label: 'Default', value: 'all' },
   { label: 'Likes', value: 'popular' },
-  { label: 'Wishlisted', value: 'most-wishlisted' },
+  { label: 'Wishlists', value: 'most-wishlisted' },
   { label: 'Reviews', value: 'most-reviews' },
   { label: 'Last Brought', value: 'last-brought' },
   { label: 'Credits', value: 'credits' },
@@ -21,6 +21,8 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const expandAnim = useRef(new Animated.Value(0)).current;
+  const dirButtonAnim = useRef(new Animated.Value(0)).current;
+  const dirRotateAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
 
   // Close dropdown when navigating away (swipe back, tab switch, etc.)
@@ -51,6 +53,25 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
   const currentSort = SORT_OPTIONS.find(o => o.value === (filters?.popularity ?? 'all')) ?? SORT_OPTIONS[0];
   const sortDir = filters?.sortDir ?? 'desc';
   const showDirButton = filters?.popularity && filters.popularity !== 'all';
+
+  // Animate direction button in/out (width + opacity) so the sort button smoothly resizes
+  useEffect(() => {
+    Animated.timing(dirButtonAnim, {
+      toValue: showDirButton ? 1 : 0,
+      duration: 220,
+      useNativeDriver: false,
+    }).start();
+  }, [showDirButton]);
+
+  // Animate arrow rotation when sort direction changes (asc=0deg, desc=180deg)
+  useEffect(() => {
+    Animated.timing(dirRotateAnim, {
+      toValue: sortDir === 'asc' ? 0 : 1,
+      duration: 200,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [sortDir]);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -110,18 +131,25 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
             </View>
           )}
 
-          {/* Asc/Desc toggle — shown when a sort is active */}
-          {filters && onApplyFilters && showDirButton && (
-            <TouchableOpacity
-              style={[styles.iconButton, styles.dirButton]}
-              onPress={() => onApplyFilters({ ...filters, sortDir: sortDir === 'asc' ? 'desc' : 'asc' })}
-            >
-              <Ionicons
-                name={sortDir === 'asc' ? 'arrow-up' : 'arrow-down'}
-                size={20}
-                color={colors.accent}
-              />
-            </TouchableOpacity>
+          {/* Asc/Desc toggle — animates in/out when a sort is active */}
+          {filters && onApplyFilters && (
+            <Animated.View style={{
+              overflow: 'hidden',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: dirButtonAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 44] }),
+              marginRight: dirButtonAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 8] }),
+              opacity: dirButtonAnim,
+            }}>
+              <TouchableOpacity
+                style={[styles.iconButton, styles.dirButton]}
+                onPress={() => onApplyFilters({ ...filters, sortDir: sortDir === 'asc' ? 'desc' : 'asc' })}
+              >
+                <Animated.View style={{ transform: [{ rotate: dirRotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
+                  <Ionicons name="arrow-up" size={20} color={colors.accent} />
+                </Animated.View>
+              </TouchableOpacity>
+            </Animated.View>
           )}
 
           {/* Filter + Search icons — right side */}

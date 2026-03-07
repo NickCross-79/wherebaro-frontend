@@ -113,7 +113,12 @@ const styles = StyleSheet.create({
   dirButton: {
     borderColor: colors.accent,
     backgroundColor: colors.accentFaint,
-    marginRight: 8,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    padding: 0,
   },
   filterButton: {
     position: 'relative',

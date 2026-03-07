@@ -56,7 +56,7 @@ const getMostRecentOfferingDate = (item) => {
  */
 export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc') => {
   const sorted = [...items];
-  const dir = sortDir === 'asc' ? 1 : -1;
+  const dir = sortDir === 'asc' ? -1 : 1;
 
   const alpha = (a, b) => (a.name || '').localeCompare(b.name || '');
 
