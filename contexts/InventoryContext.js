@@ -323,8 +323,36 @@ export const InventoryProvider = ({ children }) => {
 
         poll();
       } else {
-        logger.debug('Baro', 'Baro departure timer expired, refreshing...');
-        fetchBaroInventory(true);
+        logger.debug('Baro', 'Baro departure timer expired, beginning departure poll loop...');
+
+        let attempts = 0;
+        const maxAttempts = 20; // 20 * 20s = ~6.5 min max
+
+        const poll = async () => {
+          attempts++;
+          try {
+            logger.debug('Baro', `Departure poll (attempt ${attempts}/${maxAttempts})...`);
+            const status = await fetchBaroStatus();
+            logger.debug('Baro', `Departure poll response: isActive=${status.isActive}`);
+            if (!status.isActive) {
+              logger.debug('Baro', 'Backend confirms Baro has left! Refreshing inventory...');
+              await fetchBaroInventory(true);
+              return; // Stop polling
+            }
+          } catch (err) {
+            logger.warn('Baro departure poll failed:', err.message);
+          }
+
+          if (attempts < maxAttempts) {
+            logger.debug('Baro', 'Baro still active per backend, next departure poll in 20s...');
+            pollTimerRef.current = setTimeout(poll, 20_000);
+          } else {
+            logger.debug('Baro', 'Max departure poll attempts reached, falling back to direct refresh');
+            fetchBaroInventory(true);
+          }
+        };
+
+        poll();
       }
     }, timeUntilExpiry);
 
