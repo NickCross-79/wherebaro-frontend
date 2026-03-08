@@ -48,6 +48,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
+  settingsAlert: {
+    position: 'absolute',
+    top: -5,
+    right: -8,
+  },
   tabBarLabel: {
     fontSize: 10,
     fontWeight: '700',

@@ -81,6 +81,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
+  settingLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   settingDescription: {
     fontSize: 13,
     color: colors.textMuted,

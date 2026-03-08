@@ -6,27 +6,27 @@ import { useScrollToTop } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import { Ionicons } from '@expo/vector-icons';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
 import { registerForPushNotifications, unregisterPushToken, bulkSyncWishlistPushToken } from '../services/api';
 import { getLocalPushToken, unregisterFromBackend } from '../services/pushNotificationService';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useNewVersion } from '../contexts/NewVersionContext';
 import styles from '../styles/screens/SettingsScreen.styles';
 import { colors } from '../constants/theme';
-import CHANGELOG from '../constants/changelog.json';
 
 export default function SettingsScreen({ navigation }) {
   const scrollRef = useRef(null);
   useScrollToTop(scrollRef);
   const { wishlistIds } = useWishlist();
+  const { hasNewVersion, markVersionSeen, APP_VERSION, CHANGELOG } = useNewVersion();
   const [notifications, setNotifications] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [displayName, setDisplayName] = useState('Anonymous');
   const [deviceId, setDeviceId] = useState('');
   const [deviceIdInfoVisible, setDeviceIdInfoVisible] = useState(false);
   const [versionInfoVisible, setVersionInfoVisible] = useState(false);
-
-  const APP_VERSION = '1.0.0';
   const insets = useSafeAreaInsets();
 
   // Load username and settings on mount
@@ -316,9 +316,17 @@ export default function SettingsScreen({ navigation }) {
             style={styles.settingItem}
             accessibilityLabel={`Version ${APP_VERSION}`}
             accessibilityRole="button"
-            onPress={() => setVersionInfoVisible(true)}
+            onPress={() => {
+              setVersionInfoVisible(true);
+              if (hasNewVersion) markVersionSeen();
+            }}
           >
-            <Text style={styles.settingLabel}>Version</Text>
+            <View style={styles.settingLabelRow}>
+              <Text style={styles.settingLabel}>Version</Text>
+              {hasNewVersion && (
+                <Ionicons name="alert-circle" size={18} color={colors.accent} style={{ marginBottom: 4 }} />
+              )}
+            </View>
             <Text style={styles.settingValue}>{APP_VERSION}</Text>
           </TouchableOpacity>
 

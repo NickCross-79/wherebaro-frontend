@@ -11,6 +11,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import FeedbackScreen from '../screens/FeedbackScreen';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useInventory } from '../contexts/InventoryContext';
+import { useNewVersion } from '../contexts/NewVersionContext';
 import BaroIcon from '../assets/icons/icon_baro.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from '../styles/navigation/AppNavigator.styles';
@@ -63,6 +64,7 @@ const ICON_MAP = {
 };
 
 function CustomTabBar({ state, navigation, insets, badgeCount }) {
+  const { hasNewVersion } = useNewVersion();
   return (
     <View
       style={[
@@ -112,6 +114,14 @@ function CustomTabBar({ state, navigation, insets, badgeCount }) {
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{badgeCount}</Text>
                   </View>
+                )}
+                {route.name === 'Settings' && hasNewVersion && (
+                  <Ionicons
+                    name="alert-circle"
+                    size={13}
+                    color={colors.accent}
+                    style={styles.settingsAlert}
+                  />
                 )}
               </View>
               <Text style={[styles.tabBarLabel, { color }]}>{route.name}</Text>
