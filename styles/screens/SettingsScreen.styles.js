@@ -132,6 +132,73 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     paddingHorizontal: 20,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  modalBody: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  modalDeviceId: {
+    fontSize: 12,
+    color: colors.textMuted,
+    fontFamily: 'monospace',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: colors.accent,
+  },
+  modalButtonSecondary: {
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalButtonTextPrimary: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textOnAccent,
+  },
+  modalButtonTextSecondary: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
 });
 
 export default styles;

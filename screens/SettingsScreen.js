@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, Linking, Modal, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useRef, useState } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
@@ -22,6 +22,7 @@ export default function SettingsScreen({ navigation }) {
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [displayName, setDisplayName] = useState('Anonymous');
   const [deviceId, setDeviceId] = useState('');
+  const [deviceIdInfoVisible, setDeviceIdInfoVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
   // Load username and settings on mount
@@ -155,6 +156,37 @@ export default function SettingsScreen({ navigation }) {
         </View>
       </View>
 
+      <Modal
+        transparent
+        animationType="fade"
+        visible={deviceIdInfoVisible}
+        onRequestClose={() => setDeviceIdInfoVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setDeviceIdInfoVisible(false)}>
+          <Pressable style={styles.modalBox} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Your Device ID</Text>
+            <Text style={styles.modalBody}>
+              {'A randomly-generated identifier assigned to your device. It is used to save your votes, likes, and reviews anonymously across sessions — no account required.\n\nThis is your unique device ID:'}
+            </Text>
+            <Text style={styles.modalDeviceId} numberOfLines={2} selectable>{deviceId}</Text>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={() => { Clipboard.setStringAsync(deviceId); setDeviceIdInfoVisible(false); }}
+              >
+                <Text style={styles.modalButtonTextSecondary}>Copy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={() => setDeviceIdInfoVisible(false)}
+              >
+                <Text style={styles.modalButtonTextPrimary}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
@@ -236,14 +268,7 @@ export default function SettingsScreen({ navigation }) {
             style={styles.settingItem}
             accessibilityLabel="Device ID"
             accessibilityRole="button"
-            onPress={() => Alert.alert(
-              'Device ID',
-              deviceId,
-              [
-                { text: 'Copy', onPress: () => Clipboard.setStringAsync(deviceId) },
-                { text: 'OK' }
-              ]
-            )}
+            onPress={() => setDeviceIdInfoVisible(true)}
           >
             <Text style={styles.settingLabel}>Device ID</Text>
             <Text style={styles.settingValue}>›</Text>
