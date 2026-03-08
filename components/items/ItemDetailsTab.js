@@ -112,8 +112,10 @@ export default function ItemDetailsTab({
           const buyCount = voteData.buyCount ?? 0;
           const skipCount = voteData.skipCount ?? 0;
           if (buyCount === 0 && skipCount === 0) return null;
+          const total = buyCount + skipCount;
           const winner = buyCount >= skipCount ? 'buy' : 'skip';
-          const count = winner === 'buy' ? buyCount : skipCount;
+          const winnerCount = winner === 'buy' ? buyCount : skipCount;
+          const pct = Math.round((winnerCount / total) * 100);
           return (
             <View style={voteStyles.detailBadge}>
               <Ionicons
@@ -122,7 +124,7 @@ export default function ItemDetailsTab({
                 color={winner === 'buy' ? colors.accent : colors.danger}
               />
               <Text style={[voteStyles.detailBadgeText, winner === 'buy' ? voteStyles.detailBadgeTextBuy : voteStyles.detailBadgeTextSkip]}>
-                {count} voted to {winner === 'buy' ? 'Buy' : 'Skip'}
+                {pct}% voted to {winner === 'buy' ? 'Buy' : 'Skip'}
               </Text>
             </View>
           );

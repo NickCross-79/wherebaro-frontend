@@ -39,9 +39,11 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
     const buyCount = Array.isArray(item.buy) ? item.buy.length : 0;
     const skipCount = Array.isArray(item.skip) ? item.skip.length : 0;
     if (buyCount === 0 && skipCount === 0) return null;
+    const total = buyCount + skipCount;
     const winner = buyCount >= skipCount ? 'buy' : 'skip';
-    const count = winner === 'buy' ? buyCount : skipCount;
-    return { label: winner === 'buy' ? 'Buy' : 'Skip', count, winner };
+    const winnerCount = winner === 'buy' ? buyCount : skipCount;
+    const pct = Math.round((winnerCount / total) * 100);
+    return { label: winner === 'buy' ? 'Buy' : 'Skip', pct, winner };
   })();
 
   const cardScale    = useRef(new Animated.Value(1)).current;
@@ -292,7 +294,7 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
                       voteBadge.winner === 'buy' && styles.voteBadgeTextBuy,
                       voteBadge.winner === 'skip' && styles.voteBadgeTextSkip,
                     ]}>
-                      {voteBadge.count} voted to {voteBadge.label}
+                      {voteBadge.pct}% voted to {voteBadge.label}
                     </Text>
                   </View>
                 )}
