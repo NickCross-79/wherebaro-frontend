@@ -139,6 +139,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
   modalBox: {
     backgroundColor: colors.surface,
     borderRadius: 16,
@@ -198,6 +201,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
+  },
+  changelogScroll: {
+    maxHeight: 340,
+  },
+  changelogEntry: {
+    marginBottom: 16,
+  },
+  changelogTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 16,
+    flexWrap: 'wrap',
+  },
+  changelogHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 8,
+  },
+  changelogSummary: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  changelogVersion: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.accent,
+  },
+  changelogDate: {
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  changelogRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 5,
+  },
+  changelogBullet: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  changelogChange: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
 });
 

@@ -13,6 +13,7 @@ import { getLocalPushToken, unregisterFromBackend } from '../services/pushNotifi
 import { useWishlist } from '../contexts/WishlistContext';
 import styles from '../styles/screens/SettingsScreen.styles';
 import { colors } from '../constants/theme';
+import CHANGELOG from '../constants/changelog.json';
 
 export default function SettingsScreen({ navigation }) {
   const scrollRef = useRef(null);
@@ -23,6 +24,9 @@ export default function SettingsScreen({ navigation }) {
   const [displayName, setDisplayName] = useState('Anonymous');
   const [deviceId, setDeviceId] = useState('');
   const [deviceIdInfoVisible, setDeviceIdInfoVisible] = useState(false);
+  const [versionInfoVisible, setVersionInfoVisible] = useState(false);
+
+  const APP_VERSION = '1.0.0';
   const insets = useSafeAreaInsets();
 
   // Load username and settings on mount
@@ -159,6 +163,55 @@ export default function SettingsScreen({ navigation }) {
       <Modal
         transparent
         animationType="fade"
+        visible={versionInfoVisible}
+        onRequestClose={() => setVersionInfoVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setVersionInfoVisible(false)}
+          />
+          <View style={styles.modalBox}>
+            <View style={styles.changelogTitleRow}>
+              <Text style={styles.modalTitle}>What's New</Text>
+              {CHANGELOG[0] && (
+                <>
+                  <Text style={styles.changelogVersion}>v{CHANGELOG[0].version}</Text>
+                  <Text style={styles.changelogDate}>{CHANGELOG[0].date}</Text>
+                </>
+              )}
+            </View>
+            <ScrollView style={styles.changelogScroll} showsVerticalScrollIndicator={false}>
+              {CHANGELOG.map((entry) => (
+                <View key={entry.version} style={styles.changelogEntry}>
+                  {entry[':summary'] ? (
+                    <Text style={styles.changelogSummary}>{entry[':summary']}</Text>
+                  ) : null}
+                  {entry.changes.map((change, i) => (
+                    <View key={i} style={styles.changelogRow}>
+                      <Text style={styles.changelogBullet}>•</Text>
+                      <Text style={styles.changelogChange}>{change}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+            <View style={[styles.modalButtonRow, { marginTop: 20 }]}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={() => setVersionInfoVisible(false)}
+              >
+                <Text style={styles.modalButtonTextPrimary}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        transparent
+        animationType="fade"
         visible={deviceIdInfoVisible}
         onRequestClose={() => setDeviceIdInfoVisible(false)}
       >
@@ -259,9 +312,14 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           
-          <TouchableOpacity style={styles.settingItem} accessibilityLabel="Version 1.0.0">
+          <TouchableOpacity
+            style={styles.settingItem}
+            accessibilityLabel={`Version ${APP_VERSION}`}
+            accessibilityRole="button"
+            onPress={() => setVersionInfoVisible(true)}
+          >
             <Text style={styles.settingLabel}>Version</Text>
-            <Text style={styles.settingValue}>1.0.0</Text>
+            <Text style={styles.settingValue}>{APP_VERSION}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
