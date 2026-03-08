@@ -9,6 +9,7 @@ import { WishlistProvider } from './contexts/WishlistContext';
 import { InventoryProvider } from './contexts/InventoryContext';
 import { AllItemsProvider } from './contexts/AllItemsContext';
 import { UserActionsProvider } from './contexts/UserActionsContext';
+import { NewVersionProvider } from './contexts/NewVersionContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
 import { registerForPushNotifications } from './services/api';
 import AppNavigator, { getIsItemDetailActive } from './navigation/AppNavigator';
@@ -56,6 +57,7 @@ export default function App() {
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
         <UserActionsProvider>
+        <NewVersionProvider>
         <WishlistProvider>
           <AllItemsProvider>
             <InventoryProvider>
@@ -73,6 +75,7 @@ export default function App() {
             </InventoryProvider>
           </AllItemsProvider>
         </WishlistProvider>
+        </NewVersionProvider>
         </UserActionsProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
