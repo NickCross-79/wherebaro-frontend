@@ -271,8 +271,10 @@ export default function SettingsScreen({ navigation }) {
 
         {/* Credits */}
         <View style={styles.credits}>
-          <Text style={styles.creditsText}>Made for Tenno</Text>
+          <Text style={styles.creditsText}>Made for Tenno by Tenno</Text>
           <Text style={styles.creditsSubtext}>Data sourced from Warframe Wiki</Text>
+          <Text style={styles.creditsSubtext}>Powered by the Warframestat API</Text>
+          <Text style={styles.creditsDisclaimer}>This app is not affiliated with or endorsed by Digital Extremes.</Text>
         </View>
       </ScrollView>
     </View>

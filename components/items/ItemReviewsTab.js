@@ -72,7 +72,7 @@ export default function ItemReviewsTab({ bottomSpacer }) {
                 multiline
                 numberOfLines={4}
                 value={newReview}
-                onChangeText={setNewReview}
+                onChangeText={(text) => setNewReview(text.replace(/[\n\r]/g, ''))}
                 textAlignVertical="top"
                 maxLength={250}
                 accessibilityLabel="Write a review"

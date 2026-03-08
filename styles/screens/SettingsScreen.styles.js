@@ -122,7 +122,15 @@ const styles = StyleSheet.create({
   creditsSubtext: {
     fontSize: 12,
     color: colors.textDim,
-    marginTop: 4,
+    marginTop: 8,
+  },
+  creditsDisclaimer: {
+    fontSize: 11,
+    color: colors.textDim,
+    marginTop: 8,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingHorizontal: 20,
   },
 });
 

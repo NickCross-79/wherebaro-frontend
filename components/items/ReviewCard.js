@@ -58,7 +58,7 @@ function ReviewCard({ review, index }) {
           <TextInput
             style={styles.reviewEditInput}
             value={editingReviewText}
-            onChangeText={setEditingReviewText}
+            onChangeText={(text) => setEditingReviewText(text.replace(/[\n\r]/g, ''))}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
