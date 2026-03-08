@@ -185,8 +185,8 @@ export default function SettingsScreen({ navigation }) {
             <ScrollView style={styles.changelogScroll} showsVerticalScrollIndicator={false}>
               {CHANGELOG.map((entry) => (
                 <View key={entry.version} style={styles.changelogEntry}>
-                  {entry[':summary'] ? (
-                    <Text style={styles.changelogSummary}>{entry[':summary']}</Text>
+                  {entry.summary ? (
+                    <Text style={styles.changelogSummary}>{entry.summary}</Text>
                   ) : null}
                   {entry.changes.map((change, i) => (
                     <View key={i} style={styles.changelogRow}>

@@ -2,7 +2,7 @@
   {
     "version": "1.0.0",
     "date": "March 2026",
-    ":summary": "When Baro? is here! Discover Baro Ki'teer's inventory like never before.",
+    "summary": "When Baro? is here! Discover Baro Ki'teer's inventory like never before.",
     "changes": [
       "Initial release",
       "Browse Baro Ki'teer's full inventory with prices",
