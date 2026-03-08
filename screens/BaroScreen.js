@@ -61,7 +61,7 @@ export default function BaroScreen({ navigation }) {
 
   if (syncing) {
     logger.debug('BaroScreen', '→ Showing syncing screen');
-    return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." />;
+    return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." subtitle="This may take a moment..." />;
   }
 
   if (loading) {

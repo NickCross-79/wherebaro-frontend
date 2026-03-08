@@ -86,8 +86,9 @@ export default function SettingsScreen({ navigation }) {
 
   // Save username when it changes
   const handleDisplayNameChange = async (newName) => {
-    setDisplayName(newName);
-    await setCurrentUsername(newName);
+    const sanitized = newName.replace(/ /g, '');
+    setDisplayName(sanitized);
+    await setCurrentUsername(sanitized);
   };
 
   const handleNotificationsChange = async (value) => {

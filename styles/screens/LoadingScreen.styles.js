@@ -14,6 +14,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontWeight: '500',
   },
+  loadingSubtext: {
+    color: colors.textDim,
+    fontSize: 13,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
 });
 
 export default styles;
