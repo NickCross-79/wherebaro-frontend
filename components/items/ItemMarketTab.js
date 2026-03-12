@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Image, PanResponder, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { colors, accentWithOpacity } from '../../constants/theme';
+import { toSlug } from '../../utils/slugify';
 
 export default function ItemMarketTab({
   item,
@@ -445,6 +446,17 @@ export default function ItemMarketTab({
           </View>
         )}
       </View>
+
+      {/* Warframe Market link */}
+      <TouchableOpacity
+        style={marketStyles.marketLink}
+        onPress={() => Linking.openURL(`https://warframe.market/items/${toSlug(item?.name ?? '')}`)}
+        accessibilityRole="link"
+        accessibilityLabel="View on warframe.market"
+      >
+        <Ionicons name="open-outline" size={16} color={colors.link} />
+        <Text style={marketStyles.marketLinkText}>View on warframe.market</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -633,5 +645,18 @@ const marketStyles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.surfaceElevated,
     marginHorizontal: 16,
+  },
+  marketLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  marketLinkText: {
+    fontSize: 14,
+    color: colors.link,
+    fontWeight: '500',
   },
 });
