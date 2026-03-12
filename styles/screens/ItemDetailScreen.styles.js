@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
-    paddingBottom: 50,
+    paddingBottom: 0,
     paddingHorizontal: 16,
   },
   menuSheet: {
