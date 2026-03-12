@@ -362,8 +362,6 @@ const styles = StyleSheet.create({
   },
   ownReviewCard: {
     backgroundColor: colors.accentFaint,
-    borderColor: colors.accent,
-    borderLeftWidth: 3,
   },
   reviewHeader: {
     flexDirection: 'row',
