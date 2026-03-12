@@ -72,14 +72,14 @@ export default function ItemReviewsTab({ bottomSpacer }) {
                 multiline
                 numberOfLines={4}
                 value={newReview}
-                onChangeText={(text) => setNewReview(text.replace(/[\n\r]/g, ''))}
+                onChangeText={(text) => setNewReview(text)}
                 textAlignVertical="top"
-                maxLength={250}
+                maxLength={500}
                 accessibilityLabel="Write a review"
               />
-              {(250 - newReview.length) <= 50 && (
-                <Text style={[styles.characterCount, (250 - newReview.length) <= 10 && styles.characterCountWarning]}>
-                  {250 - newReview.length}
+              {(500 - newReview.length) <= 100 && (
+                <Text style={[styles.characterCount, (500 - newReview.length) <= 20 && styles.characterCountWarning]}>
+                  {500 - newReview.length}
                 </Text>
               )}
               <TouchableOpacity

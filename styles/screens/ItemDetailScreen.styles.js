@@ -442,6 +442,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 20,
   },
+  readMoreText: {
+    fontSize: 13,
+    color: colors.accent,
+    marginTop: 4,
+  },
   errorText: {
     color: colors.error,
     fontSize: 16,
