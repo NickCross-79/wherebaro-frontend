@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { decodeHtmlEntities } from '../../utils/htmlDecode';
 import { useReviewContext } from '../../contexts/ReviewContext';
@@ -23,6 +23,7 @@ function ReviewCard({ review, index }) {
 
   const [expanded, setExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const isOwnReview = review?.uid === currentUid;
   const isEditing = isOwnReview && editingReviewKey === getReviewKey(review, index);
@@ -36,11 +37,36 @@ function ReviewCard({ review, index }) {
     >
       <View style={styles.reviewHeader}>
         <View style={styles.reviewerInfo}>
-          <Ionicons name="person-circle" size={32} color={colors.accent} />
-          <Text style={styles.reviewerName}>{review.user}</Text>
+          <Ionicons
+            name="person-circle"
+            size={32}
+            color={isOwnReview ? colors.accent : colors.textSecondary}
+          />
+          <View>
+            <View style={styles.reviewerNameRow}>
+              <Text style={[styles.reviewerName, isOwnReview && styles.ownReviewerName]}>
+                {review.user}
+              </Text>
+              {isOwnReview && (
+                <View style={styles.youBadge}>
+                  <Text style={styles.youBadgeText}>You</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
+          </View>
         </View>
         <View style={styles.reviewHeaderRight}>
-          <Text style={styles.reviewDate}>{getRelativeTime(review.date)}</Text>
+          {isOwnReview && !isEditing && (
+            <TouchableOpacity
+              style={styles.reviewActionButton}
+              onPress={() => setMenuVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Review options"
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
           {!isOwnReview && onReportReview && (
             <TouchableOpacity
               style={styles.reportButton}
@@ -54,6 +80,44 @@ function ReviewCard({ review, index }) {
           )}
         </View>
       </View>
+
+      {/* Options menu */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuSheet}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                startEditingReview(review, index);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Edit review"
+            >
+              <Ionicons name="pencil" size={18} color={colors.accent} />
+              <Text style={styles.menuItemText}>Edit</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                confirmDeleteReview(review, index);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Delete review"
+            >
+              <Ionicons name="trash" size={18} color={colors.danger} />
+              <Text style={[styles.menuItemText, styles.menuItemDanger]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
       <Text
         style={styles.reviewText}
         numberOfLines={expanded ? undefined : 3}
@@ -111,31 +175,6 @@ function ReviewCard({ review, index }) {
               <Text style={styles.reviewEditButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      )}
-
-      {isOwnReview && (
-        <View style={styles.reviewActionsBottom}>
-          <TouchableOpacity
-            style={styles.reviewActionButton}
-            onPress={() => startEditingReview(review, index)}
-            accessibilityRole="button"
-            accessibilityLabel="Edit review"
-          >
-            <Ionicons
-              name="pencil"
-              size={22}
-              color={colors.accent}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.reviewActionButton}
-            onPress={() => confirmDeleteReview(review, index)}
-            accessibilityRole="button"
-            accessibilityLabel="Delete review"
-          >
-            <Ionicons name="trash" size={22} color={colors.danger} />
-          </TouchableOpacity>
         </View>
       )}
     </View>
