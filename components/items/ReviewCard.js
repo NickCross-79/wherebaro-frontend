@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { decodeHtmlEntities } from '../../utils/htmlDecode';
@@ -20,6 +20,9 @@ function ReviewCard({ review, index }) {
     onReportReview,
     styles,
   } = useReviewContext();
+
+  const [expanded, setExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
 
   const isOwnReview = review?.uid === currentUid;
   const isEditing = isOwnReview && editingReviewKey === getReviewKey(review, index);
@@ -51,22 +54,43 @@ function ReviewCard({ review, index }) {
           )}
         </View>
       </View>
-      <Text style={styles.reviewText}>{decodeHtmlEntities(review.content)}</Text>
+      <Text
+        style={styles.reviewText}
+        numberOfLines={expanded ? undefined : 3}
+        onTextLayout={(e) => {
+          if (!expanded && e.nativeEvent.lines.length >= 3) {
+            setIsTruncated(true);
+          }
+        }}
+      >
+        {decodeHtmlEntities(review.content)}
+      </Text>
+      {isTruncated && (
+        <TouchableOpacity
+          onPress={() => setExpanded((prev) => !prev)}
+          accessibilityRole="button"
+          accessibilityLabel={expanded ? 'Read less' : 'Read more'}
+        >
+          <Text style={styles.readMoreText}>
+            {expanded ? 'Read less' : 'Read more'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {isEditing && (
         <View style={styles.reviewEditContainer}>
           <TextInput
             style={styles.reviewEditInput}
             value={editingReviewText}
-            onChangeText={(text) => setEditingReviewText(text.replace(/[\n\r]/g, ''))}
+            onChangeText={(text) => setEditingReviewText(text)}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
-            maxLength={250}
+            maxLength={500}
           />
-          {(250 - editingReviewText.length) <= 50 && (
-            <Text style={[styles.characterCount, (250 - editingReviewText.length) <= 10 && styles.characterCountWarning]}>
-              {250 - editingReviewText.length}
+          {(500 - editingReviewText.length) <= 100 && (
+            <Text style={[styles.characterCount, (500 - editingReviewText.length) <= 20 && styles.characterCountWarning]}>
+              {500 - editingReviewText.length}
             </Text>
           )}
           <View style={styles.reviewEditActions}>
