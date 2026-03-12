@@ -355,24 +355,26 @@ const styles = StyleSheet.create({
   reviewCard: {
     backgroundColor: colors.surface,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: 12,
   },
   ownReviewCard: {
+    backgroundColor: colors.accentFaint,
     borderColor: colors.accent,
+    borderLeftWidth: 3,
   },
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   reviewHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 6,
   },
   reportButton: {
     padding: 4,
@@ -380,11 +382,23 @@ const styles = StyleSheet.create({
   reviewActionButton: {
     padding: 6,
   },
-  reviewActionsBottom: {
+  reviewerNameRow: {
     flexDirection: 'row',
-    gap: 20,
-    alignSelf: 'flex-end',
-    marginTop: 12,
+    alignItems: 'center',
+    gap: 6,
+  },
+  youBadge: {
+    backgroundColor: colors.accentMuted,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  youBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textOnAccent,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
   reviewEditContainer: {
     marginTop: 12,
@@ -426,26 +440,64 @@ const styles = StyleSheet.create({
   reviewerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   reviewerName: {
     fontSize: 14,
     fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  ownReviewerName: {
     color: colors.accent,
   },
   reviewDate: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textDim,
+    marginTop: 1,
   },
   reviewText: {
     fontSize: 14,
-    color: colors.textMuted,
-    lineHeight: 20,
+    color: colors.textLight,
+    lineHeight: 21,
   },
   readMoreText: {
     fontSize: 13,
     color: colors.accent,
     marginTop: 4,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'flex-end',
+    paddingBottom: 50,
+    paddingHorizontal: 16,
+  },
+  menuSheet: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  menuItemDanger: {
+    color: colors.error,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 16,
   },
   errorText: {
     color: colors.error,
