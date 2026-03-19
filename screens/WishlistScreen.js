@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, FlatList, RefreshControl, Animated } from 'react-native';
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +27,11 @@ export default function WishlistScreen({ navigation }) {
   const { wishlistItems } = useWishlist();
   const { refreshing, onRefresh } = useAllItems();
   const { items: inventoryItems, isHere: isBaroHere } = useInventory();
+
+  // Scroll to top when filters change
+  useEffect(() => {
+    scrollRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [filters]);
 
   const finalItems = useMemo(() => {
     const filtered = applyAllFilters(wishlistItems, searchQuery, filters);
