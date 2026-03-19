@@ -21,8 +21,8 @@ export default {
       versionCode: 1,
       targetSdkVersion: 35,
       googleServicesFile: IS_DEV
-        ? './google-services.dev.json'
-        : './google-services.json',
+        ? (process.env.GOOGLE_SERVICES_JSON_DEV || './google-services.dev.json')
+        : (process.env.GOOGLE_SERVICES_JSON || './google-services.json'),
       adaptiveIcon: {
         foregroundImage: './assets/imgs/logo_baro_icon.png',
         backgroundColor: '#0C0C0E',
