@@ -20,9 +20,12 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     const newCategories = (localFilters.categories || []).includes(category)
       ? (localFilters.categories || []).filter(c => c !== category)
       : [...(localFilters.categories || []), category];
-    const updatedFilters = { ...localFilters, categories: newCategories };
-    setLocalFilters(updatedFilters);
-    onApplyFilters(updatedFilters);
+    setLocalFilters({ ...localFilters, categories: newCategories });
+  };
+
+  const applyFilters = () => {
+    onApplyFilters(localFilters);
+    onClose();
   };
 
   const clearFilters = () => {
@@ -33,6 +36,11 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   };
 
   const hasActiveFilters = (localFilters.categories || []).length > 0 || localFilters.popularity !== 'all';
+
+  const hasChanges =
+    localFilters.popularity !== filters.popularity ||
+    (localFilters.categories || []).length !== (filters.categories || []).length ||
+    (localFilters.categories || []).some(c => !(filters.categories || []).includes(c));
 
   return (
     <Modal
@@ -86,15 +94,18 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
             </View>
           </ScrollView>
 
-          <View style={[styles.footer, { paddingBottom: 20 + insets.bottom }]}>
+          <View style={[styles.footer, styles.footerRow, { paddingBottom: 20 + insets.bottom }]}>
             <TouchableOpacity
-              style={[styles.clearButton, !hasActiveFilters && styles.clearButtonDisabled]}
+              style={[styles.clearButton, styles.clearButtonFlex, !hasActiveFilters && styles.clearButtonDisabled]}
               onPress={clearFilters}
               disabled={!hasActiveFilters}
             >
               <Text style={[styles.clearButtonText, !hasActiveFilters && styles.clearButtonTextDisabled]}>
                 Reset
               </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.applyButton, !hasChanges && styles.applyButtonDisabled]} onPress={applyFilters} disabled={!hasChanges}>
+              <Text style={[styles.applyButtonText, !hasChanges && styles.applyButtonTextDisabled]}>Apply</Text>
             </TouchableOpacity>
           </View>
         </View>

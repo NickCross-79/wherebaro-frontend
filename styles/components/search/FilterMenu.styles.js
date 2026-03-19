@@ -143,12 +143,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  footerRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   clearButton: {
     paddingVertical: 14,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: colors.accent,
     alignItems: 'center',
+  },
+  clearButtonFlex: {
+    flex: 1,
   },
   clearButtonDisabled: {
     borderColor: colors.controlDisabledBorder,
@@ -171,12 +178,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     alignItems: 'center',
   },
+  applyButtonDisabled: {
+    backgroundColor: colors.controlDisabledBorder,
+    opacity: 0.5,
+  },
   applyButtonText: {
     color: colors.textOnAccent,
     fontSize: 16,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  applyButtonTextDisabled: {
+    color: colors.textDim,
   },
 });
 
