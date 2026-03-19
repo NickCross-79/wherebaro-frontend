@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Animated } from 'react-native';
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useScrollToTop } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AnimatedBaroHeader, { COLLAPSED_HEADER_HEIGHT } from '../components/baro/AnimatedBaroHeader';
@@ -47,6 +47,11 @@ export default function BaroScreen({ navigation }) {
   });
 
   const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
+
+  // Scroll to top when filters change
+  useEffect(() => {
+    scrollRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [filters]);
 
   const handleItemPress = useCallback((item) => {
     navigation.navigate('ItemDetail', { item });

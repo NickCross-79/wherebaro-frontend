@@ -33,6 +33,11 @@ export default function AllItemsScreen({ navigation }) {
     storageHelpers.setFilters(filters);
   }, [filters]);
 
+  // Scroll to top when filters change
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [filters]);
+
   const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
 
   const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
