@@ -466,8 +466,7 @@ const styles = StyleSheet.create({
   menuOverlay: {
     flex: 1,
     backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-    paddingBottom: 0,
+    justifyContent: 'center',
     paddingHorizontal: 16,
   },
   menuSheet: {
