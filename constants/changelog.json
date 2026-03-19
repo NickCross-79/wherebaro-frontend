@@ -1,17 +1,13 @@
 [
   {
-    "version": "1.0.0",
-    "date": "March 2026",
+    "version": "1.1.0",
+    "date": "April 2026",
     "summary": "When Baro? is here! Discover Baro Ki'teer's inventory like never before.",
     "changes": [
-      "Initial release",
-      "Browse Baro Ki'teer's full inventory with prices",
-      "Arrival and departure push notifications",
-      "Get notified when Baro brings items you want by adding them to your wishlist",
-      "Community Buy / Skip voting on current inventory",
-      "Item likes and reviews",
-      "Warframe.Market price chart integration",
-      "Search and filter across all Baro items"
+      "Fixed positioning of edit/delete menu for reviews",
+      "Added scroll-to-top behavior when filters change on Baro and All Items screens",
+      "Added Apply button to filter menu",
+      "Added Plat to ducat ratio in the market tab"
     ]
   }
 ]

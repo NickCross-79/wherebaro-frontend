@@ -395,6 +395,23 @@ export default function ItemMarketTab({
               </View>
             )}
 
+            {/* Plat/Ducat ratio — only shown when we have both prices */}
+            {latestPrice && item?.ducatPrice > 0 && (
+              <>
+                <View style={marketStyles.divider} />
+                <View style={marketStyles.infoRow}>
+                  <Text style={marketStyles.infoLabel}>Plat / Ducat Ratio</Text>
+                  <View style={marketStyles.priceRow}>
+                    <Text style={marketStyles.infoValue}>
+                      {(Math.round(latestPrice) / item.ducatPrice).toFixed(2)}
+                    </Text>
+                    <Image source={require('../../assets/imgs/img_platinum.png')} style={[marketStyles.platIcon, { marginLeft: 4, marginRight: 4 }]} />
+                    <Text style={marketStyles.infoLabel}>per ducat</Text>
+                  </View>
+                </View>
+              </>
+            )}
+
             {marketStats && (
               <>
                 {latestPrice && <View style={marketStyles.divider} />}
@@ -545,6 +562,11 @@ const marketStyles = StyleSheet.create({
   platIcon: {
     width: 18,
     height: 18,
+  },
+  ducatIcon: {
+    width: 18,
+    height: 18,
+    marginLeft: 4,
   },
   selectorContainer: {
     marginTop: 0,
