@@ -32,7 +32,7 @@ export default function BaroScreen({ navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
   const { items, loading, syncing, nextArrival, nextLocation, isHere, refreshing, onRefresh } = useInventory();

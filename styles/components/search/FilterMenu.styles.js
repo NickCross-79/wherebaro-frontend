@@ -192,6 +192,37 @@ const styles = StyleSheet.create({
   applyButtonTextDisabled: {
     color: colors.textDim,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  rangeValue: {
+    fontSize: 14,
+    color: colors.accent,
+    fontWeight: '600',
+  },
+  sliderContainer: {
+    alignSelf: 'stretch',
+    height: 40,
+    justifyContent: 'center',
+  },
+  sliderTrack: {
+    height: 4,
+    borderRadius: 2,
+  },
+  sliderThumb: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.accent,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
 
 export default styles;

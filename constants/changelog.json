@@ -7,7 +7,8 @@
       "Fixed positioning of edit/delete menu for reviews",
       "Added scroll-to-top behavior when filters change on Baro and All Items screens",
       "Added Apply button to filter menu",
-      "Added Plat to ducat ratio in the market tab"
+      "Added Plat to ducat ratio in the market tab",
+      "Added ducat and credit sliders to filter menu"
     ]
   }
 ]
