@@ -8,6 +8,7 @@ import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { storageHelpers } from '../utils/storage';
 import { applyAllFilters } from '../utils/filterUtils';
+import { useUserActions } from '../contexts/UserActionsContext';
 import styles from '../styles/screens/AllItemsScreen.styles';
 import { colors } from '../constants/theme';
 
@@ -15,9 +16,10 @@ export default function AllItemsScreen({ navigation }) {
   const listRef = useRef(null);
   useScrollToTop(listRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null, hideOwned: false });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const { items, loading, error, refreshing, onRefresh } = useAllItems();
+  const { isOwned } = useUserActions();
 
   // Load filters on mount
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function AllItemsScreen({ navigation }) {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [filters]);
 
-  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters), [items, searchQuery, filters]);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, undefined, isOwned), [items, searchQuery, filters, isOwned]);
 
   const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
   

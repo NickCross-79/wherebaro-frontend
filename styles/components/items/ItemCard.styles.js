@@ -343,6 +343,13 @@ const styles = StyleSheet.create({
   voteBadgeTextSkip: {
     color: colors.danger,
   },
+  ownedButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    zIndex: 10,
+    padding: 2,
+  },
 });
 
 export default styles;

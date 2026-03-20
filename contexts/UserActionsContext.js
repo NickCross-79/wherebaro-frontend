@@ -4,12 +4,15 @@ import { secureStorage } from '../utils/storage';
 const STORAGE_KEY_LIKED    = 'user_liked_items';
 const STORAGE_KEY_REVIEWED = 'user_reviewed_items';
 const STORAGE_KEY_VOTED    = 'user_voted_items'; // { [itemId]: 'buy' | 'skip' }
+const STORAGE_KEY_OWNED    = 'user_owned_items';
 
 const UserActionsContext = createContext({
   hasLiked:     () => false,
   hasReviewed:  () => false,
+  isOwned:      () => false,
   markLiked:    () => {},
   markReviewed: () => {},
+  markOwned:    () => {},
   getVoteType:  () => null,
   markVoted:    () => {},
 });
@@ -17,19 +20,22 @@ const UserActionsContext = createContext({
 export function UserActionsProvider({ children }) {
   const [likedIds,    setLikedIds]    = useState(new Set());
   const [reviewedIds, setReviewedIds] = useState(new Set());
+  const [ownedIds,    setOwnedIds]    = useState(new Set());
   const [votedMap,    setVotedMap]    = useState({});
 
   // Load persisted sets on mount
   useEffect(() => {
     const load = async () => {
       try {
-        const [likedRaw, reviewedRaw, votedRaw] = await Promise.all([
+        const [likedRaw, reviewedRaw, ownedRaw, votedRaw] = await Promise.all([
           secureStorage.getItem(STORAGE_KEY_LIKED),
           secureStorage.getItem(STORAGE_KEY_REVIEWED),
+          secureStorage.getItem(STORAGE_KEY_OWNED),
           secureStorage.getItem(STORAGE_KEY_VOTED),
         ]);
         if (likedRaw)    setLikedIds(new Set(JSON.parse(likedRaw)));
         if (reviewedRaw) setReviewedIds(new Set(JSON.parse(reviewedRaw)));
+        if (ownedRaw)    setOwnedIds(new Set(JSON.parse(ownedRaw)));
         if (votedRaw)    setVotedMap(JSON.parse(votedRaw));
       } catch {}
     };
@@ -56,8 +62,19 @@ export function UserActionsProvider({ children }) {
     });
   }, []);
 
+  const markOwned = useCallback((itemId, owned) => {
+    const id = String(itemId);
+    setOwnedIds(prev => {
+      const next = new Set(prev);
+      if (owned) next.add(id); else next.delete(id);
+      secureStorage.setItem(STORAGE_KEY_OWNED, JSON.stringify([...next])).catch(() => {});
+      return next;
+    });
+  }, []);
+
   const hasLiked    = useCallback((itemId) => likedIds.has(String(itemId)),    [likedIds]);
   const hasReviewed = useCallback((itemId) => reviewedIds.has(String(itemId)), [reviewedIds]);
+  const isOwned     = useCallback((itemId) => ownedIds.has(String(itemId)),    [ownedIds]);
 
   const getVoteType = useCallback((itemId) => votedMap[String(itemId)] ?? null, [votedMap]);
 
@@ -77,7 +94,7 @@ export function UserActionsProvider({ children }) {
 
   return (
     <UserActionsContext.Provider value={{
-      hasLiked, hasReviewed, markLiked, markReviewed,
+      hasLiked, hasReviewed, isOwned, markLiked, markReviewed, markOwned,
       getVoteType, markVoted,
     }}>
       {children}

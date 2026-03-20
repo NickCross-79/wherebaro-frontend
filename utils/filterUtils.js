@@ -152,10 +152,19 @@ export const filterByCreditRange = (items, creditMin, creditMax) => {
   });
 };
 
-export const applyAllFilters = (items, searchQuery, filters, isInWishlist) => {
+export const filterByOwned = (items, hideOwned, isOwned) => {
+  if (!hideOwned || !isOwned) return items;
+  return items.filter(item => {
+    const id = item?.id || item?._id;
+    return !isOwned(id);
+  });
+};
+
+export const applyAllFilters = (items, searchQuery, filters, isInWishlist, isOwned) => {
   let filtered = filterBySearch(items, searchQuery);
   filtered = filterByCategories(filtered, filters.categories);
   filtered = filterByDucatRange(filtered, filters.ducatMin, filters.ducatMax);
   filtered = filterByCreditRange(filtered, filters.creditMin, filters.creditMax);
+  filtered = filterByOwned(filtered, filters.hideOwned, isOwned);
   return sortByPopularity(filtered, filters.popularity, isInWishlist, filters.sortDir ?? 'desc');
 };
