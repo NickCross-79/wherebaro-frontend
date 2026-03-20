@@ -15,7 +15,7 @@ export default function AllItemsScreen({ navigation }) {
   const listRef = useRef(null);
   useScrollToTop(listRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const { items, loading, error, refreshing, onRefresh } = useAllItems();
 

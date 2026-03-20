@@ -133,8 +133,29 @@ export const sortByPopularity = (items, sortType, isInWishlist, sortDir = 'desc'
  * @param {Function} [isInWishlist] - Optional function (id) => bool for wishlist-aware default sort
  * @returns {Array} Filtered and sorted items
  */
+export const DUCAT_MAX = 300;
+export const CREDIT_MAX = 250000;
+
+export const filterByDucatRange = (items, ducatMin, ducatMax) => {
+  if ((ducatMin ?? 0) <= 0 && ducatMax == null) return items;
+  return items.filter(item => {
+    const d = item.ducatPrice || 0;
+    return d >= (ducatMin ?? 0) && (ducatMax == null || d <= ducatMax);
+  });
+};
+
+export const filterByCreditRange = (items, creditMin, creditMax) => {
+  if ((creditMin ?? 0) <= 0 && creditMax == null) return items;
+  return items.filter(item => {
+    const c = item.creditPrice || 0;
+    return c >= (creditMin ?? 0) && (creditMax == null || c <= creditMax);
+  });
+};
+
 export const applyAllFilters = (items, searchQuery, filters, isInWishlist) => {
   let filtered = filterBySearch(items, searchQuery);
   filtered = filterByCategories(filtered, filters.categories);
+  filtered = filterByDucatRange(filtered, filters.ducatMin, filters.ducatMax);
+  filtered = filterByCreditRange(filtered, filters.creditMin, filters.creditMax);
   return sortByPopularity(filtered, filters.popularity, isInWishlist, filters.sortDir ?? 'desc');
 };

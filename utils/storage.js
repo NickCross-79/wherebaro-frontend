@@ -157,14 +157,15 @@ export const storageHelpers = {
 
   getFilters: async () => {
     const value = await secureStorage.getItem('filters');
+    const defaultFilters = { categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null };
     if (!value) {
-      return { categories: [], popularity: 'all' };
+      return defaultFilters;
     }
     try {
-      return JSON.parse(value);
+      return { ...defaultFilters, ...JSON.parse(value) };
     } catch (error) {
       console.error('Error parsing stored filters:', error);
-      return { categories: [], popularity: 'all' };
+      return defaultFilters;
     }
   },
 

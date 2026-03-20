@@ -21,8 +21,7 @@ export default function WishlistScreen({ navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all' });
-  const [searchBarHeight, setSearchBarHeight] = useState(75);
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });  const [searchBarHeight, setSearchBarHeight] = useState(75);
   const [budgetHeight, setBudgetHeight] = useState(80);
   const { wishlistItems } = useWishlist();
   const { refreshing, onRefresh } = useAllItems();
