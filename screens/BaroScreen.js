@@ -11,6 +11,7 @@ import CollapsibleSearchBar from '../components/search/CollapsibleSearchBar';
 import { useInventory } from '../contexts/InventoryContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { applyAllFilters } from '../utils/filterUtils';
+import { useUserActions } from '../contexts/UserActionsContext';
 import logger from '../utils/logger';
 import styles from '../styles/screens/BaroScreen.styles';
 import { colors } from '../constants/theme';
@@ -32,11 +33,12 @@ export default function BaroScreen({ navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null, hideOwned: false });
   const [searchBarHeight, setSearchBarHeight] = useState(75);
   const [expandedHeaderHeight, setExpandedHeaderHeight] = useState(152);
   const { items, loading, syncing, nextArrival, nextLocation, isHere, refreshing, onRefresh } = useInventory();
   const { isInWishlist } = useWishlist();
+  const { isOwned } = useUserActions();
 
   const scrollDistance = Math.max(expandedHeaderHeight - COLLAPSED_HEADER_HEIGHT, 1);
 
@@ -46,7 +48,7 @@ export default function BaroScreen({ navigation }) {
     extrapolate: 'clamp',
   });
 
-  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist), [items, searchQuery, filters, isInWishlist]);
+  const finalItems = useMemo(() => applyAllFilters(items, searchQuery, filters, isInWishlist, isOwned), [items, searchQuery, filters, isInWishlist, isOwned]);
 
   // Scroll to top when filters change
   useEffect(() => {

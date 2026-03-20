@@ -1,4 +1,4 @@
-import { View, Text, Modal, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Pressable, Switch } from 'react-native';
 import { useState, useEffect, useMemo } from 'react';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,7 +53,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
   };
 
   const clearFilters = () => {
-    const clearedFilters = { categories: [], popularity: 'all', ducatMin: 0, ducatMax: maxDucat, creditMin: 0, creditMax: maxCredit };
+    const clearedFilters = { categories: [], popularity: 'all', ducatMin: 0, ducatMax: maxDucat, creditMin: 0, creditMax: maxCredit, hideOwned: false };
     setLocalFilters(clearedFilters);
     onApplyFilters(clearedFilters);
     onClose();
@@ -65,7 +65,8 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     (localFilters.ducatMin ?? 0) > 0 ||
     (localFilters.ducatMax ?? maxDucat) < maxDucat ||
     (localFilters.creditMin ?? 0) > 0 ||
-    (localFilters.creditMax ?? maxCredit) < maxCredit;
+    (localFilters.creditMax ?? maxCredit) < maxCredit ||
+    !!localFilters.hideOwned;
 
   const hasChanges =
     localFilters.popularity !== filters.popularity ||
@@ -74,7 +75,8 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
     (localFilters.ducatMin ?? 0) !== (filters.ducatMin ?? 0) ||
     (localFilters.ducatMax ?? maxDucat) !== (filters.ducatMax ?? maxDucat) ||
     (localFilters.creditMin ?? 0) !== (filters.creditMin ?? 0) ||
-    (localFilters.creditMax ?? maxCredit) !== (filters.creditMax ?? maxCredit);
+    (localFilters.creditMax ?? maxCredit) !== (filters.creditMax ?? maxCredit) ||
+    !!localFilters.hideOwned !== !!filters.hideOwned;
 
   return (
     <Modal
@@ -103,6 +105,17 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
           </View>
 
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Hide Owned */}
+            <View style={[styles.section, styles.toggleRow]}>
+              <Text style={styles.sectionTitle}>Hide Items I Own</Text>
+              <Switch
+                value={!!localFilters.hideOwned}
+                onValueChange={(val) => setLocalFilters(prev => ({ ...prev, hideOwned: val }))}
+                trackColor={{ false: colors.controlBorder, true: colors.accentMuted }}
+                thumbColor={localFilters.hideOwned ? colors.accent : colors.textMuted}
+              />
+            </View>
+
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Categories</Text>
@@ -180,6 +193,7 @@ export default function FilterMenu({ visible, onClose, filters, onApplyFilters }
                 )}
               </View>
             </View>
+
           </ScrollView>
 
           <View style={[styles.footer, styles.footerRow, { paddingBottom: 20 + insets.bottom }]}>

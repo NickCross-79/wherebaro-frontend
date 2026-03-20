@@ -22,11 +22,12 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { updateItemWishlistCount: updateAllItemsWishlistCount } = useAllItems();
   const { updateItemWishlistCount: updateInventoryWishlistCount, items: inventoryItems, isHere: isBaroHere } = useInventory();
-  const { hasLiked, hasReviewed } = useUserActions();
+  const { hasLiked, hasReviewed, isOwned, markOwned } = useUserActions();
   const itemId       = item?.id || item?._id;
   const inWishlist   = isInWishlist(itemId);
   const userLiked    = hasLiked(itemId);
   const userReviewed = hasReviewed(itemId);
+  const owned        = isOwned(itemId);
 
   // Check if this item is in Baro's current inventory
   const isInCurrentInventory = isBaroHere && inventoryItems.some(
@@ -324,6 +325,20 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
           </View>
         </View>
       </View>
+      <Pressable
+        style={styles.ownedButton}
+        onPress={() => markOwned(itemId, !owned)}
+        hitSlop={8}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: owned }}
+        accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
+      >
+        <Ionicons
+          name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
+          size={22}
+          color={owned ? colors.accent : colors.textDim}
+        />
+      </Pressable>
           </Pressable>
           </Animated.View>
         </Animated.View>

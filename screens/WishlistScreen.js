@@ -10,6 +10,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useAllItems } from '../contexts/AllItemsContext';
 import { useInventory } from '../contexts/InventoryContext';
 import { applyAllFilters } from '../utils/filterUtils';
+import { useUserActions } from '../contexts/UserActionsContext';
 import styles from '../styles/screens/WishlistScreen.styles';
 import { colors } from '../constants/theme';
 
@@ -21,7 +22,7 @@ export default function WishlistScreen({ navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   useScrollToTop(scrollRef);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null });  const [searchBarHeight, setSearchBarHeight] = useState(75);
+  const [filters, setFilters] = useState({ categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null, hideOwned: false });  const [searchBarHeight, setSearchBarHeight] = useState(75);
   const [budgetHeight, setBudgetHeight] = useState(80);
   const { wishlistItems } = useWishlist();
   const { refreshing, onRefresh } = useAllItems();
@@ -32,8 +33,10 @@ export default function WishlistScreen({ navigation }) {
     scrollRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [filters]);
 
+  const { isOwned } = useUserActions();
+
   const finalItems = useMemo(() => {
-    const filtered = applyAllFilters(wishlistItems, searchQuery, filters);
+    const filtered = applyAllFilters(wishlistItems, searchQuery, filters, undefined, isOwned);
     if (!isBaroHere || inventoryItems.length === 0) return filtered;
     const inventoryIds = new Set(inventoryItems.map(inv => String(inv._id?.$oid || inv._id || inv.id)));
     const isAvailable = (item) => inventoryIds.has(String(item._id?.$oid || item._id || item.id));

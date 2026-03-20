@@ -157,7 +157,7 @@ export const storageHelpers = {
 
   getFilters: async () => {
     const value = await secureStorage.getItem('filters');
-    const defaultFilters = { categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null };
+    const defaultFilters = { categories: [], popularity: 'all', ducatMin: 0, ducatMax: null, creditMin: 0, creditMax: null, hideOwned: false };
     if (!value) {
       return defaultFilters;
     }
