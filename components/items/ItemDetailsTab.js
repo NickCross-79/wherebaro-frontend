@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PERMANENT_BARO_ITEMS } from '../../constants/items';
 import { colors, gradients } from '../../constants/theme';
+import { storageHelpers } from '../../utils/storage';
 
 export default function ItemDetailsTab({
   item,
@@ -20,6 +21,21 @@ export default function ItemDetailsTab({
   const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
   const [voteInfoVisible, setVoteInfoVisible] = useState(false);
   const [barMounted, setBarMounted] = useState(false);
+
+  // Show the voting intro modal the first time the user opens a Baro inventory item each visit
+  useEffect(() => {
+    if (!isInCurrentInventory || !voteData) return;
+    Promise.all([
+      storageHelpers.get('vote_intro_visit'),
+      storageHelpers.getBaroResponse(),
+    ]).then(([seenVisit, baroResponse]) => {
+      const currentVisit = baroResponse?.activation ?? null;
+      if (currentVisit && seenVisit !== currentVisit) {
+        setVoteInfoVisible(true);
+        storageHelpers.set('vote_intro_visit', currentVisit);
+      }
+    });
+  }, []);
 
   // Vote bar animation
   const barProgress = useRef(new Animated.Value(0)).current;
