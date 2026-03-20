@@ -34,8 +34,8 @@ const buildSuffixMap = (cachedItems) => {
 };
 
 /**
- * Match Baro API inventory items to cached all-items using uniqueName suffix.
- * Falls back to name matching if uniqueName is not available.
+ * Match Baro API inventory items to cached all-items using name first.
+ * Falls back to uniqueName suffix matching if name is not available.
  */
 const matchInventoryItems = (inventory, cachedItems) => {
   const suffixMap = buildSuffixMap(cachedItems);
@@ -44,21 +44,21 @@ const matchInventoryItems = (inventory, cachedItems) => {
   let matchedBySuffix = 0, matchedByName = 0, unmatched = 0;
 
   const results = inventory.map(invItem => {
-    // Primary: match by uniqueName suffix
-    const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
-    let fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
+    // Primary: match by name
+    let fullItem = invItem.item ? nameMap.get(invItem.item.toLowerCase()) : null;
 
     if (fullItem) {
-      matchedBySuffix++;
-    } else if (invItem.item) {
-      // Fallback: match by name
-      fullItem = nameMap.get(invItem.item.toLowerCase());
-      if (fullItem) matchedByName++;
+      matchedByName++;
+    } else {
+      // Fallback: match by uniqueName suffix
+      const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
+      fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
+      if (fullItem) matchedBySuffix++;
     }
 
     if (!fullItem) {
       unmatched++;
-      logger.debug('Baro', `Unmatched item: "${invItem.item}" (suffix: ${invSuffix || 'none'})`);
+      logger.debug('Baro', `Unmatched item: "${invItem.item}" (uniqueName: ${invItem.uniqueName || 'none'})`);
       return {
         _unmatched: true,
         name: invItem.item,

@@ -4,13 +4,15 @@
     "date": "April 2026",
     "summary": "When Baro? is here! Discover Baro Ki'teer's inventory like never before.",
     "changes": [
-      "Fixed positioning of edit/delete menu for reviews",
       "Added scroll-to-top behavior when filters change on Baro and All Items screens",
       "Added Apply button to filter menu",
       "Added Plat to ducat ratio in the market tab",
       "Added ducat and credit sliders to filter menu",
       "Added voting info window to new Baro visits",
-      "Added toggle for owned items"
+      "Added toggle for owned items",
+      "Fixed positioning of edit/delete menu for reviews",
+      "Fixed server being out of sync with warframe servers (thank you daylight savings...)",
+      "Fixed rare cases of incorrect mods appearing in Baro's inventory"
     ]
   }
 ]
