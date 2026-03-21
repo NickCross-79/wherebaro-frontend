@@ -8,20 +8,18 @@ import { PERMANENT_BARO_ITEMS } from '../constants/items';
 import logger from '../utils/logger';
 
 /**
- * Extracts the canonical subpath from a uniqueName, handling both API and DB formats:
- *   API: "/Lotus/StoreItems/Upgrades/Mods/Rifle/Expert/Foo" -> "Upgrades/Mods/Rifle/Expert/Foo"
- *   DB:  "/Lotus/Upgrades/Mods/Rifle/Expert/Foo"            -> "Upgrades/Mods/Rifle/Expert/Foo"
+ * Extracts a comparable key from a uniqueName by stripping the leading
+ * "/Lotus/StoreItems/" prefix (for API paths) or "/Lotus/" prefix (for DB paths).
+ * This allows API paths and DB paths to be matched against each other.
  */
 const getUniqueNameKey = (uniqueName) => {
   if (!uniqueName) return '';
   const storeItemsPrefix = '/Lotus/StoreItems/';
+  const idx = uniqueName.indexOf(storeItemsPrefix);
+  if (idx !== -1) return uniqueName.slice(idx + storeItemsPrefix.length);
   const lotusPrefix = '/Lotus/';
-  if (uniqueName.startsWith(storeItemsPrefix)) {
-    return uniqueName.slice(storeItemsPrefix.length);
-  }
-  if (uniqueName.startsWith(lotusPrefix)) {
-    return uniqueName.slice(lotusPrefix.length);
-  }
+  const idx2 = uniqueName.indexOf(lotusPrefix);
+  if (idx2 !== -1) return uniqueName.slice(idx2 + lotusPrefix.length);
   return uniqueName;
 };
 
