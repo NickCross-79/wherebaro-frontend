@@ -7,19 +7,24 @@
 // Re-implement the matching functions here for isolated testing
 // (they're defined inside InventoryContext.js as module-level functions)
 
-const getUniqueNameSuffix = (uniqueName) => {
+const getUniqueNameKey = (uniqueName) => {
   if (!uniqueName) return '';
-  const parts = uniqueName.split('/');
-  return parts[parts.length - 1];
+  const storeItemsPrefix = '/Lotus/StoreItems/';
+  const idx = uniqueName.indexOf(storeItemsPrefix);
+  if (idx !== -1) return uniqueName.slice(idx + storeItemsPrefix.length);
+  const lotusPrefix = '/Lotus/';
+  const idx2 = uniqueName.indexOf(lotusPrefix);
+  if (idx2 !== -1) return uniqueName.slice(idx2 + lotusPrefix.length);
+  return uniqueName;
 };
 
-const buildSuffixMap = (cachedItems) => {
+const buildKeyMap = (cachedItems) => {
   const map = new Map();
   for (const item of cachedItems) {
     if (item.uniqueName) {
-      const suffix = getUniqueNameSuffix(item.uniqueName);
-      if (suffix) {
-        map.set(suffix.toLowerCase(), item);
+      const key = getUniqueNameKey(item.uniqueName);
+      if (key) {
+        map.set(key.toLowerCase(), item);
       }
     }
   }
@@ -29,15 +34,17 @@ const buildSuffixMap = (cachedItems) => {
 const { PERMANENT_BARO_ITEMS } = require('../../constants/items');
 
 const matchInventoryItems = (inventory, cachedItems) => {
-  const suffixMap = buildSuffixMap(cachedItems);
+  const keyMap = buildKeyMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
 
   const results = inventory.map(invItem => {
-    const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
-    let fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
+    // Primary: match by name
+    let fullItem = invItem.item ? nameMap.get(invItem.item.toLowerCase()) : null;
 
-    if (!fullItem && invItem.item) {
-      fullItem = nameMap.get(invItem.item.toLowerCase());
+    if (!fullItem) {
+      // Fallback: match by uniqueName key
+      const invKey = getUniqueNameKey(invItem.uniqueName)?.toLowerCase();
+      fullItem = invKey ? keyMap.get(invKey) : null;
     }
 
     if (!fullItem) {
@@ -103,24 +110,34 @@ const cachedItems = [
   },
 ];
 
-describe('getUniqueNameSuffix', () => {
-  it('extracts the last segment of a path', () => {
-    expect(getUniqueNameSuffix('/Lotus/StoreItems/Types/Mods/PrimedFlow')).toBe('PrimedFlow');
+describe('getUniqueNameKey', () => {
+  it('strips /Lotus/StoreItems/ prefix from API paths', () => {
+    expect(getUniqueNameKey('/Lotus/StoreItems/Upgrades/Mods/Shotgun/Expert/WeaponClipMaxModExpert')).toBe('Upgrades/Mods/Shotgun/Expert/WeaponClipMaxModExpert');
+  });
+
+  it('strips /Lotus/ prefix from DB paths', () => {
+    expect(getUniqueNameKey('/Lotus/Upgrades/Mods/Shotgun/Expert/WeaponClipMaxModExpert')).toBe('Upgrades/Mods/Shotgun/Expert/WeaponClipMaxModExpert');
+  });
+
+  it('API and DB paths for the same item produce the same key', () => {
+    const apiPath = '/Lotus/StoreItems/Types/StoreItems/AvatarImages/AvatarImageDrippy';
+    const dbPath  = '/Lotus/Types/StoreItems/AvatarImages/AvatarImageDrippy';
+    expect(getUniqueNameKey(apiPath)).toBe(getUniqueNameKey(dbPath));
   });
 
   it('returns empty string for null/undefined', () => {
-    expect(getUniqueNameSuffix(null)).toBe('');
-    expect(getUniqueNameSuffix(undefined)).toBe('');
-    expect(getUniqueNameSuffix('')).toBe('');
+    expect(getUniqueNameKey(null)).toBe('');
+    expect(getUniqueNameKey(undefined)).toBe('');
+    expect(getUniqueNameKey('')).toBe('');
   });
 
-  it('returns the string itself when no slashes', () => {
-    expect(getUniqueNameSuffix('PrimedFlow')).toBe('PrimedFlow');
+  it('returns the string itself when no /Lotus/ prefix', () => {
+    expect(getUniqueNameKey('PrimedFlow')).toBe('PrimedFlow');
   });
 });
 
 describe('matchInventoryItems', () => {
-  it('matches items by uniqueName suffix', () => {
+  it('matches items when the inventory API path and cached DB path refer to the same item', () => {
     const inventory = [
       {
         item: 'Primed Flow',
@@ -140,6 +157,46 @@ describe('matchInventoryItems', () => {
     expect(result[0].type).toBe('Primed Mod');
   });
 
+  it('disambiguates items sharing the same suffix using the full uniqueName key', () => {
+    const twoModsWithSameSuffix = [
+      {
+        _id: 'shotgun-mod',
+        name: 'Shotgun Clip Max',
+        uniqueName: '/Lotus/Upgrades/Mods/Shotgun/Expert/WeaponClipMaxModExpert',
+        image: '/img/shotgun.png',
+        type: 'Mod',
+        likes: 0,
+        reviews: [],
+        offeringDates: ['2025-01-01'],
+      },
+      {
+        _id: 'rifle-mod',
+        name: 'Rifle Clip Max',
+        uniqueName: '/Lotus/Upgrades/Mods/Rifle/Expert/WeaponClipMaxModExpert',
+        image: '/img/rifle.png',
+        type: 'Mod',
+        likes: 0,
+        reviews: [],
+        offeringDates: ['2025-01-01'],
+      },
+    ];
+
+    // API path targets the Rifle variant
+    const inventory = [
+      {
+        item: 'NOMATCH',
+        uniqueName: '/Lotus/StoreItems/Upgrades/Mods/Rifle/Expert/WeaponClipMaxModExpert',
+        credits: 50000,
+        ducats: 100,
+      },
+    ];
+
+    const result = matchInventoryItems(inventory, twoModsWithSameSuffix);
+    expect(result).toHaveLength(1);
+    expect(result[0]._unmatched).toBeUndefined();
+    expect(result[0]._id).toBe('rifle-mod');
+  });
+
   it('falls back to name matching when uniqueName does not match', () => {
     const inventory = [
       {
@@ -157,7 +214,7 @@ describe('matchInventoryItems', () => {
     expect(result[0].creditPrice).toBe(50000);
   });
 
-  it('marks items as unmatched when neither suffix nor name matches', () => {
+  it('marks items as unmatched when neither key nor name matches', () => {
     const inventory = [
       {
         item: 'Brand New Item',
