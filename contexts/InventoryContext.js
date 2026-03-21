@@ -8,25 +8,33 @@ import { PERMANENT_BARO_ITEMS } from '../constants/items';
 import logger from '../utils/logger';
 
 /**
- * Extracts the last segment from a uniqueName path.
- * e.g. "/Lotus/StoreItems/Types/Items/ShipDecos/Foo" -> "Foo"
+ * Extracts the canonical subpath from a uniqueName, handling both API and DB formats:
+ *   API: "/Lotus/StoreItems/Upgrades/Mods/Rifle/Expert/Foo" -> "Upgrades/Mods/Rifle/Expert/Foo"
+ *   DB:  "/Lotus/Upgrades/Mods/Rifle/Expert/Foo"            -> "Upgrades/Mods/Rifle/Expert/Foo"
  */
-const getUniqueNameSuffix = (uniqueName) => {
+const getUniqueNameKey = (uniqueName) => {
   if (!uniqueName) return '';
-  const parts = uniqueName.split('/');
-  return parts[parts.length - 1];
+  const storeItemsPrefix = '/Lotus/StoreItems/';
+  const lotusPrefix = '/Lotus/';
+  if (uniqueName.startsWith(storeItemsPrefix)) {
+    return uniqueName.slice(storeItemsPrefix.length);
+  }
+  if (uniqueName.startsWith(lotusPrefix)) {
+    return uniqueName.slice(lotusPrefix.length);
+  }
+  return uniqueName;
 };
 
 /**
- * Build a Map of uniqueName suffix -> cached item for fast matching.
+ * Build a Map of uniqueName key -> cached item for fast matching.
  */
-const buildSuffixMap = (cachedItems) => {
+const buildKeyMap = (cachedItems) => {
   const map = new Map();
   for (const item of cachedItems) {
     if (item.uniqueName) {
-      const suffix = getUniqueNameSuffix(item.uniqueName);
-      if (suffix) {
-        map.set(suffix.toLowerCase(), item);
+      const key = getUniqueNameKey(item.uniqueName);
+      if (key) {
+        map.set(key.toLowerCase(), item);
       }
     }
   }
@@ -38,10 +46,10 @@ const buildSuffixMap = (cachedItems) => {
  * Falls back to uniqueName suffix matching if name is not available.
  */
 const matchInventoryItems = (inventory, cachedItems) => {
-  const suffixMap = buildSuffixMap(cachedItems);
+  const keyMap = buildKeyMap(cachedItems);
   const nameMap = new Map(cachedItems.map(item => [item.name?.toLowerCase(), item]));
 
-  let matchedBySuffix = 0, matchedByName = 0, unmatched = 0;
+  let matchedByKey = 0, matchedByName = 0, unmatched = 0;
 
   const results = inventory.map(invItem => {
     // Primary: match by name
@@ -50,10 +58,10 @@ const matchInventoryItems = (inventory, cachedItems) => {
     if (fullItem) {
       matchedByName++;
     } else {
-      // Fallback: match by uniqueName suffix
-      const invSuffix = getUniqueNameSuffix(invItem.uniqueName)?.toLowerCase();
-      fullItem = invSuffix ? suffixMap.get(invSuffix) : null;
-      if (fullItem) matchedBySuffix++;
+      // Fallback: match by uniqueName key
+      const invKey = getUniqueNameKey(invItem.uniqueName)?.toLowerCase();
+      fullItem = invKey ? keyMap.get(invKey) : null;
+      if (fullItem) matchedByKey++;
     }
 
     if (!fullItem) {
@@ -85,7 +93,7 @@ const matchInventoryItems = (inventory, cachedItems) => {
     return merged;
   });
 
-  logger.debug('Baro', `Match results: ${matchedBySuffix} by suffix, ${matchedByName} by name, ${unmatched} unmatched (${inventory.length} total)`);
+  logger.debug('Baro', `Match results: ${matchedByKey} by key, ${matchedByName} by name, ${unmatched} unmatched (${inventory.length} total)`);
   return results;
 };
 
