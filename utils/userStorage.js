@@ -39,14 +39,23 @@ export const getLastDataRefresh = async () => {
  * Get notification-related settings
  */
 export const getNotificationSettings = async () => {
-  const [notifications, wishlistAlerts, autoRefresh] = await Promise.all([
+  const [arrivalAlerts, departureAlertsRaw, wishlistAlerts, autoRefresh] = await Promise.all([
     storageHelpers.getBoolean('notificationsEnabled', true),
+    // null means the key has never been written (pre-split-toggle update)
+    storageHelpers.get('departureAlertsEnabled'),
     storageHelpers.getBoolean('wishlistAlertsEnabled', true),
     storageHelpers.getBoolean('autoRefreshEnabled', false),
   ]);
 
+  // If departureAlertsEnabled has never been set, mirror the arrival setting so
+  // that users who had Baro Alerts OFF stay fully OFF after the update.
+  const departureAlerts = departureAlertsRaw === null || departureAlertsRaw === undefined
+    ? arrivalAlerts
+    : departureAlertsRaw === true || departureAlertsRaw === 'true';
+
   return {
-    notifications,
+    arrivalAlerts,
+    departureAlerts,
     wishlistAlerts,
     autoRefresh,
   };
@@ -56,8 +65,11 @@ export const getNotificationSettings = async () => {
  * Update notification-related settings
  */
 export const updateNotificationSettings = async (settings) => {
-  if (typeof settings.notifications === 'boolean') {
-    await storageHelpers.setBoolean('notificationsEnabled', settings.notifications);
+  if (typeof settings.arrivalAlerts === 'boolean') {
+    await storageHelpers.setBoolean('notificationsEnabled', settings.arrivalAlerts);
+  }
+  if (typeof settings.departureAlerts === 'boolean') {
+    await storageHelpers.setBoolean('departureAlertsEnabled', settings.departureAlerts);
   }
   if (typeof settings.wishlistAlerts === 'boolean') {
     await storageHelpers.setBoolean('wishlistAlertsEnabled', settings.wishlistAlerts);
