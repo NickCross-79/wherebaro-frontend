@@ -15,6 +15,10 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: IS_DEV ? 'com.whenbaro.app.dev' : 'com.whenbaro.app',
+      googleServicesFile: IS_DEV
+        ? (process.env.GOOGLE_SERVICES_PLIST_DEV || './GoogleService-Info.dev.plist')
+        : (process.env.GOOGLE_SERVICES_PLIST || './GoogleService-Info.plist'),
     },
     android: {
       package: IS_DEV ? 'com.whenbaro.app.dev' : 'com.whenbaro.app',
