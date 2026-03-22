@@ -25,10 +25,12 @@ Notifications.setNotificationHandler({
 });
 
 /**
- * Register for push notifications and send token to backend
+ * Register for push notifications and send token to backend.
+ * @param {boolean} [notifyArrival=true] - Whether to receive arrival notifications
+ * @param {boolean} [notifyDeparture=true] - Whether to receive departure notifications
  * @returns {Promise<string|null>} The Expo push token or null if failed
  */
-export const registerForPushNotifications = async () => {
+export const registerForPushNotifications = async (notifyArrival = true, notifyDeparture = true) => {
   try {
     // Check if physical device
     if (!Device.isDevice) {
@@ -80,7 +82,7 @@ export const registerForPushNotifications = async () => {
     try {
       // Get device UID to associate with token
       const deviceId = await storageHelpers.getOrCreateUID();
-      await registerPushToken(token, deviceId);
+      await registerPushToken(token, deviceId, notifyArrival, notifyDeparture);
       console.log('Push token registered successfully');
     } catch (backendError) {
       console.error('Failed to register token with backend:', backendError);
@@ -98,6 +100,27 @@ export const registerForPushNotifications = async () => {
   } catch (error) {
     console.error('Error registering for push notifications:', error);
     return null;
+  }
+};
+
+/**
+ * Update notification type preferences on an already-registered token.
+ * Lightweight alternative to full re-registration — no permission/token fetch needed.
+ * @param {boolean} notifyArrival - Whether to receive arrival notifications
+ * @param {boolean} notifyDeparture - Whether to receive departure notifications
+ */
+export const updateNotificationPreferences = async (notifyArrival, notifyDeparture) => {
+  try {
+    const token = await storageHelpers.get('expoPushToken');
+    if (!token) {
+      console.warn('No stored push token — cannot update preferences');
+      return;
+    }
+    const deviceId = await storageHelpers.getOrCreateUID();
+    await registerPushToken(token, deviceId, notifyArrival, notifyDeparture);
+    console.log(`Notification preferences updated: arrival=${notifyArrival}, departure=${notifyDeparture}`);
+  } catch (error) {
+    console.error('Error updating notification preferences:', error);
   }
 };
 

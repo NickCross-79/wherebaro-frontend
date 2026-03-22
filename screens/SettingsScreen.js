@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getCurrentUsername, setCurrentUsername, getNotificationSettings, updateNotificationSettings } from '../utils/userStorage';
 import { storageHelpers } from '../utils/storage';
 import { registerForPushNotifications, unregisterPushToken, bulkSyncWishlistPushToken } from '../services/api';
-import { getLocalPushToken, unregisterFromBackend } from '../services/pushNotificationService';
+import { getLocalPushToken, unregisterFromBackend, updateNotificationPreferences } from '../services/pushNotificationService';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useNewVersion } from '../contexts/NewVersionContext';
 import styles from '../styles/screens/SettingsScreen.styles';
@@ -21,7 +21,8 @@ export default function SettingsScreen({ navigation }) {
   useScrollToTop(scrollRef);
   const { wishlistIds } = useWishlist();
   const { hasNewVersion, markVersionSeen, APP_VERSION, CHANGELOG } = useNewVersion();
-  const [notifications, setNotifications] = useState(true);
+  const [arrivalAlerts, setArrivalAlerts] = useState(true);
+  const [departureAlerts, setDepartureAlerts] = useState(true);
   const [wishlistAlerts, setWishlistAlerts] = useState(true);
   const [displayName, setDisplayName] = useState('Anonymous');
   const [deviceId, setDeviceId] = useState('');
@@ -42,15 +43,17 @@ export default function SettingsScreen({ navigation }) {
       if (Device.isDevice) {
         const { status } = await Notifications.getPermissionsAsync();
         if (status !== 'granted') {
-          setNotifications(false);
+          setArrivalAlerts(false);
+          setDepartureAlerts(false);
           setWishlistAlerts(false);
-          if (settings.notifications || settings.wishlistAlerts) {
-            await updateNotificationSettings({ notifications: false, wishlistAlerts: false });
+          if (settings.arrivalAlerts || settings.departureAlerts || settings.wishlistAlerts) {
+            await updateNotificationSettings({ arrivalAlerts: false, departureAlerts: false, wishlistAlerts: false });
           }
           return;
         }
       }
-      setNotifications(settings.notifications);
+      setArrivalAlerts(settings.arrivalAlerts);
+      setDepartureAlerts(settings.departureAlerts);
       setWishlistAlerts(settings.wishlistAlerts);
     };
     const loadDeviceId = async () => {
@@ -96,21 +99,59 @@ export default function SettingsScreen({ navigation }) {
     await setCurrentUsername(sanitized);
   };
 
-  const handleNotificationsChange = async (value) => {
+  const handleArrivalAlertsChange = async (value) => {
     if (value) {
       const granted = await requestNotificationPermission();
       if (!granted) return;
-      setNotifications(true);
-      await updateNotificationSettings({ notifications: true });
-      registerForPushNotifications().catch(() => {});
+      setArrivalAlerts(true);
+      await updateNotificationSettings({ arrivalAlerts: true });
+      if (departureAlerts) {
+        // Already registered — just update prefs
+        updateNotificationPreferences(true, departureAlerts).catch(() => {});
+      } else {
+        // First baro alert being enabled — do full registration
+        registerForPushNotifications(true, false).catch(() => {});
+      }
     } else {
-      setNotifications(false);
-      await updateNotificationSettings({ notifications: false });
-      if (!wishlistAlerts) {
-        // No alerts at all — full unregister (backend + local)
+      setArrivalAlerts(false);
+      await updateNotificationSettings({ arrivalAlerts: false });
+      if (departureAlerts) {
+        // Departure still on — update prefs, stay registered
+        updateNotificationPreferences(false, true).catch(() => {});
+      } else if (!wishlistAlerts) {
+        // All alerts off — full unregister
         unregisterPushToken().catch(() => {});
       } else {
-        // Wishlist still needs local token — only remove from backend
+        // Only wishlist remains — remove from general push collection
+        unregisterFromBackend().catch(() => {});
+      }
+    }
+  };
+
+  const handleDepartureAlertsChange = async (value) => {
+    if (value) {
+      const granted = await requestNotificationPermission();
+      if (!granted) return;
+      setDepartureAlerts(true);
+      await updateNotificationSettings({ departureAlerts: true });
+      if (arrivalAlerts) {
+        // Already registered — just update prefs
+        updateNotificationPreferences(arrivalAlerts, true).catch(() => {});
+      } else {
+        // First baro alert being enabled — do full registration
+        registerForPushNotifications(false, true).catch(() => {});
+      }
+    } else {
+      setDepartureAlerts(false);
+      await updateNotificationSettings({ departureAlerts: false });
+      if (arrivalAlerts) {
+        // Arrival still on — update prefs, stay registered
+        updateNotificationPreferences(true, false).catch(() => {});
+      } else if (!wishlistAlerts) {
+        // All alerts off — full unregister
+        unregisterPushToken().catch(() => {});
+      } else {
+        // Only wishlist remains — remove from general push collection
         unregisterFromBackend().catch(() => {});
       }
     }
@@ -142,7 +183,7 @@ export default function SettingsScreen({ navigation }) {
         );
       }
       // Only unregister token if baro alerts are also off
-      if (!notifications) {
+      if (!arrivalAlerts && !departureAlerts) {
         unregisterPushToken().catch(() => {});
       }
     }
@@ -251,17 +292,34 @@ export default function SettingsScreen({ navigation }) {
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Baro Alerts</Text>
+              <Text style={styles.settingLabel}>Arrival Alerts</Text>
               <Text style={styles.settingDescription}>
-                Get notified when Baro arrives or leaves
+                Get notified when Baro arrives at a relay
               </Text>
             </View>
             <Switch
-              value={notifications}
-              onValueChange={handleNotificationsChange}
+              value={arrivalAlerts}
+              onValueChange={handleArrivalAlertsChange}
               trackColor={{ false: colors.controlOff, true: colors.accent }}
-              thumbColor={notifications ? colors.text : colors.textSecondary}
-              accessibilityLabel="Baro Alerts"
+              thumbColor={arrivalAlerts ? colors.text : colors.textSecondary}
+              accessibilityLabel="Arrival Alerts"
+              accessibilityRole="switch"
+            />
+          </View>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Departure Alerts</Text>
+              <Text style={styles.settingDescription}>
+                Get notified when Baro leaves the relay
+              </Text>
+            </View>
+            <Switch
+              value={departureAlerts}
+              onValueChange={handleDepartureAlertsChange}
+              trackColor={{ false: colors.controlOff, true: colors.accent }}
+              thumbColor={departureAlerts ? colors.text : colors.textSecondary}
+              accessibilityLabel="Departure Alerts"
               accessibilityRole="switch"
             />
           </View>
