@@ -17,6 +17,15 @@
         "simulator": true
       }
     },
+    "simulator": {
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "dev"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
