@@ -19,6 +19,9 @@ export default {
       googleServicesFile: IS_DEV
         ? (process.env.GOOGLE_SERVICES_PLIST_DEV || './GoogleService-Info.dev.plist')
         : (process.env.GOOGLE_SERVICES_PLIST || './GoogleService-Info.plist'),
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       package: IS_DEV ? 'com.whenbaro.app.dev' : 'com.whenbaro.app',
