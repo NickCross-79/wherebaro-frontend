@@ -1,5 +1,5 @@
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { StatusBar, View, Text } from 'react-native';
+import { StatusBar, View, Text, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
@@ -23,9 +23,11 @@ export default function App() {
   const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
-    NavigationBar.setBackgroundColorAsync(colors.surface);
-    NavigationBar.setButtonStyleAsync('light');
-    NavigationBar.setVisibilityAsync('visible');
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync(colors.surface);
+      NavigationBar.setButtonStyleAsync('light');
+      NavigationBar.setVisibilityAsync('visible');
+    }
   }, []);
 
   useEffect(() => {
