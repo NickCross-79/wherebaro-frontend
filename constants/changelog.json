@@ -15,7 +15,8 @@
       "Added a 'Support the Developer' button in the settings menu",
       "Fixed positioning of edit/delete menu for reviews",
       "Fixed server being out of sync with warframe servers (thank you daylight savings...)",
-      "Fixed incorrect mods appearing in Baro's inventory"
+      "Fixed incorrect mods appearing in Baro's inventory",
+      "Fixed some reviews incorrectly showing 'Read More' prompt"
     ]
   }
 ]
