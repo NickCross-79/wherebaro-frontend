@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? 'When Baro? (Dev)' : 'When Baro?',
     slug: 'when-baro',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/imgs/logo_baro_icon.png',
     userInterfaceStyle: 'light',
