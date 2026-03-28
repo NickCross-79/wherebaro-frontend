@@ -12,6 +12,7 @@
       "Added voting info window to new Baro visits",
       "Added checkmark toggle for owned items",
       "Added separate notification toggles for Baro arrival and departure",
+      "Added a 'Support the Developer' button in the settings menu",
       "Fixed positioning of edit/delete menu for reviews",
       "Fixed server being out of sync with warframe servers (thank you daylight savings...)",
       "Fixed incorrect mods appearing in Baro's inventory"

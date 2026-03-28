@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { secureStorage } from '../utils/storage';
 import CHANGELOG from '../constants/changelog.json';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = CHANGELOG[0]?.version ?? '1.0.0';
 
 const NewVersionContext = createContext({ hasNewVersion: false, markVersionSeen: () => {} });
 

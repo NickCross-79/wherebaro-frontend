@@ -369,7 +369,20 @@ export default function SettingsScreen({ navigation }) {
         {/* About Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          
+
+          <TouchableOpacity
+            style={[styles.settingItem, styles.kofiButton]}
+            onPress={() => Linking.openURL('https://ko-fi.com/whenbaro')}
+            accessibilityLabel="Support the Developer on Ko-fi"
+            accessibilityRole="link"
+          >
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingLabel, styles.kofiLabel]}>Support the Developer</Text>
+              <Text style={styles.settingDescription}>Buy me a coffee on Ko-fi ☕</Text>
+            </View>
+            <Ionicons name="heart" size={20} color={colors.accent} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.settingItem}
             accessibilityLabel={`Version ${APP_VERSION}`}

@@ -115,6 +115,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  kofiButton: {
+    borderColor: colors.accent,
+  },
+  kofiLabel: {
+    color: colors.accent,
+  },
   credits: {
     alignItems: 'center',
     paddingVertical: 30,
