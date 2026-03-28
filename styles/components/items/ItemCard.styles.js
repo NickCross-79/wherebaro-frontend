@@ -345,10 +345,31 @@ const styles = StyleSheet.create({
   },
   ownedButton: {
     position: 'absolute',
-    bottom: 12,
-    right: 12,
+    bottom: 10,
+    right: 10,
     zIndex: 10,
-    padding: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  ownedButtonActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  ownedButtonLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textDim,
+    letterSpacing: 0.3,
+  },
+  ownedButtonLabelActive: {
+    color: colors.textOnAccent,
   },
 });
 

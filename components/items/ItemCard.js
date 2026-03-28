@@ -9,6 +9,12 @@ import styles from '../../styles/components/items/ItemCard.styles';
 import { colors } from '../../constants/theme';
 import { useUserActions } from '../../contexts/UserActionsContext';
 
+const formatCredits = n => {
+  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${+(n / 1_000).toFixed(1)}k`;
+  return String(n);
+};
+
 const PARTICLE_DIRECTIONS = [
   { dx:   0, dy: -60 },
   { dx:  48, dy: -38 },
@@ -319,14 +325,14 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
                 style={styles.creditIcon}
               />
               <Text style={styles.priceValue}>
-                {item.creditPrice.toLocaleString()}
+                {formatCredits(item.creditPrice)}
               </Text>
             </View>
           </View>
         </View>
       </View>
       <Pressable
-        style={styles.ownedButton}
+        style={[styles.ownedButton, owned && styles.ownedButtonActive]}
         onPress={() => markOwned(itemId, !owned)}
         hitSlop={8}
         accessibilityRole="checkbox"
@@ -335,9 +341,12 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
       >
         <Ionicons
           name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
-          size={22}
-          color={owned ? colors.accent : colors.textDim}
+          size={16}
+          color={owned ? colors.textOnAccent : colors.textDim}
         />
+        <Text style={[styles.ownedButtonLabel, owned && styles.ownedButtonLabelActive]}>
+          {owned ? 'Owned' : 'Mark Owned'}
+        </Text>
       </Pressable>
           </Pressable>
           </Animated.View>

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PERMANENT_BARO_ITEMS } from '../../constants/items';
 import { colors, gradients } from '../../constants/theme';
 import { storageHelpers } from '../../utils/storage';
+import { useUserActions } from '../../contexts/UserActionsContext';
 
 export default function ItemDetailsTab({
   item,
@@ -21,6 +22,9 @@ export default function ItemDetailsTab({
   const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
   const [voteInfoVisible, setVoteInfoVisible] = useState(false);
   const [barMounted, setBarMounted] = useState(false);
+  const { isOwned, markOwned } = useUserActions();
+  const itemId = String(item._id?.$oid || item._id || item.id);
+  const owned = isOwned(itemId);
 
   // Show the voting intro modal the first time the user opens a Baro inventory item each visit
   useEffect(() => {
@@ -186,6 +190,25 @@ export default function ItemDetailsTab({
         </View>
       </View>
 
+      {/* Mark as Owned */}
+      <TouchableOpacity
+        style={[ownedStyles.button, owned && ownedStyles.buttonOwned]}
+        onPress={() => markOwned(itemId, !owned)}
+        activeOpacity={0.8}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: owned }}
+        accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
+      >
+        <Ionicons
+          name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
+          size={20}
+          color={owned ? colors.textOnAccent : colors.accent}
+        />
+        <Text style={[ownedStyles.buttonText, owned && ownedStyles.buttonTextOwned]}>
+          {owned ? 'Owned' : 'Mark as Owned'}
+        </Text>
+      </TouchableOpacity>
+
       {/* Buy or Skip Vote Section — only for current Baro inventory */}
       {isInCurrentInventory && voteData && (
         <View style={voteStyles.container}>
@@ -336,6 +359,34 @@ export default function ItemDetailsTab({
     </ScrollView>
   );
 }
+
+const ownedStyles = StyleSheet.create({
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    backgroundColor: 'transparent',
+  },
+  buttonOwned: {
+    backgroundColor: colors.accent,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.accent,
+    letterSpacing: 0.3,
+  },
+  buttonTextOwned: {
+    color: colors.textOnAccent,
+  },
+});
 
 const voteStyles = StyleSheet.create({
   container: {
