@@ -26,10 +26,23 @@
         "simulator": true
       }
     },
-    "preview": {
+    "appetize": {
       "distribution": "internal",
       "env": {
         "APP_VARIANT": "dev"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview": {
+      "distribution": "store",
+      "env": {
+        "APP_VARIANT": "production"
       },
       "android": {
         "buildType": "apk"

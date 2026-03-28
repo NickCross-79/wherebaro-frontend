@@ -1,4 +1,4 @@
-import { TextInput, TouchableOpacity, View, Text, Animated, Pressable, Easing } from 'react-native';
+import { TextInput, TouchableOpacity, View, Text, Animated, Pressable, Easing, Modal, StyleSheet, Platform } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,8 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ x: 0, y: 0, width: 0 });
+  const sortButtonRef = useRef(null);
   const expandAnim = useRef(new Animated.Value(0)).current;
   const dirButtonAnim = useRef(new Animated.Value(0)).current;
   const dirRotateAnim = useRef(new Animated.Value(0)).current;
@@ -33,6 +35,17 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
     });
     return unsubscribe;
   }, [navigation]);
+
+  const handleSortButtonPress = () => {
+    if (!showSortDropdown) {
+      sortButtonRef.current?.measureInWindow((x, y, width, height) => {
+        setDropdownPos({ x, y: y + height + 4, width });
+        setShowSortDropdown(true);
+      });
+    } else {
+      setShowSortDropdown(false);
+    }
+  };
 
   const handleToggle = () => {
     if (!isExpanded) {
@@ -96,38 +109,37 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
         </Animated.View>
       ) : (
         <>
-          {/* Invisible full-screen backdrop — closes dropdown on outside tap */}
-          {showSortDropdown && (
-            <Pressable
-              style={{ position: 'absolute', top: -1000, left: -1000, width: 6000, height: 6000, zIndex: 1 }}
-              onPress={() => setShowSortDropdown(false)}
-            />
-          )}
-
           {/* Sort picker — left side */}
           {filters && onApplyFilters && (
-            <View style={[styles.sortContainer, showSortDropdown && { zIndex: 2 }]}>
-              <TouchableOpacity style={styles.sortButton} onPress={() => setShowSortDropdown(v => !v)}>
+            <View style={[styles.sortContainer, showSortDropdown && Platform.OS === 'android' && { zIndex: 2 }]}>
+              <TouchableOpacity ref={sortButtonRef} style={styles.sortButton} onPress={handleSortButtonPress}>
                 <Text style={styles.sortLabel}>{currentSort.label}</Text>
                 <Ionicons name={showSortDropdown ? 'chevron-up' : 'chevron-down'} size={13} color={colors.textSecondary} />
               </TouchableOpacity>
-              {showSortDropdown && (
-                <View style={styles.sortDropdown}>
-                  {activeSortOptions.map(opt => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={[styles.sortOption, filters.popularity === opt.value && styles.sortOptionActive]}
-                      onPress={() => { onApplyFilters({ ...filters, popularity: opt.value, sortDir: opt.value === 'all' ? 'desc' : sortDir }); setShowSortDropdown(false); }}
-                    >
-                      <Text style={[styles.sortOptionText, filters.popularity === opt.value && styles.sortOptionTextActive]}>
-                        {opt.label}
-                      </Text>
-                      {filters.popularity === opt.value && (
-                        <Ionicons name="checkmark" size={16} color={colors.accent} />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
+              {/* Android: render inline — no clipping issue on Android */}
+              {showSortDropdown && Platform.OS === 'android' && (
+                <>
+                  <Pressable
+                    style={{ position: 'absolute', top: -1000, left: -1000, width: 6000, height: 6000, zIndex: 1 }}
+                    onPress={() => setShowSortDropdown(false)}
+                  />
+                  <View style={[styles.sortDropdown, { zIndex: 2 }]}>
+                    {activeSortOptions.map(opt => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[styles.sortOption, filters.popularity === opt.value && styles.sortOptionActive]}
+                        onPress={() => { onApplyFilters({ ...filters, popularity: opt.value, sortDir: opt.value === 'all' ? 'desc' : sortDir }); setShowSortDropdown(false); }}
+                      >
+                        <Text style={[styles.sortOptionText, filters.popularity === opt.value && styles.sortOptionTextActive]}>
+                          {opt.label}
+                        </Text>
+                        {filters.popularity === opt.value && (
+                          <Ionicons name="checkmark" size={16} color={colors.accent} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
               )}
             </View>
           )}
@@ -179,6 +191,43 @@ export default function CollapsibleSearchBar({ value, onChangeText, placeholder 
           filters={filters}
           onApplyFilters={onApplyFilters}
         />
+      )}
+
+      {/* Sort dropdown — iOS only: Modal to escape LinearGradient clipping */}
+      {filters && onApplyFilters && Platform.OS === 'ios' && (
+        <Modal
+          visible={showSortDropdown}
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={() => setShowSortDropdown(false)}
+        >
+          {/* Backdrop — catches taps outside the dropdown */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowSortDropdown(false)}
+          />
+          {/* Dropdown — positioned using screen coords from measureInWindow */}
+          <View
+            style={[styles.sortDropdown, { position: 'absolute', top: dropdownPos.y, left: dropdownPos.x, minWidth: Math.max(160, dropdownPos.width) }]}
+          >
+            {activeSortOptions.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.sortOption, filters.popularity === opt.value && styles.sortOptionActive]}
+                onPress={() => { onApplyFilters({ ...filters, popularity: opt.value, sortDir: opt.value === 'all' ? 'desc' : sortDir }); setShowSortDropdown(false); }}
+              >
+                <Text style={[styles.sortOptionText, filters.popularity === opt.value && styles.sortOptionTextActive]}>
+                  {opt.label}
+                </Text>
+                {filters.popularity === opt.value && (
+                  <Ionicons name="checkmark" size={16} color={colors.accent} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Modal>
       )}
     </View>
   );

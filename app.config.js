@@ -14,6 +14,7 @@ export default {
       backgroundColor: '#0C0C0E',
     },
     ios: {
+      icon: './assets/imgs/logo_baro_icon_ios.png',
       supportsTablet: true,
       bundleIdentifier: IS_DEV ? 'com.whenbaro.app.dev' : 'com.whenbaro.app',
       googleServicesFile: IS_DEV
