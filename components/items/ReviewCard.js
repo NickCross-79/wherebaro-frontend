@@ -23,6 +23,7 @@ function ReviewCard({ review, index }) {
 
   const [expanded, setExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [measured, setMeasured] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
   const isOwnReview = review?.uid === currentUid;
@@ -120,10 +121,11 @@ function ReviewCard({ review, index }) {
       </Modal>
       <Text
         style={styles.reviewText}
-        numberOfLines={expanded ? undefined : 3}
+        numberOfLines={measured && isTruncated && !expanded ? 3 : undefined}
         onTextLayout={(e) => {
-          if (!expanded && e.nativeEvent.lines.length >= 3) {
-            setIsTruncated(true);
+          if (!measured) {
+            setMeasured(true);
+            setIsTruncated(e.nativeEvent.lines.length > 3);
           }
         }}
       >
