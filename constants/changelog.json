@@ -1,22 +1,10 @@
 [
   {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "date": "April 2026",
-    "summary": "'When Baro?' is now available on iOS! Thank you to everyone who provided feedback and bug reports for the 1.0 release! This update includes several quality-of-life improvements and bug fixes to enhance your experience",
+    "summary": "This update includes several bug fixes to enhance your experience",
     "changes": [
-      "Added support for iOS devices",
-      "Added scroll-to-top behavior when filters change on Baro and All Items screens",
-      "Added Apply button to filter menu",
-      "Added Plat to ducat ratio in the market tab",
-      "Added ducat and credit sliders to filter menu",
-      "Added voting info window to new Baro visits",
-      "Added checkmark toggle for owned items",
-      "Added separate notification toggles for Baro arrival and departure",
-      "Added a 'Support the Developer' button in the settings menu",
-      "Fixed positioning of edit/delete menu for reviews",
-      "Fixed server being out of sync with warframe servers (thank you daylight savings...)",
-      "Fixed incorrect mods appearing in Baro's inventory",
-      "Fixed some reviews incorrectly showing 'Read More' prompt"
+      "Fix transitional state of baro screen"
     ]
   }
 ]

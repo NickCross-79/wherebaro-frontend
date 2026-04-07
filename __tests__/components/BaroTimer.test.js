@@ -50,8 +50,8 @@ describe('BaroTimer', () => {
 
   it('shows expiredText when timer expires', () => {
     const past = new Date(Date.now() - 1000);
-    const { getByText } = render(<BaroTimer nextArrival={past} expiredText="Arriving Soon" />);
-    expect(getByText('Arriving Soon')).toBeTruthy();
+    const { getByText } = render(<BaroTimer nextArrival={past} expiredText="Check back soon for Baro's next location and time" />);
+    expect(getByText('Check back soon for Baro\'s next location and time')).toBeTruthy();
   });
 
   it('shows "Unknown" for null nextArrival', () => {

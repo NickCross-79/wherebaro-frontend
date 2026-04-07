@@ -4,7 +4,7 @@ import TimeIcon from '../../assets/icons/icon_time.svg';
 import { formatTimeRemaining } from '../../utils/dateUtils';
 import styles from '../../styles/components/baro/BaroTimer.styles';
 
-function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Arriving Soon', detailsStyle, containerStyle }) {
+function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arrival', expiredText = 'Check back soon for Baro\'s next location and time', detailsStyle, containerStyle }) {
   const [timeRemaining, setTimeRemaining] = useState('');
 
   useEffect(() => {
