@@ -7,6 +7,7 @@ import { useInventory } from '../../contexts/InventoryContext';
 import { useState, useRef, useEffect, memo } from 'react';
 import styles from '../../styles/components/items/ItemCard.styles';
 import { colors } from '../../constants/theme';
+import { MARK_OWNED_EXCLUDED_ITEMS } from '../../constants/items';
 import { useUserActions } from '../../contexts/UserActionsContext';
 
 const formatCredits = n => {
@@ -331,23 +332,25 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
           </View>
         </View>
       </View>
-      <Pressable
-        style={[styles.ownedButton, owned && styles.ownedButtonActive]}
-        onPress={() => markOwned(itemId, !owned)}
-        hitSlop={8}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: owned }}
-        accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
-      >
-        <Ionicons
-          name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
-          size={16}
-          color={owned ? colors.textOnAccent : colors.textDim}
-        />
-        <Text style={[styles.ownedButtonLabel, owned && styles.ownedButtonLabelActive]}>
-          {owned ? 'Owned' : 'Mark Owned'}
-        </Text>
-      </Pressable>
+      {!MARK_OWNED_EXCLUDED_ITEMS.includes(item.name?.toLowerCase()) && (
+        <Pressable
+          style={[styles.ownedButton, owned && styles.ownedButtonActive]}
+          onPress={() => markOwned(itemId, !owned)}
+          hitSlop={8}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: owned }}
+          accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
+        >
+          <Ionicons
+            name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
+            size={16}
+            color={owned ? colors.textOnAccent : colors.textDim}
+          />
+          <Text style={[styles.ownedButtonLabel, owned && styles.ownedButtonLabelActive]}>
+            {owned ? 'Owned' : 'Mark Owned'}
+          </Text>
+        </Pressable>
+      )}
           </Pressable>
           </Animated.View>
         </Animated.View>

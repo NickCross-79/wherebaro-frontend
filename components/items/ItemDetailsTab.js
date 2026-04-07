@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScrollView, View, Text, Image, ImageBackground, TouchableOpacity, Modal, Pressable, Linking, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { PERMANENT_BARO_ITEMS } from '../../constants/items';
+import { PERMANENT_BARO_ITEMS, MARK_OWNED_EXCLUDED_ITEMS } from '../../constants/items';
 import { colors, gradients } from '../../constants/theme';
 import { storageHelpers } from '../../utils/storage';
 import { useUserActions } from '../../contexts/UserActionsContext';
@@ -191,23 +191,25 @@ export default function ItemDetailsTab({
       </View>
 
       {/* Mark as Owned */}
-      <TouchableOpacity
-        style={[ownedStyles.button, owned && ownedStyles.buttonOwned]}
-        onPress={() => markOwned(itemId, !owned)}
-        activeOpacity={0.8}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: owned }}
-        accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
-      >
-        <Ionicons
-          name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
-          size={20}
-          color={owned ? colors.textOnAccent : colors.accent}
-        />
-        <Text style={[ownedStyles.buttonText, owned && ownedStyles.buttonTextOwned]}>
-          {owned ? 'Owned' : 'Mark as Owned'}
-        </Text>
-      </TouchableOpacity>
+      {!MARK_OWNED_EXCLUDED_ITEMS.includes(item.name?.toLowerCase()) && (
+        <TouchableOpacity
+          style={[ownedStyles.button, owned && ownedStyles.buttonOwned]}
+          onPress={() => markOwned(itemId, !owned)}
+          activeOpacity={0.8}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: owned }}
+          accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
+        >
+          <Ionicons
+            name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
+            size={20}
+            color={owned ? colors.textOnAccent : colors.accent}
+          />
+          <Text style={[ownedStyles.buttonText, owned && ownedStyles.buttonTextOwned]}>
+            {owned ? 'Owned' : 'Mark as Owned'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Buy or Skip Vote Section — only for current Baro inventory */}
       {isInCurrentInventory && voteData && (

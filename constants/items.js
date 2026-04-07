@@ -16,6 +16,10 @@ export const PERMANENT_BARO_ITEMS = [
   'fae path ephemera'
 ];
 
+export const MARK_OWNED_EXCLUDED_ITEMS = [
+  'void surplus'
+];
+
 // Default values
 export const DEFAULT_ITEM_TYPE = 'Unknown';
 export const DEFAULT_USERNAME = 'Anonymous';
