@@ -4,7 +4,8 @@
     "date": "April 2026",
     "summary": "This update includes several bug fixes to enhance your experience",
     "changes": [
-      "Fix transitional state of baro screen"
+      "Fix transitional state of baro screen",
+      "Remove 'Mark as Owned' button from Void Surplus"
     ]
   }
 ]
