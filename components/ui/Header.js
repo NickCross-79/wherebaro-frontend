@@ -17,7 +17,7 @@ function Header({ nextArrival, nextLocation, isHere = false, showTitle = true, c
           nextArrival={nextArrival}
           location={nextLocation}
           label={isHere ? 'Leaving In' : 'Next Arrival'}
-          expiredText={isHere ? 'Leaving Soon' : 'Arriving Soon'}
+          expiredText={isHere ? 'Leaving Soon' : 'Check back soon for Baro\'s next location and time'}
         />
       )}
       {children}

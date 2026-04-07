@@ -43,10 +43,10 @@ export const getRelativeTime = (dateString) => {
 /**
  * Format a countdown from now until the given date.
  * @param {Date} date - Target date
- * @param {string} [expiredText='Arriving Soon'] - Text to show when diff <= 0
+ * @param {string} [expiredText='Check back soon for Baro\'s next location and time'] - Text to show when diff <= 0
  * @returns {string}
  */
-export const formatTimeRemaining = (date, expiredText = 'Arriving Soon') => {
+export const formatTimeRemaining = (date, expiredText = 'Check back soon for Baro\'s next location and time') => {
   if (!date) return 'Unknown';
   const now = new Date();
   const diff = date - now;
