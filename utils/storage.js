@@ -199,7 +199,7 @@ export const storageHelpers = {
 
   // Baro response cache (lightweight)
   setBaroResponse: async (response) => {
-    await secureStorage.setItem('baroResponse', JSON.stringify(response));
+    await secureStorage.setItem('baroResponse', JSON.stringify({ ...response, cachedAt: Date.now() }));
   },
 
   getBaroResponse: async () => {

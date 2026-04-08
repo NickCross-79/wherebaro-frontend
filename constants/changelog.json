@@ -6,7 +6,8 @@
     "changes": [
       "Fix transitional state of baro screen",
       "Remove 'Mark as Owned' button from Void Surplus",
-      "Fix missing item images"
+      "Fix missing item images",
+      "Changed date refresh logic to prevent stale data"
     ]
   }
 ]
