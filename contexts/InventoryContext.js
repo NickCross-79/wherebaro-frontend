@@ -137,9 +137,14 @@ export const InventoryProvider = ({ children }) => {
           const nextDate = cachedBaroIsHere ? cachedBaroResponse.expiry : cachedBaroResponse.activation;
           const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
           
-          // If the next event date has passed, invalidate cache and force allItems refresh
-          if (nextDateTime && now >= nextDateTime) {
-            logger.log('Cached Baro dates have passed, refreshing allItems and fetching fresh Baro data');
+          const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+          const cacheAge = cachedBaroResponse.cachedAt ? now - cachedBaroResponse.cachedAt : Infinity;
+
+          // If the next event date has passed or cache is older than 2 days, invalidate and refresh
+          if ((nextDateTime && now >= nextDateTime) || cacheAge >= TWO_DAYS_MS) {
+            logger.log(cacheAge >= TWO_DAYS_MS
+              ? `Baro cache is ${Math.round(cacheAge / 3600000)}h old, refreshing`
+              : 'Cached Baro dates have passed, refreshing allItems and fetching fresh Baro data');
             await refreshInBackground();
           } else {
             logger.log('Using cached Baro response');
