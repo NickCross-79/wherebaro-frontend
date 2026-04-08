@@ -20,7 +20,6 @@ describe('ItemDetailHeader', () => {
     header: {},
     backButton: {},
     headerTitle: {},
-    wishlistButton: {},
   };
 
   it('renders the title', () => {
@@ -28,8 +27,6 @@ describe('ItemDetailHeader', () => {
       <ItemDetailHeader
         title="Primed Flow"
         onBack={jest.fn()}
-        onToggleWishlist={jest.fn()}
-        isWishlisted={false}
         styles={mockStyles}
       />
     );
@@ -42,40 +39,10 @@ describe('ItemDetailHeader', () => {
       <ItemDetailHeader
         title="Test"
         onBack={onBack}
-        onToggleWishlist={jest.fn()}
-        isWishlisted={false}
         styles={mockStyles}
       />
     );
     fireEvent.press(getByText('chevron-back'));
     expect(onBack).toHaveBeenCalled();
-  });
-
-  it('calls onToggleWishlist when heart is pressed', () => {
-    const onToggle = jest.fn();
-    const { getByText } = render(
-      <ItemDetailHeader
-        title="Test"
-        onBack={jest.fn()}
-        onToggleWishlist={onToggle}
-        isWishlisted={false}
-        styles={mockStyles}
-      />
-    );
-    fireEvent.press(getByText('heart-outline'));
-    expect(onToggle).toHaveBeenCalled();
-  });
-
-  it('shows filled heart when wishlisted', () => {
-    const { getByText } = render(
-      <ItemDetailHeader
-        title="Test"
-        onBack={jest.fn()}
-        onToggleWishlist={jest.fn()}
-        isWishlisted={true}
-        styles={mockStyles}
-      />
-    );
-    expect(getByText('heart')).toBeTruthy();
   });
 });

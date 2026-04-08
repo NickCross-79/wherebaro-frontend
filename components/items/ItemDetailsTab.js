@@ -17,6 +17,8 @@ export default function ItemDetailsTab({
   styles,
   isInCurrentInventory,
   voteData,
+  onToggleWishlist,
+  isWishlisted,
 }) {
   const offeringDates = item.offeringDates || [];
   const isPermanentItem = PERMANENT_BARO_ITEMS.includes(item.name?.toLowerCase());
@@ -193,26 +195,47 @@ export default function ItemDetailsTab({
         </View>
       </View>
 
-      {/* Mark as Owned */}
-      {!MARK_OWNED_EXCLUDED_ITEMS.includes(item.name?.toLowerCase()) && (
+      {/* Wishlist + Mark as Owned */}
+      <View style={actionRowStyles.row}>
         <TouchableOpacity
-          style={[ownedStyles.button, owned && ownedStyles.buttonOwned]}
-          onPress={() => markOwned(itemId, !owned)}
+          style={[actionRowStyles.button, actionRowStyles.buttonWishlist, isWishlisted && actionRowStyles.buttonWishlisted]}
+          onPress={onToggleWishlist}
           activeOpacity={0.8}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: owned }}
-          accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
         >
-          <Ionicons
-            name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
-            size={20}
-            color={owned ? colors.textOnAccent : colors.accent}
-          />
-          <Text style={[ownedStyles.buttonText, owned && ownedStyles.buttonTextOwned]}>
-            {owned ? 'Owned' : 'Mark as Owned'}
-          </Text>
+          <View style={actionRowStyles.buttonTouchable}>
+            <Ionicons
+              name={isWishlisted ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isWishlisted ? colors.textOnAccent : '#00C8D7'}
+            />
+            <Text style={[actionRowStyles.buttonText, actionRowStyles.buttonTextWishlist, isWishlisted && actionRowStyles.buttonTextWishlisted]}>
+              {isWishlisted ? 'Wishlisted' : 'Wishlist'}
+            </Text>
+          </View>
         </TouchableOpacity>
-      )}
+
+        {!MARK_OWNED_EXCLUDED_ITEMS.includes(item.name?.toLowerCase()) && (
+          <TouchableOpacity
+            style={[actionRowStyles.button, owned && actionRowStyles.buttonOwned]}
+            onPress={() => markOwned(itemId, !owned)}
+            activeOpacity={0.8}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: owned }}
+            accessibilityLabel={owned ? 'Owned — tap to unmark' : 'Mark as owned'}
+          >
+            <View style={actionRowStyles.buttonTouchable}>
+              <Ionicons
+                name={owned ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                size={20}
+                color={owned ? colors.textOnAccent : colors.accent}
+              />
+              <Text style={[actionRowStyles.buttonText, owned && actionRowStyles.buttonTextOwned]}>
+                {owned ? 'Owned' : 'Mark as Owned'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Buy or Skip Vote Section — only for current Baro inventory */}
       {isInCurrentInventory && voteData && (
@@ -365,22 +388,35 @@ export default function ItemDetailsTab({
   );
 }
 
-const ownedStyles = StyleSheet.create({
+const actionRowStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
   button: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    overflow: 'hidden',
+  },
+  buttonWishlist: {
+    borderColor: '#00C8D7',
+  },
+  buttonTouchable: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginHorizontal: 16,
-    marginBottom: 16,
     paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    backgroundColor: 'transparent',
   },
   buttonOwned: {
     backgroundColor: colors.accent,
+  },
+  buttonWishlisted: {
+    backgroundColor: '#00C8D7',
   },
   buttonText: {
     fontSize: 15,
@@ -388,7 +424,13 @@ const ownedStyles = StyleSheet.create({
     color: colors.accent,
     letterSpacing: 0.3,
   },
+  buttonTextWishlist: {
+    color: '#00C8D7',
+  },
   buttonTextOwned: {
+    color: colors.textOnAccent,
+  },
+  buttonTextWishlisted: {
     color: colors.textOnAccent,
   },
 });
