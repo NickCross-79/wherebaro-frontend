@@ -411,8 +411,6 @@ export default function ItemDetailScreen({ route, navigation }) {
         <ItemDetailHeader
           title={item.name}
           onBack={() => navigation.goBack()}
-          onToggleWishlist={handleWishlist}
-          isWishlisted={onWishlist}
           styles={styles}
         />
 
@@ -447,6 +445,8 @@ export default function ItemDetailScreen({ route, navigation }) {
                   styles={styles}
                   isInCurrentInventory={isInCurrentInventory}
                   voteData={{ buyCount, skipCount, userVote, isVoting, handleVote }}
+                  onToggleWishlist={handleWishlist}
+                  isWishlisted={onWishlist}
                 />
               </View>
               <View style={{ width: screenWidth, flex: 1 }}>
