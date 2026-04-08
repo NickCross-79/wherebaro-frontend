@@ -1,4 +1,4 @@
-import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE } from '../constants/items';
+import { WARFRAME_IMAGE_BASE, WF_CDN_IMAGE_BASE, PLACEHOLDER_IMAGE } from '../constants/items';
 
 /**
  * Sentinel value used on the backend to indicate a generated mod image is pending
@@ -6,6 +6,13 @@ import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE } from '../constants/items';
  * can detect it and fetch the actual data URI from getCurrent.
  */
 export const MOD_IMAGE_SENTINEL = 'temp:modImage';
+
+const buildCdnImageUrl = (cdnImageLink) => {
+  if (!cdnImageLink) return '';
+  if (cdnImageLink.startsWith('http://') || cdnImageLink.startsWith('https://') || cdnImageLink.startsWith('data:')) return cdnImageLink;
+  const trimmed = String(cdnImageLink).replace(/^\/+/, '');
+  return `${WF_CDN_IMAGE_BASE}/${trimmed}`;
+};
 
 const buildWikiImageUrl = (wikiImageLink) => {
   if (!wikiImageLink) return PLACEHOLDER_IMAGE;
@@ -27,7 +34,7 @@ export const normalizeItem = (item, options = {}) => {
     _id: item?._id || item?.id,
     name: item?.name,
     wikiImageLink: buildWikiImageUrl(item?.wikiImageLink),
-    cdnImageLink: item?.cdnImageLink || '',
+    cdnImageLink: buildCdnImageUrl(item?.cdnImageLink),
     link: item?.link,
     creditPrice: item?.creditPrice,
     ducatPrice: item?.ducatPrice,
