@@ -378,7 +378,6 @@ export default function SettingsScreen({ navigation }) {
           >
             <View style={styles.settingInfo}>
               <Text style={[styles.settingLabel, styles.kofiLabel]}>Support the Developer</Text>
-              <Text style={styles.settingDescription}>Buy me a coffee on Ko-fi ☕</Text>
             </View>
             <Ionicons name="heart" size={20} color={colors.accent} />
           </TouchableOpacity>
