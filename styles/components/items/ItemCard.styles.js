@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   wishlistRibbonText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#fff',
+    color: '#000',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
