@@ -4,10 +4,11 @@
     "date": "April 2026",
     "summary": "This update includes several fixes to enhance your experience",
     "changes": [
+      "Added PSA button for information relating to Baro's visits",
       "Repositioned wishlist button",
-      "Fix transitional state of baro screen",
-      "Remove 'Mark as Owned' button from Void Surplus",
-      "Fix missing item images",
+      "Fixed texted in transitional state of baro screen",
+      "Removed 'Mark as Owned' button from Void Surplus",
+      "Fixed missing item images",
       "Changed date refresh logic to prevent stale data",
       "Changed color of wishlist ribbon text to black for better readability"
     ]

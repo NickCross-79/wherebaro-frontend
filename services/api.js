@@ -13,3 +13,4 @@ export * from './marketService';
 export * from './pushNotificationService';
 export * from './baroService';
 export * from './voteService';
+export * from './psaService';

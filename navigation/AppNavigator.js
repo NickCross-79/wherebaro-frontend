@@ -14,6 +14,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useNewVersion } from '../contexts/NewVersionContext';
 import BaroIcon from '../assets/icons/icon_baro.svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import PsaFab from '../components/ui/PsaFab';
 import styles from '../styles/navigation/AppNavigator.styles';
 import { colors, gradients } from '../constants/theme';
 
@@ -146,22 +147,25 @@ export default function AppNavigator({ isItemDetailActive }) {
       : 0;
 
   return (
-    <Tab.Navigator
-      tabBarPosition="bottom"
-      screenOptions={{
-        headerShown: false,
-        swipeEnabled: !isItemDetailActive,
-        animationEnabled: false,
-      }}
-      tabBar={(props) => (
-        <CustomTabBar {...props} insets={insets} badgeCount={badgeCount} />
-      )}
-    >
-      <Tab.Screen name="Baro" component={BaroStackNavigator} options={{ unmountOnBlur: true }} />
-      <Tab.Screen name="Wishlist" component={WishlistStackNavigator} options={{ unmountOnBlur: true }} />
-      <Tab.Screen name="All Items" component={AllItemsStackNavigator} options={{ unmountOnBlur: true }} />
-      <Tab.Screen name="Settings" component={SettingsStackNavigator} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        tabBarPosition="bottom"
+        screenOptions={{
+          headerShown: false,
+          swipeEnabled: !isItemDetailActive,
+          animationEnabled: false,
+        }}
+        tabBar={(props) => (
+          <CustomTabBar {...props} insets={insets} badgeCount={badgeCount} />
+        )}
+      >
+        <Tab.Screen name="Baro" component={BaroStackNavigator} options={{ unmountOnBlur: true }} />
+        <Tab.Screen name="Wishlist" component={WishlistStackNavigator} options={{ unmountOnBlur: true }} />
+        <Tab.Screen name="All Items" component={AllItemsStackNavigator} options={{ unmountOnBlur: true }} />
+        <Tab.Screen name="Settings" component={SettingsStackNavigator} />
+      </Tab.Navigator>
+      {!isItemDetailActive && <PsaFab />}
+    </View>
   );
 }
 
