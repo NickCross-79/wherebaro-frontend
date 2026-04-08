@@ -32,4 +32,5 @@ export const WISHLIST_THROTTLE_MS = 2000; // 2 seconds — collapses rapid toggl
 
 // Image URLs
 export const WARFRAME_IMAGE_BASE = 'https://wiki.warframe.com/images';
+export const WF_CDN_IMAGE_BASE = 'https://cdn.warframestat.us/img';
 export const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150';

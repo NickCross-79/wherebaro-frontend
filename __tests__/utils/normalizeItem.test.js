@@ -3,6 +3,7 @@ import { normalizeItem } from '../../utils/normalizeItem';
 // Mock the constants module
 jest.mock('../../constants/items', () => ({
   WARFRAME_IMAGE_BASE: 'https://wiki.warframe.com/images',
+  WF_CDN_IMAGE_BASE: 'https://cdn.warframestat.us/img',
   PLACEHOLDER_IMAGE: 'https://via.placeholder.com/150',
   PRIMED_DISAPPOINTMENT_IMAGE: 'https://i.imgur.com/ZYakUku.png',
 }));
@@ -12,7 +13,7 @@ describe('normalizeItem', () => {
     _id: 'abc123',
     name: 'Primed Flow',
     wikiImageLink: '/some/image.png',
-    cdnImageLink: 'https://cdn.warframestat.us/img/primed-flow.png',
+    cdnImageLink: 'primed-flow.png',
     link: '/wiki/Primed_Flow',
     creditPrice: 100000,
     ducatPrice: 350,
