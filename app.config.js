@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? 'When Baro? (Dev)' : 'When Baro?',
     slug: 'when-baro',
-    version: '1.1.0',
+    version: '1.2.0',
     orientation: 'portrait',
     icon: './assets/imgs/logo_baro_icon.png',
     userInterfaceStyle: 'light',
@@ -26,7 +26,7 @@ export default {
     },
     android: {
       package: IS_DEV ? 'com.whenbaro.app.dev' : 'com.whenbaro.app',
-      versionCode: 1,
+      versionCode: 3,
       targetSdkVersion: 35,
       googleServicesFile: IS_DEV
         ? (process.env.GOOGLE_SERVICES_JSON_DEV || './google-services.dev.json')
