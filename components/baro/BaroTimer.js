@@ -29,7 +29,7 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
         <Text style={[styles.timerLabel, centered && styles.centeredText]}>{label}</Text>
         {location && (
           <Text style={[styles.locationText, centered && styles.centeredText]}>
-            {location.name}, ({location.planet})
+            {location.name} ({location.planet})
           </Text>
         )}
       </Animated.View>
