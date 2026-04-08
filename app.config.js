@@ -39,6 +39,12 @@ export default {
     web: {
       favicon: './assets/imgs/logo_baro_icon.png',
     },
+    updates: {
+      url: 'https://u.expo.dev/379c5464-62fb-4458-9164-4b3d78449fcd',
+    },
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
     plugins: [
       'expo-sqlite',
       'expo-secure-store',
