@@ -25,6 +25,8 @@ export default function ItemDetailsTab({
   const { isOwned, markOwned } = useUserActions();
   const itemId = String(item._id?.$oid || item._id || item.id);
   const owned = isOwned(itemId);
+  const [useCdnFallback, setUseCdnFallback] = useState(false);
+  useEffect(() => setUseCdnFallback(false), [item?.wikiImageLink]);
 
   // Show the voting intro modal the first time the user opens a Baro inventory item each visit
   useEffect(() => {
@@ -119,9 +121,10 @@ export default function ItemDetailsTab({
         />
         <View style={styles.imageContainer}>
           <Image
-            source={item.image && item.image !== 'temp:modImage' && !item.image.endsWith('/temp:modImage') ? { uri: item.image } : require('../../assets/imgs/background_newItem.png')}
+            source={item.wikiImageLink && item.wikiImageLink !== 'temp:modImage' && !item.wikiImageLink.endsWith('/temp:modImage') ? { uri: useCdnFallback ? item.cdnImageLink : item.wikiImageLink } : require('../../assets/imgs/background_newItem.png')}
             style={styles.itemImage}
             resizeMode="contain"
+            onError={() => { if (!useCdnFallback && item.cdnImageLink) setUseCdnFallback(true); }}
           />
         </View>
       </ImageBackground>

@@ -7,14 +7,14 @@ import { WARFRAME_IMAGE_BASE, PLACEHOLDER_IMAGE } from '../constants/items';
  */
 export const MOD_IMAGE_SENTINEL = 'temp:modImage';
 
-const buildImageUrl = (image) => {
-  if (!image) return PLACEHOLDER_IMAGE;
+const buildWikiImageUrl = (wikiImageLink) => {
+  if (!wikiImageLink) return PLACEHOLDER_IMAGE;
   // Sentinel for generated mod images — preserve as-is so downstream code can detect
   // and resolve it via getCurrent before displaying
-  if (image === MOD_IMAGE_SENTINEL) return MOD_IMAGE_SENTINEL;
-  // Full URLs (CDN links, data URIs for generated mod images) — use as-is
-  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) return image;
-  const trimmed = String(image).replace(/^\/+/, '');
+  if (wikiImageLink === MOD_IMAGE_SENTINEL) return MOD_IMAGE_SENTINEL;
+  // Full URLs (data URIs for generated mod images, already-absolute wiki links) — use as-is
+  if (wikiImageLink.startsWith('http://') || wikiImageLink.startsWith('https://') || wikiImageLink.startsWith('data:')) return wikiImageLink;
+  const trimmed = String(wikiImageLink).replace(/^\/+/, '');
   return `${WARFRAME_IMAGE_BASE}/${trimmed}`;
 };
 
@@ -26,7 +26,8 @@ export const normalizeItem = (item, options = {}) => {
     id: item?._id || item?.id,
     _id: item?._id || item?.id,
     name: item?.name,
-    image: buildImageUrl(item?.image),
+    wikiImageLink: buildWikiImageUrl(item?.wikiImageLink),
+    cdnImageLink: item?.cdnImageLink || '',
     link: item?.link,
     creditPrice: item?.creditPrice,
     ducatPrice: item?.ducatPrice,

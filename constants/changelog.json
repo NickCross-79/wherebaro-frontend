@@ -1,11 +1,12 @@
 [
   {
-    "version": "1.1.1",
+    "version": "1.2.0",
     "date": "April 2026",
-    "summary": "This update includes several bug fixes to enhance your experience",
+    "summary": "This update includes several fixes to enhance your experience",
     "changes": [
       "Fix transitional state of baro screen",
-      "Remove 'Mark as Owned' button from Void Surplus"
+      "Remove 'Mark as Owned' button from Void Surplus",
+      "Fix missing item images"
     ]
   }
 ]

@@ -35,6 +35,8 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
   const userLiked    = hasLiked(itemId);
   const userReviewed = hasReviewed(itemId);
   const owned        = isOwned(itemId);
+  const [useCdnFallback, setUseCdnFallback] = useState(false);
+  useEffect(() => setUseCdnFallback(false), [item?.wikiImageLink]);
 
   // Check if this item is in Baro's current inventory
   const isInCurrentInventory = isBaroHere && inventoryItems.some(
@@ -253,11 +255,12 @@ function ItemCard({ item, onPress, isNew, hideWishlistBadge = false, showAvailab
         )}
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
-          {item?.image && item.image !== 'temp:modImage' && !item.image.endsWith('/temp:modImage') ? (
+          {item?.wikiImageLink && item.wikiImageLink !== 'temp:modImage' && !item.wikiImageLink.endsWith('/temp:modImage') ? (
             <Image
-              source={{ uri: item.image }}
+              source={{ uri: useCdnFallback ? item.cdnImageLink : item.wikiImageLink }}
               style={styles.itemImage}
               resizeMode="contain"
+              onError={() => { if (!useCdnFallback && item.cdnImageLink) setUseCdnFallback(true); }}
             />
           ) : (
             <BaroIcon width={64} height={64} color={colors.accent} />
