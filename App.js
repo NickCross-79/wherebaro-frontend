@@ -12,14 +12,20 @@ import { UserActionsProvider } from './contexts/UserActionsContext';
 import { NewVersionProvider } from './contexts/NewVersionContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
 import { registerForPushNotifications } from './services/api';
+import { fetchMinVersion, isVersionOutdated } from './services/versionService';
+import CHANGELOG from './constants/changelog.json';
 import AppNavigator, { getIsItemDetailActive } from './navigation/AppNavigator';
+import ForceUpdateScreen from './screens/ForceUpdateScreen';
 import styles from './styles/App.styles';
 import { colors } from './constants/theme';
+
+const APP_VERSION = CHANGELOG[0]?.version ?? '1.2.0';
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [uid, setUid] = useState(null);
   const [isItemDetailActive, setIsItemDetailActive] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(false);
   const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
@@ -33,6 +39,11 @@ export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        const minVersion = await fetchMinVersion();
+        if (isVersionOutdated(APP_VERSION, minVersion)) {
+          setForceUpdate(true);
+          return;
+        }
         await initializeDatabase();
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
@@ -46,6 +57,10 @@ export default function App() {
     };
     initializeApp();
   }, []);
+
+  if (forceUpdate) {
+    return <ForceUpdateScreen />;
+  }
 
   if (!dbInitialized) {
     return (
