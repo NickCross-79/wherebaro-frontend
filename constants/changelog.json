@@ -4,13 +4,15 @@
     "date": "April 2026",
     "summary": "This update includes several fixes to enhance your experience",
     "changes": [
-      "Added PSA button for information relating to Baro's visits",
+      "Added PSA pop-up for information relating to Baro's visits",
       "Repositioned wishlist button",
+      "Changed date refresh logic to prevent stale data",
+      "Changed color of wishlist ribbon text to black for better readability",
       "Fixed texted in transitional state of baro screen",
       "Removed 'Mark as Owned' button from Void Surplus",
-      "Fixed missing item images",
-      "Changed date refresh logic to prevent stale data",
-      "Changed color of wishlist ribbon text to black for better readability"
+      "Removed comma from Baro location name",
+      "Fixed missing item images"
+      
     ]
   }
 ]

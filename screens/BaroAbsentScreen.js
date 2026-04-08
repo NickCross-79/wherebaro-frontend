@@ -105,7 +105,7 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
           </View>
           {nextLocation && (
             <Text style={styles.locationText}>
-              {nextLocation.name}, ({nextLocation.planet})
+              {nextLocation.name} ({nextLocation.planet})
             </Text>
           )}
         </View>
