@@ -73,7 +73,8 @@ const createTables = async () => {
         _id TEXT UNIQUE,
         name TEXT NOT NULL,
         type TEXT,
-        image TEXT,
+        wikiImageLink TEXT,
+        cdnImageLink TEXT,
         creditPrice INTEGER,
         ducatPrice INTEGER,
         likes TEXT,
@@ -101,6 +102,8 @@ const createTables = async () => {
     const migrations = [
       `ALTER TABLE items ADD COLUMN buy TEXT DEFAULT '[]'`,
       `ALTER TABLE items ADD COLUMN skip TEXT DEFAULT '[]'`,
+      `ALTER TABLE items ADD COLUMN wikiImageLink TEXT`,
+      `ALTER TABLE items ADD COLUMN cdnImageLink TEXT`,
     ];
     for (const sql of migrations) {
       try { await db.execAsync(sql); } catch (_) { /* column already exists */ }
@@ -251,14 +254,15 @@ export const dbHelpers = {
         const createdAt = existingItem?.createdAt || now;
 
         await db.runAsync(
-          `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT OR REPLACE INTO items (id, _id, name, type, wikiImageLink, cdnImageLink, creditPrice, ducatPrice, likes, reviews, offeringDates, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             itemId,
             item._id || itemId,
             item.name,
             item.type,
-            item.image,
+            item.wikiImageLink,
+            item.cdnImageLink || '',
             item.creditPrice || 0,
             item.ducatPrice || 0,
             JSON.stringify(item.likes || []),
@@ -368,14 +372,15 @@ export const dbHelpers = {
             const createdAt = existingItem?.createdAt || now;
 
             await db.runAsync(
-              `INSERT OR REPLACE INTO items (id, _id, name, type, image, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT OR REPLACE INTO items (id, _id, name, type, wikiImageLink, cdnImageLink, creditPrice, ducatPrice, likes, reviews, offeringDates, uniqueName, link, inWishlist, createdAt, cachedAt, wishlistCount, buy, skip)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 itemId,
                 item._id || itemId,
                 item.name,
                 item.type,
-                item.image,
+                item.wikiImageLink,
+                item.cdnImageLink || '',
                 item.creditPrice || 0,
                 item.ducatPrice || 0,
                 JSON.stringify(item.likes || []),

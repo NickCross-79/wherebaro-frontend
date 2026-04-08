@@ -11,7 +11,8 @@ describe('normalizeItem', () => {
   const baseItem = {
     _id: 'abc123',
     name: 'Primed Flow',
-    image: '/some/image.png',
+    wikiImageLink: '/some/image.png',
+    cdnImageLink: 'https://cdn.warframestat.us/img/primed-flow.png',
     link: '/wiki/Primed_Flow',
     creditPrice: 100000,
     ducatPrice: 350,
@@ -27,7 +28,8 @@ describe('normalizeItem', () => {
     expect(result.id).toBe('abc123');
     expect(result._id).toBe('abc123');
     expect(result.name).toBe('Primed Flow');
-    expect(result.image).toBe('https://wiki.warframe.com/images/some/image.png');
+    expect(result.wikiImageLink).toBe('https://wiki.warframe.com/images/some/image.png');
+    expect(result.cdnImageLink).toBe('https://cdn.warframestat.us/img/primed-flow.png');
     expect(result.creditPrice).toBe(100000);
     expect(result.ducatPrice).toBe(350);
     expect(result.type).toBe('Primed Mod');
@@ -36,15 +38,15 @@ describe('normalizeItem', () => {
     expect(result.uniqueName).toBe('/Lotus/StoreItems/Types/Mods/PrimedFlow');
   });
 
-  it('uses placeholder when image is null/undefined', () => {
-    const result = normalizeItem({ ...baseItem, image: null });
-    expect(result.image).toBe('https://via.placeholder.com/150');
+  it('uses placeholder when wikiImageLink is null/undefined', () => {
+    const result = normalizeItem({ ...baseItem, wikiImageLink: null });
+    expect(result.wikiImageLink).toBe('https://via.placeholder.com/150');
   });
 
-  it('preserves full URLs in image field', () => {
-    const cdnUrl = 'https://cdn.example.com/img.png';
-    const result = normalizeItem({ ...baseItem, image: cdnUrl });
-    expect(result.image).toBe(cdnUrl);
+  it('preserves full URLs in wikiImageLink field', () => {
+    const fullUrl = 'https://wiki.warframe.com/images/primed-flow.png';
+    const result = normalizeItem({ ...baseItem, wikiImageLink: fullUrl });
+    expect(result.wikiImageLink).toBe(fullUrl);
   });
 
   it('handles numeric likes (already a count)', () => {
@@ -81,9 +83,9 @@ describe('normalizeItem', () => {
     expect(result.dateAdded).toBeNull();
   });
 
-  it('strips leading slashes from image paths', () => {
-    const result = normalizeItem({ ...baseItem, image: '///leading/slashes.png' });
-    expect(result.image).toBe('https://wiki.warframe.com/images/leading/slashes.png');
+  it('strips leading slashes from wikiImageLink paths', () => {
+    const result = normalizeItem({ ...baseItem, wikiImageLink: '///leading/slashes.png' });
+    expect(result.wikiImageLink).toBe('https://wiki.warframe.com/images/leading/slashes.png');
   });
 
   it('uses id if _id not present', () => {
