@@ -8,6 +8,8 @@ import { formatTimeRemaining } from '../utils/dateUtils';
 import styles from '../styles/screens/BaroAbsentScreen.styles';
 import { colors } from '../constants/theme';
 
+const EXPIRED_TEXT = 'Check back soon for Baro\'s next location and time';
+
 export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
   const cycleAnim = useRef(new Animated.Value(0)).current;
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -19,15 +21,18 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
 
   useEffect(() => {
     // Update timer immediately
-    setTimeRemaining(formatTimeRemaining(nextArrival));
-    
+    setTimeRemaining(formatTimeRemaining(nextArrival, EXPIRED_TEXT));
+
     // Update every second
     const interval = setInterval(() => {
-      setTimeRemaining(formatTimeRemaining(nextArrival));
+      setTimeRemaining(formatTimeRemaining(nextArrival, EXPIRED_TEXT));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [nextArrival]);
+
+  // Expired: showing a fallback message, not a countdown — style it as prose
+  const isExpired = timeRemaining === EXPIRED_TEXT;
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -99,10 +104,14 @@ export default function BaroAbsentScreen({ nextArrival, nextLocation }) {
         </View>
         
         <View style={styles.timerSection}>
-          <View style={styles.timerRow}>
-            <TimeIcon width={24} height={24} />
-            <Text style={styles.timerValue}>{timeRemaining}</Text>
-          </View>
+          {isExpired ? (
+            <Text style={styles.expiredMessage}>{timeRemaining}</Text>
+          ) : (
+            <View style={styles.timerRow}>
+              <TimeIcon width={24} height={24} />
+              <Text style={styles.timerValue}>{timeRemaining}</Text>
+            </View>
+          )}
           {nextLocation && (
             <Text style={styles.locationText}>
               {nextLocation.name} ({nextLocation.planet})

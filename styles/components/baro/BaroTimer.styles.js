@@ -63,6 +63,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.text,
     fontWeight: '700',
+    flexShrink: 1,
+  },
+  timerMessage: {
+    fontSize: 14,
+    color: colors.textMuted,
+    fontWeight: '500',
+    lineHeight: 20,
   },
 });
 
