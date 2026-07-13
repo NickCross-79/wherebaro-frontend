@@ -98,6 +98,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  expiredMessage: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 40,
+  },
   locationText: {
     fontSize: 18,
     color: colors.accent,
