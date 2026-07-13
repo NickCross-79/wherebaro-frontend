@@ -1,5 +1,5 @@
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { StatusBar, View, Text, Platform } from 'react-native';
+import { StatusBar, View, Text, Platform, AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,7 @@ import { NewVersionProvider } from './contexts/NewVersionContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
 import { registerForPushNotifications } from './services/api';
 import { fetchMinVersion, isVersionOutdated } from './services/versionService';
+import { checkForOtaUpdate } from './services/otaUpdateService';
 import CHANGELOG from './constants/changelog.json';
 import AppNavigator, { getIsItemDetailActive } from './navigation/AppNavigator';
 import ForceUpdateScreen from './screens/ForceUpdateScreen';
@@ -34,6 +35,21 @@ export default function App() {
       NavigationBar.setButtonStyleAsync('light');
       NavigationBar.setVisibilityAsync('visible');
     }
+  }, []);
+
+  useEffect(() => {
+    // Default expo-updates behavior only checks on a cold start, so also
+    // check whenever the app is foregrounded — the update downloads
+    // silently and applies on the next launch.
+    checkForOtaUpdate();
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        checkForOtaUpdate();
+      }
+    });
+
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
