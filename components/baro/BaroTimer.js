@@ -19,6 +19,9 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
     return () => clearInterval(interval);
   }, [nextArrival, expiredText]);
 
+  // Expired: showing a fallback message, not a countdown — style it as prose
+  const isExpired = timeRemaining === expiredText;
+
   return (
     <View
       style={[styles.timerContainer, centered && styles.centered, containerStyle]}
@@ -35,7 +38,7 @@ function BaroTimer({ nextArrival, location, centered = false, label = 'Next Arri
       </Animated.View>
       <View style={styles.timerValueRow}>
         <TimeIcon width={20} height={20} />
-        <Text style={[styles.timerValue, centered && styles.centeredText]}>{timeRemaining}</Text>
+        <Text style={[styles.timerValue, isExpired && styles.timerMessage, centered && styles.centeredText]}>{timeRemaining}</Text>
       </View>
     </View>
   );
