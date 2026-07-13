@@ -35,6 +35,21 @@ let simulationUsed = false;
 let simulationActive = false;
 
 /**
+ * Pick the regular Baro Ki'Teer trader from a voidTraders API response.
+ * During TennoCon the API returns an extra trader at the TennoCon relay
+ * (node "TennoConHUB2"), often first in the array — the app should only
+ * ever show the regular relay Baro.
+ * @param {Object|Array} json - Raw voidTraders response (object or array)
+ * @returns {Object|undefined} The regular (non-TennoCon) trader, if any
+ */
+const pickRegularTrader = (json) => {
+  const traders = Array.isArray(json) ? json : [json];
+  return traders.find(
+    (trader) => trader && !/tennocon/i.test(`${trader.id || ''} ${trader.location || ''}`)
+  );
+};
+
+/**
  * Fetch raw Baro data from the warframestat.us API.
  * In simulation mode, the first call returns mock "absent" data,
  * and all subsequent calls use the real API.
@@ -56,7 +71,7 @@ export const fetchBaroData = async () => {
       const realResp = await fetch(BARO_API_URL);
       if (realResp.ok) {
         const realArr = await realResp.json();
-        const realData = Array.isArray(realArr) ? realArr[0] : realArr;
+        const realData = pickRegularTrader(realArr);
         inventory = realData?.inventory || [];
       }
     } catch (e) {
@@ -94,9 +109,9 @@ export const fetchBaroData = async () => {
     throw new Error(`Failed to fetch Baro data: ${response.status}`);
   }
   const json = await response.json();
-  const data = Array.isArray(json) ? json[0] : json;
+  const data = pickRegularTrader(json);
   if (!data) {
-    throw new Error('Empty response from voidTraders endpoint');
+    throw new Error('No regular Baro trader in voidTraders response');
   }
   logger.debug('BaroService', `Response: active=${isBaroActive(data.activation, data.expiry)}, inventory=${data.inventory?.length || 0}, location=${data.location}`);
   return data;

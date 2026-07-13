@@ -73,6 +73,29 @@ describe('fetchBaroDataWithFallback', () => {
     expect(result.location).toBe('Test Relay');
   });
 
+  it('skips the TennoCon trader and shows regular Baro (TennoCon weekend)', async () => {
+    const tennocon = { ...activeBaro([{ item: 'TennoCon Exclusive' }]), location: 'TennoConHUB2' };
+    const regular = activeBaro([{ item: 'Primed Flow', ducats: 300, credits: 175000 }]);
+    global.fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([tennocon, regular]) });
+
+    const result = await fetchBaroDataWithFallback();
+    expect(result.location).toBe('Test Relay');
+    expect(result.inventory).toHaveLength(1);
+    expect(result.inventory[0].item).toBe('Primed Flow');
+  });
+
+  it('falls back to backend when only the TennoCon trader is returned', async () => {
+    const tennocon = { ...activeBaro([{ item: 'TennoCon Exclusive' }]), location: 'TennoConHUB2' };
+    const items = [{ name: 'Primed Flow', uniqueName: '/Lotus/Upgrades/Mods/Fusionbased/PrimedFlow', creditPrice: 175000, ducatPrice: 300 }];
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([tennocon]) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(backendCurrent(items)) });
+
+    const result = await fetchBaroDataWithFallback();
+    expect(result.location).toBe('Backend Relay');
+    expect(result.inventory[0].item).toBe('Primed Flow');
+  });
+
   it('falls back to backend when warframestat throws', async () => {
     const items = [{ name: 'Primed Flow', uniqueName: '/Lotus/Upgrades/Mods/Fusionbased/PrimedFlow', creditPrice: 175000, ducatPrice: 300 }];
     global.fetch
