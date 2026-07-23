@@ -458,6 +458,10 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     lineHeight: 21,
   },
+  reviewLinkText: {
+    color: colors.link,
+    textDecorationLine: 'underline',
+  },
   readMoreText: {
     fontSize: 13,
     color: colors.accent,
