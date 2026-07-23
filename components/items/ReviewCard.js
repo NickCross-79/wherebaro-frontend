@@ -1,9 +1,15 @@
 import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, Pressable, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { decodeHtmlEntities } from '../../utils/htmlDecode';
+import { linkify, isSafeUrl } from '../../utils/linkify';
 import { useReviewContext } from '../../contexts/ReviewContext';
 import { colors } from '../../constants/theme';
+
+function openReviewLink(url) {
+  if (!isSafeUrl(url)) return;
+  Linking.openURL(url).catch(() => {});
+}
 
 function ReviewCard({ review, index }) {
   const {
@@ -129,7 +135,21 @@ function ReviewCard({ review, index }) {
           }
         }}
       >
-        {decodeHtmlEntities(review.content)}
+        {linkify(decodeHtmlEntities(review.content)).map((part, i) =>
+          part.type === 'link' ? (
+            <Text
+              key={`part-${i}`}
+              style={styles.reviewLinkText}
+              onPress={() => openReviewLink(part.url)}
+              accessibilityRole="link"
+              suppressHighlighting
+            >
+              {part.text}
+            </Text>
+          ) : (
+            part.text
+          )
+        )}
       </Text>
       {isTruncated && (
         <TouchableOpacity
