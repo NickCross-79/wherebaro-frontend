@@ -1,8 +1,8 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import ReviewCard from '../../components/items/ReviewCard';
-
-// No external styles - ReviewCard receives styles as props
+import { ReviewProvider } from '../../contexts/ReviewContext';
 
 describe('ReviewCard', () => {
   const mockStyles = {
@@ -13,6 +13,8 @@ describe('ReviewCard', () => {
     reviewerName: {},
     reviewDate: {},
     reviewText: {},
+    reviewLinkText: {},
+    readMoreText: {},
     reviewEditContainer: {},
     reviewEditInput: {},
     characterCount: {},
@@ -26,16 +28,16 @@ describe('ReviewCard', () => {
     reviewActionButton: {},
   };
 
-  const defaultProps = {
-    review: {
-      _id: 'review-1',
-      user: 'TestUser',
-      content: 'This item is great!',
-      date: '2025-01-15',
-      uid: 'user-abc',
-    },
-    index: 0,
-    currentUid: 'user-other',
+  const defaultReview = {
+    _id: 'review-1',
+    user: 'TestUser',
+    content: 'This item is great!',
+    date: '2025-01-15',
+    uid: 'user-abc',
+  };
+
+  const defaultContext = {
+    CURRENT_UID: 'user-other',
     editingReviewKey: null,
     getReviewKey: (review) => review._id,
     editingReviewText: '',
@@ -48,65 +50,85 @@ describe('ReviewCard', () => {
     styles: mockStyles,
   };
 
+  const renderCard = (review = defaultReview, ctx = {}) =>
+    render(
+      <ReviewProvider value={{ ...defaultContext, ...ctx }}>
+        <ReviewCard review={review} index={0} />
+      </ReviewProvider>
+    );
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders reviewer name and content', () => {
-    render(<ReviewCard {...defaultProps} />);
+    renderCard();
     expect(screen.getByText('TestUser')).toBeTruthy();
     expect(screen.getByText('This item is great!')).toBeTruthy();
   });
 
   it('renders the relative time', () => {
-    render(<ReviewCard {...defaultProps} />);
+    renderCard();
     expect(screen.getByText('3 weeks ago')).toBeTruthy();
-    expect(defaultProps.getRelativeTime).toHaveBeenCalledWith('2025-01-15');
+    expect(defaultContext.getRelativeTime).toHaveBeenCalledWith('2025-01-15');
   });
 
   it('does not show edit/delete actions for other users reviews', () => {
-    const { queryByTestId } = render(<ReviewCard {...defaultProps} />);
-    // Pencil and trash icons shouldn't fire for non-own reviews
-    expect(defaultProps.startEditingReview).not.toHaveBeenCalled();
+    renderCard();
+    expect(defaultContext.startEditingReview).not.toHaveBeenCalled();
   });
 
   it('shows edit/delete actions for own review', () => {
-    const ownProps = { ...defaultProps, currentUid: 'user-abc' };
-    render(<ReviewCard {...ownProps} />);
-    // The component should render action buttons for own reviews - the icons exist
-    // We can't easily test Ionicons by name, but ensure the component renders without crashing
+    renderCard(defaultReview, { CURRENT_UID: 'user-abc' });
     expect(screen.getByText('This item is great!')).toBeTruthy();
   });
 
   it('shows edit form when editing own review', () => {
-    const editingProps = {
-      ...defaultProps,
-      currentUid: 'user-abc',
+    renderCard(defaultReview, {
+      CURRENT_UID: 'user-abc',
       editingReviewKey: 'review-1',
       editingReviewText: 'Updated content',
-    };
-    render(<ReviewCard {...editingProps} />);
+    });
     expect(screen.getByText('Save')).toBeTruthy();
     expect(screen.getByText('Cancel')).toBeTruthy();
   });
 
   it('calls cancelEditingReview when Cancel is pressed', () => {
-    const editingProps = {
-      ...defaultProps,
-      currentUid: 'user-abc',
+    renderCard(defaultReview, {
+      CURRENT_UID: 'user-abc',
       editingReviewKey: 'review-1',
       editingReviewText: 'Updated content',
-    };
-    render(<ReviewCard {...editingProps} />);
+    });
     fireEvent.press(screen.getByText('Cancel'));
-    expect(editingProps.cancelEditingReview).toHaveBeenCalled();
+    expect(defaultContext.cancelEditingReview).toHaveBeenCalled();
   });
 
   it('calls saveEditingReview when Save is pressed', () => {
-    const editingProps = {
-      ...defaultProps,
-      currentUid: 'user-abc',
+    renderCard(defaultReview, {
+      CURRENT_UID: 'user-abc',
       editingReviewKey: 'review-1',
       editingReviewText: 'Updated content',
-    };
-    render(<ReviewCard {...editingProps} />);
+    });
     fireEvent.press(screen.getByText('Save'));
-    expect(editingProps.saveEditingReview).toHaveBeenCalledWith(0);
+    expect(defaultContext.saveEditingReview).toHaveBeenCalledWith(0);
+  });
+
+  it('renders a URL in content as a pressable link that opens via Linking', () => {
+    const spy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    renderCard({ ...defaultReview, content: 'Check https://example.com/page for info' });
+    fireEvent.press(screen.getByText('https://example.com/page'));
+    expect(spy).toHaveBeenCalledWith('https://example.com/page');
+  });
+
+  it('prefixes https:// for bare domains', () => {
+    const spy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    renderCard({ ...defaultReview, content: 'prices on warframe.market today' });
+    fireEvent.press(screen.getByText('warframe.market'));
+    expect(spy).toHaveBeenCalledWith('https://warframe.market');
+  });
+
+  it('renders backend-escaped URLs correctly', () => {
+    renderCard({ ...defaultReview, content: 'see https:&#x2F;&#x2F;example.com' });
+    expect(screen.getByText('https://example.com')).toBeTruthy();
   });
 });
