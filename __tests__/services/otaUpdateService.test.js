@@ -1,7 +1,10 @@
 import * as Updates from 'expo-updates';
 import { checkForOtaUpdate } from '../../services/otaUpdateService';
 
+// __esModule keeps the namespace import here identical to the object the
+// service requires, so mutating isEnabled below is visible to both.
 jest.mock('expo-updates', () => ({
+  __esModule: true,
   isEnabled: true,
   checkForUpdateAsync: jest.fn(),
   fetchUpdateAsync: jest.fn(),
@@ -60,5 +63,19 @@ describe('checkForOtaUpdate', () => {
     await first;
 
     expect(Updates.checkForUpdateAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays inert when the native module is missing (Expo Go / stale dev build)', async () => {
+    jest.resetModules();
+    jest.doMock('expo-updates', () => {
+      throw new Error("Cannot find native module 'ExpoUpdates'");
+    });
+
+    const { checkForOtaUpdate: check } = require('../../services/otaUpdateService');
+
+    await expect(check()).resolves.toBeUndefined();
+
+    jest.dontMock('expo-updates');
+    jest.resetModules();
   });
 });
