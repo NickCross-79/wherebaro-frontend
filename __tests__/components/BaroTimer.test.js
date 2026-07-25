@@ -45,7 +45,7 @@ describe('BaroTimer', () => {
     const { getByText } = render(
       <BaroTimer nextArrival={future} location={{ name: 'Strata Relay', planet: 'Earth' }} />
     );
-    expect(getByText('Strata Relay, (Earth)')).toBeTruthy();
+    expect(getByText('Strata Relay (Earth)')).toBeTruthy();
   });
 
   it('shows expiredText when timer expires', () => {
