@@ -106,7 +106,9 @@ describe('ItemDetailsTab', () => {
         styles={mockStyles}
       />
     );
-    expect(getAllByText('N/A').length).toBe(2);
+    // Credits fall back to N/A; ducats fall back to 0.
+    expect(getAllByText('N/A').length).toBe(1);
+    expect(getAllByText('0').length).toBe(1);
   });
 
   it('renders offering dates toggle', () => {
