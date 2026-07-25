@@ -2,14 +2,22 @@
  * Tests for CollapsibleSearchBar component.
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import CollapsibleSearchBar from '../../components/search/CollapsibleSearchBar';
 
+// The bar subscribes to navigation 'blur' to close its dropdowns; a stub
+// navigation object is enough, no NavigationContainer needed.
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ addListener: jest.fn(() => jest.fn()) }),
+}));
+
+// No testID here: the component puts its own icon-* testIDs on the touchables,
+// and repeating them on the icon would make every query ambiguous.
 jest.mock('@expo/vector-icons', () => {
   const { Text } = require('react-native');
   return {
-    Ionicons: function MockIonicons({ name, ...props }) {
-      return <Text testID={`icon-${name}`}>{name}</Text>;
+    Ionicons: function MockIonicons({ name }) {
+      return <Text>{name}</Text>;
     },
   };
 });
@@ -44,13 +52,6 @@ describe('CollapsibleSearchBar', () => {
     expect(getByTestId('icon-search')).toBeTruthy();
   });
 
-  it('shows title when collapsed and title is provided', () => {
-    const { getByText } = render(
-      <CollapsibleSearchBar {...baseProps} title="All Items" />
-    );
-    expect(getByText('All Items')).toBeTruthy();
-  });
-
   it('expands search input on search icon press', () => {
     const { getByTestId, getByPlaceholderText } = render(
       <CollapsibleSearchBar {...baseProps} />
@@ -68,15 +69,20 @@ describe('CollapsibleSearchBar', () => {
   });
 
   it('clears search when collapsing', () => {
+    jest.useFakeTimers();
     const onChangeText = jest.fn();
     const { getByTestId } = render(
       <CollapsibleSearchBar value="test" onChangeText={onChangeText} />
     );
     // Expand first
     fireEvent.press(getByTestId('icon-search'));
-    // Then close it
+    // Then close it — the clear happens when the collapse animation finishes.
     fireEvent.press(getByTestId('icon-close'));
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
     expect(onChangeText).toHaveBeenCalledWith('');
+    jest.useRealTimers();
   });
 
   it('shows filter badge when filters are active', () => {

@@ -30,6 +30,7 @@ jest.mock('../../hooks/useItemFieldSync', () => ({
   useItemLikesSync: jest.fn(() => jest.fn()),
   useItemReviewCountSync: jest.fn(() => jest.fn()),
   useItemWishlistCountSync: jest.fn(() => jest.fn()),
+  useItemVoteSync: jest.fn(() => jest.fn()),
 }));
 jest.mock('../../utils/logger', () => ({
   debug: jest.fn(),

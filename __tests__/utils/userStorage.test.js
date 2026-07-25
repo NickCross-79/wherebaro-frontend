@@ -8,8 +8,6 @@ import {
   setCurrentUsername,
   isFirstLaunch,
   getLastDataRefresh,
-  getAppSettings,
-  updateAppSettings,
   getNotificationSettings,
   updateNotificationSettings,
 } from '../../utils/userStorage';
@@ -22,10 +20,7 @@ jest.mock('../../utils/storage', () => ({
     setUsername: jest.fn(),
     getIsFirstLaunch: jest.fn(),
     getLastDataRefresh: jest.fn(),
-    getTheme: jest.fn(),
-    getLanguage: jest.fn(),
-    setTheme: jest.fn(),
-    setLanguage: jest.fn(),
+    get: jest.fn(),
     getBoolean: jest.fn(),
     setBoolean: jest.fn(),
   },
@@ -78,64 +73,64 @@ describe('userStorage', () => {
     });
   });
 
-  describe('getAppSettings', () => {
-    it('returns theme and language from storageHelpers', async () => {
-      storageHelpers.getTheme.mockResolvedValue('dark');
-      storageHelpers.getLanguage.mockResolvedValue('en');
-      const result = await getAppSettings();
-      expect(result).toEqual({ theme: 'dark', language: 'en' });
-    });
-  });
-
-  describe('updateAppSettings', () => {
-    it('sets theme when provided', async () => {
-      await updateAppSettings({ theme: 'light' });
-      expect(storageHelpers.setTheme).toHaveBeenCalledWith('light');
-      expect(storageHelpers.setLanguage).not.toHaveBeenCalled();
-    });
-
-    it('sets language when provided', async () => {
-      await updateAppSettings({ language: 'fr' });
-      expect(storageHelpers.setLanguage).toHaveBeenCalledWith('fr');
-      expect(storageHelpers.setTheme).not.toHaveBeenCalled();
-    });
-
-    it('sets both when both provided', async () => {
-      await updateAppSettings({ theme: 'dark', language: 'es' });
-      expect(storageHelpers.setTheme).toHaveBeenCalledWith('dark');
-      expect(storageHelpers.setLanguage).toHaveBeenCalledWith('es');
-    });
-
-    it('does nothing with empty settings', async () => {
-      await updateAppSettings({});
-      expect(storageHelpers.setTheme).not.toHaveBeenCalled();
-      expect(storageHelpers.setLanguage).not.toHaveBeenCalled();
-    });
-  });
-
   describe('getNotificationSettings', () => {
-    it('returns notification settings from storageHelpers', async () => {
-      storageHelpers.getBoolean
-        .mockResolvedValueOnce(true)   // notifications
-        .mockResolvedValueOnce(false)  // wishlistAlerts
-        .mockResolvedValueOnce(true);  // autoRefresh
+    // Arrival/wishlist/auto-refresh come from getBoolean; departure is read raw
+    // so a never-written key can be told apart from an explicit false.
+    const mockStored = ({ arrival = true, departure, wishlist = true, autoRefresh = false }) => {
+      storageHelpers.getBoolean.mockImplementation(async (key) => ({
+        notificationsEnabled: arrival,
+        wishlistAlertsEnabled: wishlist,
+        autoRefreshEnabled: autoRefresh,
+      }[key]));
+      storageHelpers.get.mockResolvedValue(departure);
+    };
+
+    it('returns the four alert settings from storageHelpers', async () => {
+      mockStored({ arrival: true, departure: true, wishlist: false, autoRefresh: true });
 
       const result = await getNotificationSettings();
       expect(result).toEqual({
-        notifications: true,
+        arrivalAlerts: true,
+        departureAlerts: true,
         wishlistAlerts: false,
         autoRefresh: true,
       });
       expect(storageHelpers.getBoolean).toHaveBeenCalledWith('notificationsEnabled', true);
+      expect(storageHelpers.get).toHaveBeenCalledWith('departureAlertsEnabled');
       expect(storageHelpers.getBoolean).toHaveBeenCalledWith('wishlistAlertsEnabled', true);
       expect(storageHelpers.getBoolean).toHaveBeenCalledWith('autoRefreshEnabled', false);
+    });
+
+    it('reads a departure preference stored as a string', async () => {
+      mockStored({ departure: 'true' });
+      expect((await getNotificationSettings()).departureAlerts).toBe(true);
+    });
+
+    it('respects an explicit departure opt-out', async () => {
+      mockStored({ arrival: true, departure: false });
+      expect((await getNotificationSettings()).departureAlerts).toBe(false);
+    });
+
+    // Migration guard: users who had alerts off before the toggle was split
+    // must not start receiving departure alerts.
+    it('mirrors the arrival setting when departure has never been set', async () => {
+      mockStored({ arrival: false, departure: null });
+      expect((await getNotificationSettings()).departureAlerts).toBe(false);
+
+      mockStored({ arrival: true, departure: undefined });
+      expect((await getNotificationSettings()).departureAlerts).toBe(true);
     });
   });
 
   describe('updateNotificationSettings', () => {
-    it('sets notifications when provided as boolean', async () => {
-      await updateNotificationSettings({ notifications: false });
+    it('sets arrivalAlerts when provided as boolean', async () => {
+      await updateNotificationSettings({ arrivalAlerts: false });
       expect(storageHelpers.setBoolean).toHaveBeenCalledWith('notificationsEnabled', false);
+    });
+
+    it('sets departureAlerts when provided as boolean', async () => {
+      await updateNotificationSettings({ departureAlerts: true });
+      expect(storageHelpers.setBoolean).toHaveBeenCalledWith('departureAlertsEnabled', true);
     });
 
     it('sets wishlistAlerts when provided as boolean', async () => {
@@ -149,7 +144,7 @@ describe('userStorage', () => {
     });
 
     it('does nothing for non-boolean values', async () => {
-      await updateNotificationSettings({ notifications: 'yes' });
+      await updateNotificationSettings({ arrivalAlerts: 'yes' });
       expect(storageHelpers.setBoolean).not.toHaveBeenCalled();
     });
 
