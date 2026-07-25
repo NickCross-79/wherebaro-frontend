@@ -6,13 +6,23 @@
  * downloaded silently and applied on the next app launch, no reload
  * forced mid-session.
  */
-import * as Updates from 'expo-updates';
 import logger from '../utils/logger';
+
+// expo-updates resolves its native module at import time, which throws outright
+// when that module isn't in the binary — Expo Go, or a dev build made before
+// expo-updates was added. Require it defensively so a missing native module
+// leaves OTA checks inert instead of crashing the whole bundle on startup.
+let Updates = null;
+try {
+  Updates = require('expo-updates');
+} catch (error) {
+  logger.warn('expo-updates native module unavailable — OTA checks disabled');
+}
 
 let checking = false;
 
 export const checkForOtaUpdate = async () => {
-  if (!Updates.isEnabled || checking) return;
+  if (!Updates?.isEnabled || checking) return;
 
   checking = true;
   try {
