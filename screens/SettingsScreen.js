@@ -224,7 +224,7 @@ export default function SettingsScreen({ navigation }) {
               )}
             </View>
             <ScrollView style={styles.changelogScroll} showsVerticalScrollIndicator={false}>
-              {CHANGELOG.map((entry) => (
+              {CHANGELOG.slice(0, 1).map((entry) => (
                 <View key={entry.version} style={styles.changelogEntry}>
                   {entry.summary ? (
                     <Text style={styles.changelogSummary}>{entry.summary}</Text>
