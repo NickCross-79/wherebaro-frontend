@@ -28,6 +28,19 @@ const BARO_SORT_OPTIONS = [
   { label: 'Ducats',       value: 'ducats' },
 ];
 
+/**
+ * Whether the syncing state should take over the whole screen.
+ *
+ * Only when there is genuinely nothing to show. A cold start right after Baro
+ * arrives normally finds a few items the device's item cache has never seen,
+ * and re-matching them takes several minutes of background refreshes (five
+ * retries, 30s apart and widening). Hiding the entire inventory behind a
+ * full-screen loader for that long reads as a hang — a single unrecognised item
+ * was enough to trigger it. Unmatched items still render with their name and
+ * prices, and fill in their artwork as the re-match completes.
+ */
+export const shouldBlockOnSync = (syncing, itemCount) => syncing && itemCount === 0;
+
 export default function BaroScreen({ navigation }) {
   const scrollRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -66,7 +79,7 @@ export default function BaroScreen({ navigation }) {
 
   logger.debug('BaroScreen', `Render: loading=${loading}, syncing=${syncing}, isHere=${isHere}, items=${items.length}`);
 
-  if (syncing) {
+  if (shouldBlockOnSync(syncing, items.length)) {
     logger.debug('BaroScreen', '→ Showing syncing screen');
     return <LoadingScreen message="Retrieving Baro Ki'Teer's Inventory..." subtitle="This may take a moment..." />;
   }
