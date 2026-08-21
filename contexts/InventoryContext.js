@@ -95,6 +95,34 @@ const matchInventoryItems = (inventory, cachedItems) => {
   return results;
 };
 
+const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
+/**
+ * Decide whether a cached Baro response must be refetched rather than trusted.
+ * Returns a reason string when the cache is stale, or null when it is usable.
+ *
+ * The `empty-while-active` case exists because an empty inventory while Baro is
+ * at the relay is never legitimate data — it means the upstream API (or our
+ * backend) had no manifest yet when the response was cached. Without it, that
+ * empty list stays "valid" until the expiry date, so a user who opened the app
+ * during the gap sees an empty relay for the rest of the visit with
+ * pull-to-refresh as their only escape.
+ */
+export const getBaroCacheStaleReason = (cached, now = Date.now()) => {
+  if (!cached) return 'no-cache';
+
+  const nextDate = cached.isActive ? cached.expiry : cached.activation;
+  const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
+  if (nextDateTime && now >= nextDateTime) return 'dates-passed';
+
+  const cacheAge = cached.cachedAt ? now - cached.cachedAt : Infinity;
+  if (cacheAge >= TWO_DAYS_MS) return 'too-old';
+
+  if (cached.isActive && (cached.inventory?.length ?? 0) === 0) return 'empty-while-active';
+
+  return null;
+};
+
 const InventoryContext = createContext();
 
 export const useInventory = () => {
@@ -135,16 +163,10 @@ export const InventoryProvider = ({ children }) => {
         if (cachedBaroResponse) {
           const cachedBaroIsHere = cachedBaroResponse.isActive;
           const nextDate = cachedBaroIsHere ? cachedBaroResponse.expiry : cachedBaroResponse.activation;
-          const nextDateTime = nextDate ? new Date(nextDate).getTime() : null;
-          
-          const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
-          const cacheAge = cachedBaroResponse.cachedAt ? now - cachedBaroResponse.cachedAt : Infinity;
+          const staleReason = getBaroCacheStaleReason(cachedBaroResponse, now);
 
-          // If the next event date has passed or cache is older than 2 days, invalidate and refresh
-          if ((nextDateTime && now >= nextDateTime) || cacheAge >= TWO_DAYS_MS) {
-            logger.log(cacheAge >= TWO_DAYS_MS
-              ? `Baro cache is ${Math.round(cacheAge / 3600000)}h old, refreshing`
-              : 'Cached Baro dates have passed, refreshing allItems and fetching fresh Baro data');
+          if (staleReason) {
+            logger.log(`Baro cache stale (${staleReason}), refreshing allItems and fetching fresh Baro data`);
             await refreshInBackground();
           } else {
             logger.log('Using cached Baro response');

@@ -5,8 +5,17 @@ import EmptyState from '../ui/EmptyState';
 import styles from '../../styles/components/baro/InventoryList.styles';
 import { colors } from '../../constants/theme';
 
-const InventoryList = forwardRef(({ items, onItemPress, contentContainerStyle, onScroll, scrollEventThrottle = 16, refreshing = false, onRefresh, progressViewOffset = 0 }, ref) => {
+const InventoryList = forwardRef(({ items, onItemPress, contentContainerStyle, onScroll, scrollEventThrottle = 16, refreshing = false, onRefresh, progressViewOffset = 0, isHere = false }, ref) => {
   const keyExtractor = useCallback((item, index) => item.id || item._id || `item-${index}`, []);
+
+  // An empty list while Baro is at the relay means his manifest is missing, not
+  // that he is away — telling the user he "is not currently visiting" directly
+  // contradicts the countdown above it. Point them at the recovery action instead.
+  const renderEmpty = useCallback(() => (
+    isHere
+      ? <EmptyState title="Inventory unavailable" subtitle="Pull down to refresh" />
+      : <EmptyState />
+  ), [isHere]);
 
   const renderItem = useCallback(({ item }) => (
     <ItemCard
@@ -36,7 +45,7 @@ const InventoryList = forwardRef(({ items, onItemPress, contentContainerStyle, o
           progressViewOffset={progressViewOffset}
         />
       }
-      ListEmptyComponent={EmptyState}
+      ListEmptyComponent={renderEmpty}
       initialNumToRender={10}
       maxToRenderPerBatch={10}
       windowSize={5}
