@@ -94,6 +94,7 @@ export default function BaroScreen({ navigation }) {
         <InventoryList
           ref={scrollRef}
           items={finalItems}
+          isHere={isHere}
           onItemPress={handleItemPress}
           contentContainerStyle={{ paddingTop: expandedHeaderHeight + searchBarHeight }}
           onScroll={onScroll}

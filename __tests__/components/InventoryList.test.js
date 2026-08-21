@@ -16,8 +16,8 @@ jest.mock('../../components/items/ItemCard', () => {
 });
 jest.mock('../../components/ui/EmptyState', () => {
   const { Text } = require('react-native');
-  return function MockEmptyState() {
-    return <Text>No items</Text>;
+  return function MockEmptyState({ title }) {
+    return <Text>{title || 'No items'}</Text>;
   };
 });
 jest.mock('../../styles/components/baro/InventoryList.styles', () => ({
@@ -55,6 +55,24 @@ describe('InventoryList', () => {
       <InventoryList ref={ref} items={[]} refreshing={false} onRefresh={jest.fn()} />
     );
     expect(getByText('No items')).toBeTruthy();
+  });
+
+  it('shows the "not visiting" empty state when Baro is away', () => {
+    const { getByText } = render(
+      <InventoryList items={[]} isHere={false} refreshing={false} onRefresh={jest.fn()} />
+    );
+    expect(getByText('No items')).toBeTruthy();
+  });
+
+  it('shows "Inventory unavailable" instead when Baro is here with no items', () => {
+    // Contradicting the "leaving in ..." countdown with "Baro is not currently
+    // visiting" is what made the outage so confusing — this state must point at
+    // the recovery action instead.
+    const { getByText, queryByText } = render(
+      <InventoryList items={[]} isHere={true} refreshing={false} onRefresh={jest.fn()} />
+    );
+    expect(getByText('Inventory unavailable')).toBeTruthy();
+    expect(queryByText('No items')).toBeNull();
   });
 
   it('marks items with isNew flag from matching', () => {
