@@ -11,6 +11,7 @@ import { AllItemsProvider } from './contexts/AllItemsContext';
 import { UserActionsProvider } from './contexts/UserActionsContext';
 import { NewVersionProvider } from './contexts/NewVersionContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
+import { getNotificationSettings } from './utils/userStorage';
 import { registerForPushNotifications } from './services/api';
 import { fetchMinVersion, isVersionOutdated } from './services/versionService';
 import { checkForOtaUpdate } from './services/otaUpdateService';
@@ -64,7 +65,16 @@ export default function App() {
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         logger.log('Device UID:', deviceUID.substring(0, 12) + '...');
-        await registerForPushNotifications();
+        // Re-register with the preferences the user actually chose. Calling this
+        // with no arguments defaults to every alert type, which silently
+        // re-subscribed anyone who had opted out whenever the push token changed
+        // or the local "already registered" flag had been cleared. With both Baro
+        // alerts off there is nothing to register — Settings unregisters the token
+        // in that case, and wishlist alerts use their own local-only token.
+        const { arrivalAlerts, departureAlerts } = await getNotificationSettings();
+        if (arrivalAlerts || departureAlerts) {
+          await registerForPushNotifications(arrivalAlerts, departureAlerts);
+        }
         setDbInitialized(true);
       } catch (error) {
         logger.error('Error initializing app:', error);
