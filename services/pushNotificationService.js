@@ -15,6 +15,13 @@ function truncate(value, maxLength = 20) {
   return `${value.substring(0, maxLength)}...`;
 }
 
+/** Storage key holding the preferences the backend was last told about. */
+const PREFS_KEY = 'pushTokenPrefs';
+
+/** Compact representation of a preference pair, for cheap equality checks. */
+const prefsSignature = (notifyArrival, notifyDeparture) =>
+  `arrival=${!!notifyArrival},departure=${!!notifyDeparture}`;
+
 // Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -59,11 +66,16 @@ export const registerForPushNotifications = async (notifyArrival = true, notifyD
     const token = tokenData.data;
     console.log('Device push token:', truncate(token, 30));
 
-    // Check if token is already registered with backend
+    // Skip the round-trip only when the backend already knows this exact token
+    // AND these exact preferences. Comparing the token alone meant a device
+    // whose stored preferences had drifted from the backend's (for example one
+    // re-subscribed to everything by an earlier launch) could never correct
+    // itself — the skip fired before the update was ever sent.
     const storedToken = await storageHelpers.get('expoPushToken');
     const isRegistered = await storageHelpers.get('pushTokenRegistered');
-    if (storedToken === token && isRegistered) {
-      console.log('Push token unchanged and already registered, skipping');
+    const registeredPrefs = await storageHelpers.get(PREFS_KEY);
+    if (storedToken === token && isRegistered && registeredPrefs === prefsSignature(notifyArrival, notifyDeparture)) {
+      console.log('Push token and preferences unchanged, skipping');
       return token;
     }
 
@@ -93,6 +105,7 @@ export const registerForPushNotifications = async (notifyArrival = true, notifyD
     // Store token locally only after successful backend registration
     await storageHelpers.set('expoPushToken', token);
     await storageHelpers.set('pushTokenRegistered', true);
+    await storageHelpers.set(PREFS_KEY, prefsSignature(notifyArrival, notifyDeparture));
     
     console.log('Push token stored and registered with backend');
     return token;
@@ -118,6 +131,7 @@ export const updateNotificationPreferences = async (notifyArrival, notifyDepartu
     }
     const deviceId = await storageHelpers.getOrCreateUID();
     await registerPushToken(token, deviceId, notifyArrival, notifyDeparture);
+    await storageHelpers.set(PREFS_KEY, prefsSignature(notifyArrival, notifyDeparture));
     console.log(`Notification preferences updated: arrival=${notifyArrival}, departure=${notifyDeparture}`);
   } catch (error) {
     console.error('Error updating notification preferences:', error);
@@ -194,6 +208,7 @@ export const unregisterFromBackend = async () => {
     const { removePushToken: removeToken } = await import('./api');
     await removeToken(token);
     await storageHelpers.remove('pushTokenRegistered');
+    await storageHelpers.remove(PREFS_KEY);
     console.log('Push token unregistered from backend (kept locally)');
   } catch (error) {
     console.error('Error unregistering push token from backend:', error);
@@ -214,6 +229,7 @@ export const unregisterPushToken = async () => {
     
     await storageHelpers.remove('expoPushToken');
     await storageHelpers.remove('pushTokenRegistered');
+    await storageHelpers.remove(PREFS_KEY);
     console.log('Push token unregistered');
   } catch (error) {
     console.error('Error unregistering push token:', error);
