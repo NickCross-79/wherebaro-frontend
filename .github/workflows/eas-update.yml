@@ -1,0 +1,59 @@
+# Publishes an over-the-air (OTA) update to the production channel whenever
+# code lands on main.
+#
+# Requires a repository secret named EXPO_TOKEN (Expo dashboard → Account
+# settings → Access tokens). Tests must pass before anything is published.
+#
+# OTA updates only carry JavaScript and assets. Native changes (new native
+# modules, permissions, plugin changes in app.config.js) still need a new
+# store build via `eas build`.
+name: EAS Update (production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two publishes at the same time.
+concurrency:
+  group: eas-update-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npx jest --ci
+
+      - name: Set up EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish update to production channel
+        env:
+          APP_VARIANT: production
+          # Passed through env, not inlined, so a commit message can't inject shell.
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'Manual publish' }}
+        run: |
+          eas update \
+            --channel production \
+            --message "$(printf '%s' "$COMMIT_MESSAGE" | head -n 1)" \
+            --non-interactive
