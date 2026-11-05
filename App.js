@@ -12,6 +12,7 @@ import { UserActionsProvider } from './contexts/UserActionsContext';
 import { NewVersionProvider } from './contexts/NewVersionContext';
 import { initializeDatabase, storageHelpers } from './utils/storage';
 import { registerForPushNotifications } from './services/api';
+import { getNotificationSettings } from './utils/userStorage';
 import { fetchMinVersion, isVersionOutdated } from './services/versionService';
 import { checkForOtaUpdate } from './services/otaUpdateService';
 import CHANGELOG from './constants/changelog.json';
@@ -64,7 +65,13 @@ export default function App() {
         const deviceUID = await storageHelpers.getOrCreateUID();
         setUid(deviceUID);
         logger.log('Device UID:', deviceUID.substring(0, 12) + '...');
-        await registerForPushNotifications();
+        // Register with the user's saved Baro alert preferences. Registering with
+        // the defaults here re-enabled both alerts on every launch for anyone
+        // who had turned them off in Settings.
+        const { arrivalAlerts, departureAlerts } = await getNotificationSettings();
+        if (arrivalAlerts || departureAlerts) {
+          await registerForPushNotifications(arrivalAlerts, departureAlerts);
+        }
         setDbInitialized(true);
       } catch (error) {
         logger.error('Error initializing app:', error);
