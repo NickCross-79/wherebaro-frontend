@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { fetchReviews, postReview, updateReview, deleteReview } from '../services/api';
 import { getCurrentUsername } from '../utils/userStorage';
 import { REVIEW_COOLDOWN_MS } from '../constants/items';
+import { isOwnEntry } from '../utils/ownership';
 
 export const useReviewManagement = (itemId, syncReviewCount) => {
   const [reviews, setReviews] = useState([]);
@@ -33,14 +34,16 @@ export const useReviewManagement = (itemId, syncReviewCount) => {
       setIsLoadingReviews(true);
       
       const [reviewsResult] = await Promise.all([
-        fetchReviews(itemId),
+        fetchReviews(itemId, currentUid),
       ]);
 
       const fetchedReviews = reviewsResult.reviews || [];
 
       fetchedReviews.sort((a, b) => {
-        if (a?.uid === currentUid && b?.uid !== currentUid) return -1;
-        if (b?.uid === currentUid && a?.uid !== currentUid) return 1;
+        const aOwn = isOwnEntry(a, currentUid);
+        const bOwn = isOwnEntry(b, currentUid);
+        if (aOwn && !bOwn) return -1;
+        if (bOwn && !aOwn) return 1;
         // Newest first by date+time
         const dateA = `${a?.date || ''}T${a?.time || ''}`;
         const dateB = `${b?.date || ''}T${b?.time || ''}`;
@@ -204,7 +207,7 @@ export const useReviewManagement = (itemId, syncReviewCount) => {
   };
 
   const hasUserReview = (currentUid) => {
-    return reviews.some((review) => review?.uid === currentUid);
+    return reviews.some((review) => isOwnEntry(review, currentUid));
   };
 
   return {

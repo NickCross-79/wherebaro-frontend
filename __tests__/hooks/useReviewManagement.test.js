@@ -91,6 +91,27 @@ describe('useReviewManagement', () => {
       expect(result.current.isLoadingReviews).toBe(false);
     });
 
+    it('passes this device\'s uid and puts the review marked isOwn first', async () => {
+      // What the backend returns now: no uids, just an isOwn flag.
+      const reviews = [
+        { _id: 'a', isOwn: false, content: 'Oldest', date: '2026-01-01', time: '10:00:00' },
+        { _id: 'b', isOwn: true, content: 'Mine', date: '2026-01-02', time: '12:00:00' },
+        { _id: 'c', isOwn: false, content: 'Newest', date: '2026-02-15', time: '08:00:00' },
+      ];
+      fetchReviews.mockResolvedValue({ reviews });
+
+      const { result } = renderHook(() => useReviewManagement('item-1'));
+
+      await act(async () => {
+        await result.current.fetchReviewsAndLikes('me');
+        await flushPromises();
+      });
+
+      expect(fetchReviews).toHaveBeenCalledWith('item-1', 'me');
+      expect(result.current.reviews.map((r) => r._id)).toEqual(['b', 'c', 'a']);
+      expect(result.current.hasUserReview('me')).toBe(true);
+    });
+
     it('sets empty reviews on error', async () => {
       fetchReviews.mockRejectedValue(new Error('fail'));
 

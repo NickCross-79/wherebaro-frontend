@@ -17,14 +17,16 @@ describe('reviewService', () => {
   });
 
   describe('fetchReviews', () => {
-    it('fetches reviews for item ID', async () => {
-      const mockReviews = { reviews: [{ content: 'Great' }] };
-      apiFetch.mockResolvedValue(mockReviews);
+    it('POSTs the item ID and this device\'s uid, keeping the uid out of the URL', async () => {
+      const mockReviews = { reviews: [{ content: 'Great', isOwn: false }] };
+      apiPost.mockResolvedValue(mockReviews);
 
-      const result = await fetchReviews('item-123');
-      expect(apiFetch).toHaveBeenCalledWith(
-        'https://api.test.com/getReviews?item_id=item-123'
-      );
+      const result = await fetchReviews('item-123', 'uid-me');
+      expect(apiPost).toHaveBeenCalledWith('https://api.test.com/getReviews', {
+        item_id: 'item-123',
+        uid: 'uid-me',
+      });
+      expect(apiFetch).not.toHaveBeenCalled();
       expect(result).toEqual(mockReviews);
     });
   });

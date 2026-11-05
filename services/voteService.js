@@ -1,7 +1,7 @@
 /**
  * Vote API service — buy/skip voting for current Baro items.
  */
-import { buildUrl, apiFetch, apiPost } from './apiConfig';
+import { buildUrl, apiPost } from './apiConfig';
 
 const ENDPOINTS = {
   GET_VOTES: buildUrl('getVotes'),
@@ -23,14 +23,17 @@ export const invalidateVotesCache = (itemId) => {
 /**
  * Fetch votes for an item (cached 2 min).
  * @param {string} itemId
+ * @param {string} [uid] - This device's uid, used only to mark its own entries
  * @returns {Promise<{ buyCount: number, skipCount: number, votes: Array }>}
  */
-export const fetchVotes = async (itemId) => {
+export const fetchVotes = async (itemId, uid) => {
   const cached = votesCache.get(itemId);
   if (cached && Date.now() - cached.timestamp < VOTES_CACHE_TTL) {
     return cached.data;
   }
-  const data = await apiFetch(`${ENDPOINTS.GET_VOTES}?item_id=${itemId}`);
+  // POST so this device's uid travels in the body, not the (logged) URL. The
+  // backend uses it only to mark which entries are ours (isOwn).
+  const data = await apiPost(ENDPOINTS.GET_VOTES, { item_id: itemId, uid });
   votesCache.set(itemId, { data, timestamp: Date.now() });
   return data;
 };

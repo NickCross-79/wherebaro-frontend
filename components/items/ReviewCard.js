@@ -5,6 +5,7 @@ import { decodeHtmlEntities } from '../../utils/htmlDecode';
 import { linkify, isSafeUrl } from '../../utils/linkify';
 import { useReviewContext } from '../../contexts/ReviewContext';
 import { colors } from '../../constants/theme';
+import { isOwnEntry } from '../../utils/ownership';
 
 function openReviewLink(url) {
   if (!isSafeUrl(url)) return;
@@ -32,7 +33,7 @@ function ReviewCard({ review, index }) {
   const [measured, setMeasured] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const isOwnReview = review?.uid === currentUid;
+  const isOwnReview = isOwnEntry(review, currentUid);
   const isEditing = isOwnReview && editingReviewKey === getReviewKey(review, index);
 
   return (

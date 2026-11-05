@@ -1,7 +1,7 @@
 /**
  * Review API service
  */
-import { buildUrl, apiFetch, apiPost } from './apiConfig';
+import { buildUrl, apiPost } from './apiConfig';
 
 const ENDPOINTS = {
   GET_REVIEWS: buildUrl('getReviews'),
@@ -27,14 +27,17 @@ export const invalidateReviewsCache = (itemId) => {
  * Fetch reviews for an item.
  * Results are cached in memory for 2 minutes.
  * @param {string} itemId - Item ID
+ * @param {string} [uid] - This device's uid, used only to mark its own entries
  * @returns {Promise<Array>} Array of reviews
  */
-export const fetchReviews = async (itemId) => {
+export const fetchReviews = async (itemId, uid) => {
   const cached = reviewsCache.get(itemId);
   if (cached && Date.now() - cached.timestamp < REVIEWS_CACHE_TTL) {
     return cached.data;
   }
-  const data = await apiFetch(`${ENDPOINTS.GET_REVIEWS}?item_id=${itemId}`);
+  // POST so this device's uid travels in the body, not the (logged) URL. The
+  // backend uses it only to mark which entries are ours (isOwn).
+  const data = await apiPost(ENDPOINTS.GET_REVIEWS, { item_id: itemId, uid });
   reviewsCache.set(itemId, { data, timestamp: Date.now() });
   return data;
 };

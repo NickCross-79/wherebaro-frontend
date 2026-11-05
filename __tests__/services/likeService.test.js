@@ -17,14 +17,16 @@ describe('likeService', () => {
   });
 
   describe('fetchLikes', () => {
-    it('fetches likes for the given item ID', async () => {
-      const mockLikes = { likes: 5, userLiked: true };
-      apiFetch.mockResolvedValue(mockLikes);
+    it('POSTs the item ID and this device\'s uid, keeping the uid out of the URL', async () => {
+      const mockLikes = { likes: [{ isOwn: true }], count: 1 };
+      apiPost.mockResolvedValue(mockLikes);
 
-      const result = await fetchLikes('item-123');
-      expect(apiFetch).toHaveBeenCalledWith(
-        'https://api.test.com/getLikes?item_id=item-123'
-      );
+      const result = await fetchLikes('item-123', 'uid-me');
+      expect(apiPost).toHaveBeenCalledWith('https://api.test.com/getLikes', {
+        item_id: 'item-123',
+        uid: 'uid-me',
+      });
+      expect(apiFetch).not.toHaveBeenCalled();
       expect(result).toEqual(mockLikes);
     });
   });

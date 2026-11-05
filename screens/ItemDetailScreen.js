@@ -23,6 +23,7 @@ import { MARKET_EXCLUDED_ITEMS } from '../constants/items';
 import { ReviewProvider } from '../contexts/ReviewContext';
 import { useUserActions } from '../contexts/UserActionsContext';
 import styles from '../styles/screens/ItemDetailScreen.styles';
+import { isOwnEntry } from '../utils/ownership';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const { item } = route.params;
@@ -301,7 +302,7 @@ export default function ItemDetailScreen({ route, navigation }) {
     const loadLikes = async () => {
       try {
         if (!itemId) return;
-        const likeData = await fetchLikes(itemId);
+        const likeData = await fetchLikes(itemId, CURRENT_UID);
         const likes = Array.isArray(likeData?.likes) ? likeData.likes : [];
         const count = Number.isFinite(likeData?.count) ? likeData.count : likes.length;
 
@@ -312,8 +313,7 @@ export default function ItemDetailScreen({ route, navigation }) {
           return;
         }
 
-        const currentUid = String(CURRENT_UID);
-        const likedByUser = likes.some((like) => String(like?.uid) === currentUid);
+        const likedByUser = likes.some((like) => isOwnEntry(like, CURRENT_UID));
         setUserLiked(likedByUser);
       } catch (error) {
         console.error('Failed to load likes', { itemId, error });

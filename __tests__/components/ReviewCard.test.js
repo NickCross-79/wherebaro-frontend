@@ -113,6 +113,27 @@ describe('ReviewCard', () => {
     expect(defaultContext.saveEditingReview).toHaveBeenCalledWith(0);
   });
 
+  it('treats a review the backend marks isOwn as own, with no uid present', () => {
+    // The backend no longer sends uids; ownership arrives as isOwn.
+    const { uid, ...withoutUid } = defaultReview;
+    renderCard({ ...withoutUid, isOwn: true }, {
+      CURRENT_UID: 'user-abc',
+      editingReviewKey: 'review-1',
+      editingReviewText: 'Updated content',
+    });
+    expect(screen.getByText('Save')).toBeTruthy();
+  });
+
+  it('does not treat a review marked isOwn: false as own', () => {
+    const { uid, ...withoutUid } = defaultReview;
+    renderCard({ ...withoutUid, isOwn: false }, {
+      CURRENT_UID: 'user-abc',
+      editingReviewKey: 'review-1',
+      editingReviewText: 'Updated content',
+    });
+    expect(screen.queryByText('Save')).toBeNull();
+  });
+
   it('renders a URL in content as a pressable link that opens via Linking', () => {
     const spy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     renderCard({ ...defaultReview, content: 'Check https://example.com/page for info' });

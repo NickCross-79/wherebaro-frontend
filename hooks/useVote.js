@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchVotes, voteItem, removeVote } from '../services/api';
 import { useUserActions } from '../contexts/UserActionsContext';
+import { isOwnEntry } from '../utils/ownership';
 
 /**
  * Hook for buy/skip voting on an item.
@@ -40,11 +41,11 @@ export const useVote = (itemId, uid, syncVoteArrays, initialBuy = [], initialSki
 
     const load = async () => {
       try {
-        const data = await fetchVotes(itemId);
+        const data = await fetchVotes(itemId, uid);
         if (cancelled) return;
 
         if (uid && Array.isArray(data.votes)) {
-          const mine = data.votes.find((v) => String(v.uid) === String(uid));
+          const mine = data.votes.find((v) => isOwnEntry(v, uid));
           const voteType = mine ? mine.voteType : null;
           setUserVote(voteType);
           if (voteType) markVoted(itemId, voteType);
