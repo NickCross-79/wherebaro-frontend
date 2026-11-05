@@ -43,7 +43,7 @@ export default {
       url: 'https://u.expo.dev/379c5464-62fb-4458-9164-4b3d78449fcd',
     },
     runtimeVersion: {
-      policy: 'appVersion',
+      policy: 'fingerprint',
     },
     plugins: [
       'expo-sqlite',
